@@ -136,7 +136,8 @@ class IncomingMessageFilter extends Component {
     const selectedCampaigns = this.state.selectedCampaigns.filter(campaign => campaign.key !== campaignId)
     this.setState(
       {
-        selectedCampaigns
+        selectedCampaigns,
+        campaignSearchText: ''
       }
     )
 

@@ -1,6 +1,6 @@
 import gql from 'graphql-tag'
 
-import { schema as userSchema, resolvers as userResolvers, buildUserOrganizationQuery } from './user'
+import { schema as userSchema } from './user'
 import {
   schema as conversationSchema,
   getConversations,

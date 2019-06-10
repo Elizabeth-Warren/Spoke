@@ -9,7 +9,7 @@ const oldest = created
 const newest = '"user"."created_at" desc'
 
 function buildSelect(sortBy) {
-  const userStar = '"user".*' 
+  const userStar = '"user".*'
 
   let fragmentArray = undefined
 
@@ -58,7 +58,8 @@ function buildOrderBy(query, sortBy) {
   return query.orderByRaw(fragmentArray.join(', '))
 }
 
-export function buildUserOrganizationQuery(queryParam, organizationId, role, campaignId, offset) {
+const addLeftOuterJoin = (query) => query.leftOuterJoin('assignment', 'assignment.user_id', 'user.id')
+export function buildUserOrganizationQuery(queryParam, organizationId, role, campaignsFilter, offset) {
   const roleFilter = role ? { role } : {}
 
   let query = queryParam
@@ -68,21 +69,27 @@ export function buildUserOrganizationQuery(queryParam, organizationId, role, cam
     .whereRaw('"user_organization"."organization_id" = ?', organizationId)
     .distinct()
 
-  if (campaignId) {
-    query = query.leftOuterJoin('assignment', 'assignment.user_id', 'user.id')
-    .where({ 'assignment.campaign_id': campaignId })
+  if (campaignsFilter) {
+    if (campaignsFilter.campaignId) {
+      query = addLeftOuterJoin(query)
+      query = query.where({ 'assignment.campaign_id': campaignsFilter.campaignId })
+    } else if (campaignsFilter.campaignIds && campaignsFilter.campaignIds.length > 0) {
+      const questionMarks = Array(campaignsFilter.campaignIds.length).fill('?').join(',')
+      query = addLeftOuterJoin(query)
+      query = query.whereRaw(`"assignment"."campaign_id" in (${questionMarks})`, campaignsFilter.campaignIds)
+    }
   }
 
   return query
 }
 
-export function buildSortedUserOrganizationQuery(organizationId, role, campaignId, sortBy) {
-  const query = buildUserOrganizationQuery(buildSelect(sortBy), organizationId, role, campaignId)
+export function buildSortedUserOrganizationQuery(organizationId, role, campaignsFilter, sortBy) {
+  const query = buildUserOrganizationQuery(buildSelect(sortBy), organizationId, role, campaignsFilter)
   return buildOrderBy(query, sortBy)
 }
 
 function buildUsersQuery(organizationId, campaignsFilter, role, sortBy) {
-  return buildSortedUserOrganizationQuery(organizationId, role, campaignsFilter && campaignsFilter.campaignId, sortBy)
+  return buildSortedUserOrganizationQuery(organizationId, role, campaignsFilter, sortBy)
 }
 
 export async function getUsers(organizationId, cursor, campaignsFilter, role, sortBy) {
