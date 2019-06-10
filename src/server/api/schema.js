@@ -1209,7 +1209,7 @@ const rootResolvers = {
       const assignment = await loaders.assignment.load(id)
       const campaign = await loaders.campaign.load(assignment.campaign_id)
       if (assignment.user_id == user.id) {
-        await accessRequired(user, campaign.organization_id, 'TEXTER', /* allowSuperadmin=*/ true)
+        await accessRequired(user, campaign.organization_id, 'SUSPENDED', /* allowSuperadmin=*/ true)
       } else {
         await accessRequired(
           user,
@@ -1237,7 +1237,7 @@ const rootResolvers = {
       authRequired(user)
       const contact = await loaders.campaignContact.load(id)
       const campaign = await loaders.campaign.load(contact.campaign_id)
-      await accessRequired(user, campaign.organization_id, 'TEXTER', /* allowSuperadmin=*/ true)
+      await accessRequired(user, campaign.organization_id, 'SUSPENDED', /* allowSuperadmin=*/ true)
       return contact
     },
     organizations: async (_, { id }, { user }) => {
