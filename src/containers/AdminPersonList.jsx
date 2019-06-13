@@ -21,6 +21,8 @@ import { dataTest } from '../lib/attributes'
 import LoadingIndicator from '../components/LoadingIndicator'
 import PaginatedUsersRetriever from './PaginatedUsersRetriever'
 
+import PeopleList from '../components/PeopleList'
+
 class AdminPersonList extends React.Component {
 
   constructor(props) {
@@ -36,7 +38,12 @@ class AdminPersonList extends React.Component {
       passwordResetHash: '',
       sortBy: this.FIRST_NAME_SORT.value,
       people: [],
-      forceUpdateTime: Date.now()
+      forceUpdateTime: Date.now(),
+
+      page: 0,
+      pageSize: 10,
+      needsRender: false,
+      utc: Date.now().toString(),
     }
   }
 
@@ -217,23 +224,37 @@ class AdminPersonList extends React.Component {
       </Table>
     )
   }
+  handlePageChange = async (page) => {
+    await this.setState({
+      page,
+      needsRender: true
+    })
+  }
+
+  handlePageSizeChange = async (pageSize) => {
+    await this.setState({ needsRender: true, pageSize })
+  }
 
   render() {
     const { organizationData } = this.props
 
+    const cursor = {
+      offset: this.state.page * this.state.pageSize,
+      limit: this.state.pageSize
+    }
+
     return (
       <div>
-        <PaginatedUsersRetriever
-          campaignsFilter={{ campaignId: this.props.location.query.campaignId && parseInt(this.props.location.query.campaignId, 10) }}
+        <PeopleList
           organizationId={this.props.params.organizationId}
-          sortBy={this.state.sortBy}
-          onUsersReceived={this.handlePeopleReceived}
-          pageSize={1000}
-          forceUpdateTime={this.state.forceUpdateTime}
+          cursor={cursor}
+          campaignsFilter={{ campaignId: this.props.location.query.campaignId && parseInt(this.props.location.query.campaignId, 10) }}
+          utc={this.state.utc}
+          onPageChanged={this.handlePageChange}
+          onPageSizeChanged={this.handlePageSizeChange}
         />
         {this.renderCampaignList()}
         {this.renderSortBy()}
-        {this.renderTexters()}
         <FloatingActionButton
           {...dataTest('addPerson')}
           style={theme.components.floatingButton}
