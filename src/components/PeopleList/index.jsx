@@ -1,7 +1,6 @@
 import React, { Component } from 'react'
 import type from 'prop-types'
 import FlatButton from 'material-ui/FlatButton'
-import ActionOpenInNew from 'material-ui/svg-icons/action/open-in-new'
 import loadData from '../../containers/hoc/load-data'
 import { withRouter } from 'react-router'
 import gql from 'graphql-tag'
@@ -102,13 +101,13 @@ export class PeopleList extends Component {
   ]
 
   editUser(userId) {
-    this.setState({ 
+    this.setState({
       userEdit: userId
     })
   }
 
   updateUser() {
-    this.setState({ 
+    this.setState({
       userEdit: false,
       forceUpdateTime: Date.now()
     })
@@ -123,50 +122,6 @@ export class PeopleList extends Component {
         .resetUserPassword(this.props.organizationId, userId)
       this.setState({ passwordResetHash: res.data.resetUserPassword })
     }
-  }
-
-  renderRolesDropdown = (columnKey, row) => {
-    const { roles, texterId } = row
-    const { currentUser } = this.props
-    return (
-      <DropDownMenu
-        value={getHighestRole(roles)}
-        disabled={texterId === currentUser.id || getHighestRole(roles) === 'OWNER' && getHighestRole(currentUser.roles) !== 'OWNER'}
-        onChange={(event, index, value) => this.handleChange(texterId, value)}
-      >
-        {ROLE_HIERARCHY.map((option) => (
-          <MenuItem
-            key={texterId + '_' + option}
-            value={option}
-            disabled={option === 'OWNER' && getHighestRole(currentUser.roles) !== 'OWNER'}
-            primaryText={`${option.charAt(0).toUpperCase()}${option.substring(1).toLowerCase()}`}
-          />
-        ))}
-      </DropDownMenu>
-    )
-  }
-
-  renderEditButton = (columnKey, row) => {
-    const { texterId } = row
-    return (
-      <FlatButton
-        {...dataTest('editPerson')}
-        label='Edit'
-        onTouchTap={() => { this.editUser(texterId) }}
-      />
-    )
-  }
-
-  renderChangePasswordButton = (columnKey, row) => {
-    const { texterId } = row
-    const { currentUser } = this.props
-    return (
-      <FlatButton
-        label='Reset Password'
-        disabled={currentUser.id === texterId}
-        onTouchTap={() => { this.resetPassword(texterId) }}
-      />
-    )
   }
 
   changePage = (pageDelta, pageSize) => {
@@ -218,7 +173,7 @@ export class PeopleList extends Component {
   }
 
   requestUserEditClose = () => {
-    this.setState({userEdit: false})
+    this.setState({ userEdit: false })
   }
 
   handleInviteTexterOpen() {
@@ -226,10 +181,54 @@ export class PeopleList extends Component {
   }
 
   handleInviteTexterClose() {
-    this.setState({ open: false})
+    this.setState({ open: false })
   }
   handlePasswordResetClose() {
     this.setState({ passwordResetHash: '' })
+  }
+
+  renderRolesDropdown = (columnKey, row) => {
+    const { roles, texterId } = row
+    const { currentUser } = this.props
+    return (
+      <DropDownMenu
+        value={getHighestRole(roles)}
+        disabled={texterId === currentUser.id || getHighestRole(roles) === 'OWNER' && getHighestRole(currentUser.roles) !== 'OWNER'}
+        onChange={(event, index, value) => this.handleChange(texterId, value)}
+      >
+        {ROLE_HIERARCHY.map((option) => (
+          <MenuItem
+            key={texterId + '_' + option}
+            value={option}
+            disabled={option === 'OWNER' && getHighestRole(currentUser.roles) !== 'OWNER'}
+            primaryText={`${option.charAt(0).toUpperCase()}${option.substring(1).toLowerCase()}`}
+          />
+        ))}
+      </DropDownMenu>
+    )
+  }
+
+  renderEditButton = (columnKey, row) => {
+    const { texterId } = row
+    return (
+      <FlatButton
+        {...dataTest('editPerson')}
+        label='Edit'
+        onTouchTap={() => { this.editUser(texterId) }}
+      />
+    )
+  }
+
+  renderChangePasswordButton = (columnKey, row) => {
+    const { texterId } = row
+    const { currentUser } = this.props
+    return (
+      <FlatButton
+        label='Reset Password'
+        disabled={currentUser.id === texterId}
+        onTouchTap={() => { this.resetPassword(texterId) }}
+      />
+    )
   }
 
   render() {
@@ -263,21 +262,21 @@ export class PeopleList extends Component {
           onPreviousPageClick={this.handlePreviousPageClick}
           onRowSizeChange={this.handleRowSizeChanged}
         />
-        {this.props.organizationId && ( 
+        {this.props.organizationId && (
           <div>
-        <UserEditDialog
-          open={!!this.state.userEdit}
-          organizationId={organizationId}
-          userId={this.state.userEdit}
-          updateUser={this.updateUser}
-          requestClose={this.requestUserEditClose}
-        />
-        <ResetPasswordDialog
-          open={!!this.state.passwordResetHash}
-          requestClose={this.handlePasswordResetClose}
-          passwordResetHash={this.state.passwordResetHash}
-        />
-        </div>
+            <UserEditDialog
+              open={!!this.state.userEdit}
+              organizationId={organizationId}
+              userId={this.state.userEdit}
+              updateUser={this.updateUser}
+              requestClose={this.requestUserEditClose}
+            />
+            <ResetPasswordDialog
+              open={!!this.state.passwordResetHash}
+              requestClose={this.handlePasswordResetClose}
+              passwordResetHash={this.state.passwordResetHash}
+            />
+          </div>
         )}
       </div>
     )
@@ -291,7 +290,8 @@ PeopleList.propTypes = {
   organizationId: type.string,
   campaignsFilter: type.object,
   utc: type.string,
-  currentUser: type.object
+  currentUser: type.object,
+  sortBy: type.string
 }
 
 const organizationFragment = `
@@ -368,7 +368,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
       cursor: { offset: 0, limit: INITIAL_PAGE_SIZE },
       organizationId: ownProps.organizationId,
       campaignsFilter: ownProps.campaignsFilter,
-      sortBy: ownProps.sortBy || 'FIRST_NAME',
+      sortBy: ownProps.sortBy || 'FIRST_NAME'
     },
     forceFetch: true
   }

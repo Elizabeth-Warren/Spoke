@@ -13,7 +13,14 @@ import loadData from './hoc/load-data'
 import gql from 'graphql-tag'
 import { dataTest } from '../lib/attributes'
 import PeopleList from '../components/PeopleList'
+import { StyleSheet, css } from 'aphrodite'
+import Search from '../components/Search'
 
+const styles = StyleSheet.create({
+  settings: {
+    display: 'flex'
+  }
+})
 class AdminPersonList extends React.Component {
 
   constructor(props) {
@@ -25,7 +32,8 @@ class AdminPersonList extends React.Component {
       open: false,
       userEdit: false,
       passwordResetHash: '',
-      sortBy: this.FIRST_NAME_SORT.value
+      sortBy: this.FIRST_NAME_SORT.value,
+      searchString: ''
     }
   }
 
@@ -78,6 +86,11 @@ class AdminPersonList extends React.Component {
     this.setState({ sortBy })
   }
 
+  handleSearchRequested = (searchString) => {
+    this.setState({ searchString })
+    console.log(searchString)
+  }
+
   renderCampaignList = () => {
     const { organizationData: { organization } } = this.props
     const campaigns = organization ? organization.campaigns : { campaigns: [] }
@@ -120,13 +133,20 @@ class AdminPersonList extends React.Component {
 
     return (
       <div>
-        {this.renderCampaignList()}
-        {this.renderSortBy()}
+        <div className={css(styles.settings)}>
+          {this.renderCampaignList()}
+          {this.renderSortBy()}
+          <Search
+            onSearchRequested={this.handleSearchRequested}
+            searchString={this.state.searchString}
+          />
+        </div>
         <PeopleList
           organizationId={organizationData.organization && organizationData.organization.id}
           campaignsFilter={{ campaignId: this.props.location.query.campaignId && parseInt(this.props.location.query.campaignId, 10) }}
           utc={this.state.utc}
           currentUser={currentUser}
+          sortBy={this.state.sortBy}
         />
         <FloatingActionButton
           {...dataTest('addPerson')}
