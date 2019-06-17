@@ -24,7 +24,7 @@ const prepareDataTableData = (users) => users.map(user => ({
 })
 )
 
-const PEOPLE_PAGE_ROW_SIZES = JSON.parse((typeof window !== 'undefined' && window.PEOPLE_PAGE_ROW_SIZES) || '[]')
+const PEOPLE_PAGE_ROW_SIZES = (typeof window !== 'undefined' && window.PEOPLE_PAGE_ROW_SIZES && JSON.parse(window.PEOPLE_PAGE_ROW_SIZES)) || [100, 200, 500, 1000]
 const INITIAL_PAGE_SIZE = PEOPLE_PAGE_ROW_SIZES[0]
 
 export class PeopleList extends Component {
@@ -124,10 +124,11 @@ export class PeopleList extends Component {
   }
 
   changePage = (pageDelta, pageSize) => {
-    const { offset, total } = this.props.users.people.pageInfo
-    const currentPage = Math.floor(offset / pageSize)
-    const maxPage = Math.floor(total / pageSize) 
-    const newPage = Math.min(maxPage, currentPage + pageDelta)
+    const { limit, offset, total } = this.props.users.people.pageInfo
+    const currentPage = Math.floor(offset / limit)
+    const pageSizeAdjustedCurrentPage = Math.floor(currentPage * limit / pageSize)
+    const maxPage = Math.floor(total / pageSize)
+    const newPage = Math.min(maxPage, pageSizeAdjustedCurrentPage + pageDelta)
     this.props.users.fetchMore({
       variables: {
         cursor: {
