@@ -88,9 +88,9 @@ class AdminPersonList extends React.Component {
 
   handleSearchRequested = (searchString) => {
     this.setState({ searchString })
-    console.log(searchString)
   }
 
+  
   renderCampaignList = () => {
     const { organizationData: { organization } } = this.props
     const campaigns = organization ? organization.campaigns : { campaigns: [] }
@@ -139,6 +139,7 @@ class AdminPersonList extends React.Component {
           <Search
             onSearchRequested={this.handleSearchRequested}
             searchString={this.state.searchString}
+            onCancelSearch={this.handleCancelSearch}
           />
         </div>
         <PeopleList
@@ -147,6 +148,7 @@ class AdminPersonList extends React.Component {
           utc={this.state.utc}
           currentUser={currentUser}
           sortBy={this.state.sortBy}
+          searchString={this.state.searchString}
         />
         <FloatingActionButton
           {...dataTest('addPerson')}

@@ -59,7 +59,7 @@ function buildOrderBy(query, sortBy) {
 }
 
 const addLeftOuterJoin = (query) => query.leftOuterJoin('assignment', 'assignment.user_id', 'user.id')
-export function buildUserOrganizationQuery(queryParam, organizationId, role, campaignsFilter, offset) {
+export function buildUserOrganizationQuery(queryParam, organizationId, role, campaignsFilter, filterString) {
   const roleFilter = role ? { role } : {}
 
   let query = queryParam
@@ -68,6 +68,12 @@ export function buildUserOrganizationQuery(queryParam, organizationId, role, cam
     .where(roleFilter)
     .whereRaw('"user_organization"."organization_id" = ?', organizationId)
     .distinct()
+
+  if (filterString) {
+    const filterStringWithPercents = ('%' + filterString + '%').toLocaleLowerCase()
+    query = query.andWhere(r.knex.raw('lower(first_name) like ? OR lower(last_name) like ? OR lower(email) like ?',
+      [filterStringWithPercents, filterStringWithPercents, filterStringWithPercents]))
+  }
 
   if (campaignsFilter) {
     if (campaignsFilter.campaignId) {
@@ -83,17 +89,17 @@ export function buildUserOrganizationQuery(queryParam, organizationId, role, cam
   return query
 }
 
-export function buildSortedUserOrganizationQuery(organizationId, role, campaignsFilter, sortBy) {
-  const query = buildUserOrganizationQuery(buildSelect(sortBy), organizationId, role, campaignsFilter)
+export function buildSortedUserOrganizationQuery(organizationId, role, campaignsFilter, sortBy, filterString) {
+  const query = buildUserOrganizationQuery(buildSelect(sortBy), organizationId, role, campaignsFilter, filterString)
   return buildOrderBy(query, sortBy)
 }
 
-function buildUsersQuery(organizationId, campaignsFilter, role, sortBy) {
-  return buildSortedUserOrganizationQuery(organizationId, role, campaignsFilter, sortBy)
+function buildUsersQuery(organizationId, campaignsFilter, role, sortBy, filterString) {
+  return buildSortedUserOrganizationQuery(organizationId, role, campaignsFilter, sortBy, filterString)
 }
 
-export async function getUsers(organizationId, cursor, campaignsFilter, role, sortBy) {
-  let usersQuery = buildUsersQuery(organizationId, campaignsFilter, role, sortBy)
+export async function getUsers(organizationId, cursor, campaignsFilter, role, sortBy, filterString) {
+  let usersQuery = buildUsersQuery(organizationId, campaignsFilter, role, sortBy, filterString)
 
   if (cursor) {
     usersQuery = usersQuery.limit(cursor.limit).offset(cursor.offset)

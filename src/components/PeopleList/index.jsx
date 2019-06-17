@@ -16,8 +16,6 @@ import { dataTest } from '../../lib/attributes'
 import PeopleIcon from 'material-ui/svg-icons/social/people'
 import Empty from '../../components/Empty'
 
-const INITIAL_PAGE_SIZE = 10
-
 const prepareDataTableData = (users) => users.map(user => ({
   texterId: user.id,
   texter: user.displayName,
@@ -26,9 +24,13 @@ const prepareDataTableData = (users) => users.map(user => ({
 })
 )
 
+const PEOPLE_PAGE_ROW_SIZES = JSON.parse((typeof window != 'undefined' && window.PEOPLE_PAGE_ROW_SIZES) || '[]')
+const INITIAL_PAGE_SIZE = PEOPLE_PAGE_ROW_SIZES[0]
+
 export class PeopleList extends Component {
   constructor(props) {
     super(props)
+
 
     this.state = {
       open: false,
@@ -261,6 +263,7 @@ export class PeopleList extends Component {
           onNextPageClick={this.handleNextPageClick}
           onPreviousPageClick={this.handlePreviousPageClick}
           onRowSizeChange={this.handleRowSizeChanged}
+          rowSizeList={PEOPLE_PAGE_ROW_SIZES.sort((a, b) => a - b)}
         />
         {this.props.organizationId && (
           <div>
@@ -291,7 +294,8 @@ PeopleList.propTypes = {
   campaignsFilter: type.object,
   utc: type.string,
   currentUser: type.object,
-  sortBy: type.string
+  sortBy: type.string,
+  searchString: type.string
 }
 
 const organizationFragment = `
@@ -304,7 +308,7 @@ const organizationFragment = `
   }
 `
 
-const mapMutationsToProps = ({ ownProps }) => ({
+const mapMutationsToProps = () => ({
   editOrganizationRoles: (organizationId, campaignId, userId, roles) => ({
     mutation: gql`
       mutation editOrganizationRoles($organizationId: String!, $userId: String!, $roles: [String], $campaignId: String) {
@@ -341,12 +345,14 @@ const mapQueriesToProps = ({ ownProps }) => ({
         $cursor: OffsetLimitCursor
         $campaignsFilter: CampaignsFilter
         $sortBy: SortPeopleBy
+        $filterString: String
         ) {
             people(
                 organizationId: $organizationId
                 cursor: $cursor
                 campaignsFilter: $campaignsFilter
                 sortBy: $sortBy
+                filterString: $filterString
             ) {
                 ...on PaginatedUsers {
                     pageInfo {
@@ -368,7 +374,8 @@ const mapQueriesToProps = ({ ownProps }) => ({
       cursor: { offset: 0, limit: INITIAL_PAGE_SIZE },
       organizationId: ownProps.organizationId,
       campaignsFilter: ownProps.campaignsFilter,
-      sortBy: ownProps.sortBy || 'FIRST_NAME'
+      sortBy: ownProps.sortBy || 'FIRST_NAME',
+      filterString: ownProps.searchString
     },
     forceFetch: true
   }

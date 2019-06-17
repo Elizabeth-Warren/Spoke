@@ -11,6 +11,10 @@ class Search extends React.Component {
   }
 
   handleSearchStringChanged = (searchString) => {
+    const trimmedSearchString = searchString.trim()
+    if (!!this.state.searchString && !trimmedSearchString) {
+      this.props.onSearchRequested(undefined)
+    }
     this.setState({ searchString })
   }
 
@@ -22,12 +26,13 @@ class Search extends React.Component {
     <SearchBar
       onRequestSearch={this.handleSearchRequested}
       onChange={this.handleSearchStringChanged}
+      value={this.props.searchString}
     />
   )
 }
 
 Search.propTypes = {
-  searchString: PropTypes.string.isRequired,
+  searchString: PropTypes.string,
   onSearchRequested: PropTypes.func.isRequired
 }
 
