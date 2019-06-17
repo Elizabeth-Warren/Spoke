@@ -24,7 +24,7 @@ const prepareDataTableData = (users) => users.map(user => ({
 })
 )
 
-const PEOPLE_PAGE_ROW_SIZES = JSON.parse((typeof window != 'undefined' && window.PEOPLE_PAGE_ROW_SIZES) || '[]')
+const PEOPLE_PAGE_ROW_SIZES = JSON.parse((typeof window !== 'undefined' && window.PEOPLE_PAGE_ROW_SIZES) || '[]')
 const INITIAL_PAGE_SIZE = PEOPLE_PAGE_ROW_SIZES[0]
 
 export class PeopleList extends Component {
@@ -46,9 +46,6 @@ export class PeopleList extends Component {
     this.requestUserEditClose = this.requestUserEditClose.bind(this)
     this.updateUser = this.updateUser.bind(this)
     this.handlePasswordResetClose = this.handlePasswordResetClose.bind(this)
-  }
-
-  componentDidUpdate = (prevProps) => {
   }
 
   prepareTableColumns = () => [
@@ -127,9 +124,9 @@ export class PeopleList extends Component {
   }
 
   changePage = (pageDelta, pageSize) => {
-    const { limit, offset, total } = this.props.users.people.pageInfo
-    const currentPage = Math.floor(offset / limit)
-    const maxPage = Math.floor(total / limit)
+    const { offset, total } = this.props.users.people.pageInfo
+    const currentPage = Math.floor(offset / pageSize)
+    const maxPage = Math.floor(total / pageSize) 
     const newPage = Math.min(maxPage, currentPage + pageDelta)
     this.props.users.fetchMore({
       variables: {
@@ -163,7 +160,7 @@ export class PeopleList extends Component {
   }
 
   handleRowSizeChanged = (index, value) => {
-    this.changePage(1, value)
+    this.changePage(0, value)
     this.setState({ pageSize: value })
   }
 
