@@ -1288,9 +1288,9 @@ const rootResolvers = {
       await accessRequired(user, organizationId, 'SUPERVOLUNTEER')
       return getCampaigns(organizationId, cursor, campaignsFilter)
     },
-    people: async (_, { organizationId, cursor, campaignsFilter, role, sortBy }, { user }) => {
+    people: async (_, { organizationId, cursor, campaignsFilter, role, sortBy, filterString }, { user }) => {
       await accessRequired(user, organizationId, 'SUPERVOLUNTEER')
-      return getUsers(organizationId, cursor, campaignsFilter, role, sortBy)
+      return getUsers(organizationId, cursor, campaignsFilter, role, sortBy, filterString)
     }
   }
 }
