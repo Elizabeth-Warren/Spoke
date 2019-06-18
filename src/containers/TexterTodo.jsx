@@ -187,6 +187,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
     }`,
     variables: {
       contactsFilter: {
+        contactId: ownProps.params.contactId,
         messageStatus: ownProps.messageStatus,
         isOptedOut: false,
         validTimezone: true
