@@ -39,6 +39,7 @@ import {
 import {
   accessRequired,
   assignmentRequired,
+  assignmentOrSupervolunteerRequired,
   authRequired,
   superAdminRequired
 } from './errors'
@@ -778,8 +779,8 @@ const rootMutations = {
       contact.message_status = messageStatus
       return await contact.save()
     },
-    getAssignmentContacts: async (_, { assignmentId, contactIds, findNew }, { loaders, user }) => {
-      await assignmentRequired(user, assignmentId)
+    getAssignmentContacts: async (_, { organizationId, assignmentId, contactIds, findNew }, { loaders, user }) => {
+      await assignmentOrSupervolunteerRequired(organizationId, user, assignmentId)
       const contacts = contactIds.map(async (contactId) => {
         const contact = await loaders.campaignContact.load(contactId)
         if (contact && contact.assignment_id === Number(assignmentId)) {
@@ -1208,7 +1209,7 @@ const rootResolvers = {
       authRequired(user)
       const assignment = await loaders.assignment.load(id)
       const campaign = await loaders.campaign.load(assignment.campaign_id)
-      if (assignment.user_id == user.id) {
+      if (assignment.user_id === user.id) {
         await accessRequired(user, campaign.organization_id, 'SUSPENDED', /* allowSuperadmin=*/ true)
       } else {
         await accessRequired(

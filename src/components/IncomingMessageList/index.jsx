@@ -7,7 +7,7 @@ import { withRouter } from 'react-router'
 import gql from 'graphql-tag'
 import LoadingIndicator from '../../components/LoadingIndicator'
 import DataTables from 'material-ui-datatables'
-import ConversationPreviewModal from './ConversationPreviewModal';
+import ConversationPreviewModal from './ConversationPreviewModal'
 
 import { MESSAGE_STATUSES } from '../../components/IncomingMessageFilter'
 
@@ -16,7 +16,9 @@ const prepareDataTableData = (conversations) => conversations.map(conversation =
   texter: conversation.texter.displayName,
   to: conversation.contact.firstName + ' ' + conversation.contact.lastName + (conversation.contact.optOut.cell ? '⛔️' : ''),
   status: conversation.contact.messageStatus,
-  messages: conversation.contact.messages
+  messages: conversation.contact.messages,
+  assignmentId: conversation.contact.assignmentId,
+  campaignContactId: conversation.contact.id
 })
 )
 
@@ -223,6 +225,7 @@ export class IncomingMessageList extends Component {
           selectedRows={clearSelectedMessages ? null : this.state.selectedRows}
         />
         <ConversationPreviewModal
+          organizationId={this.props.organizationId}
           conversation={this.state.activeConversation}
           onRequestClose={this.handleCloseConversation}
         />

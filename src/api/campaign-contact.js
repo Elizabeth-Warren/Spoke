@@ -1,5 +1,6 @@
 export const schema = `
   input ContactsFilter {
+    contactId: ID
     messageStatus: String
     isOptedOut: Boolean
     validTimezone: Boolean
