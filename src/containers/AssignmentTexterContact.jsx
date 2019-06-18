@@ -186,6 +186,7 @@ export class AssignmentTexterContact extends React.Component {
     const availableSteps = this.getAvailableInteractionSteps(questionResponses)
 
     let disabled = false
+    let notSendableButForceDisplay = false
     let disabledText = 'Sending...'
     let snackbarOnTouchTap = null
     let snackbarActionTitle = null
@@ -198,16 +199,25 @@ export class AssignmentTexterContact extends React.Component {
       snackbarOnTouchTap = this.goBackToTodos
       snackbarActionTitle = 'Back to Todos'
     } else if (contact.optOut) {
-      disabledText = 'Skipping opt-out...'
-      disabled = true
+      if (!this.props.forceDisabledDisplayIfNotSendable) {
+        disabledText = 'Skipping opt-out...'
+        disabled = true
+      } else {
+        notSendableButForceDisplay = true
+      }
     } else if (!this.isContactBetweenTextingHours(contact)) {
-      disabledText = 'Refreshing ...'
-      disabled = true
+      if (!this.props.forceDisabledDisplayIfNotSendable) {
+        disabledText = 'Refreshing ...'
+        disabled = true
+      } else {
+        notSendableButForceDisplay = true
+      }
     }
 
     this.state = {
       disabled,
       disabledText,
+      notSendableButForceDisplay,
       // this prevents jitter by not showing the optout/skip buttons right after sending
       justSentNew: false,
       questionResponses,
@@ -227,7 +237,11 @@ export class AssignmentTexterContact extends React.Component {
   componentDidMount() {
     const { contact } = this.props
     if (contact.optOut || !this.isContactBetweenTextingHours(contact)) {
-      this.skipContact()
+      if (!this.props.forceDisabledDisplayIfNotSendable) {
+        this.skipContact()
+      } else {
+        this.setState({notSendableButForceDisplay: true })
+      }
     }
 
     const node = this.refs.messageScrollContainer
@@ -625,7 +639,7 @@ export class AssignmentTexterContact extends React.Component {
               <SendButton
                 threeClickEnabled={campaign.organization.threeClickEnabled}
                 onFinalTouchTap={this.handleClickSendMessageButton}
-                disabled={this.state.disabled}
+                disabled={this.state.disabled || this.state.notSendableButForceDisplay}
               />
               {window.NOT_IN_USA && window.ALLOW_SEND_ALL && window.BULK_SEND_CHUNK_SIZE ? <BulkSendButton
                 assignment={assignment}
@@ -686,7 +700,7 @@ export class AssignmentTexterContact extends React.Component {
               <SendButton
                 threeClickEnabled={campaign.organization.threeClickEnabled}
                 onFinalTouchTap={this.handleClickSendMessageButton}
-                disabled={this.state.disabled}
+                disabled={this.state.disabled || this.state.notSendableButForceDisplay}
               />
               {this.renderNeedsResponseToggleButton(contact)}
               <RaisedButton
@@ -788,6 +802,7 @@ export class AssignmentTexterContact extends React.Component {
                 style={inlineStyles.dialogButton}
                 component={GSSubmitButton}
                 label={this.state.optOutMessageText.length ? 'Send' : 'Opt Out without Text'}
+                disabled={this.state.disabled || this.state.notSendableButForceDisplay}
               />
             </div>
           </GSForm>
@@ -804,7 +819,7 @@ export class AssignmentTexterContact extends React.Component {
         <SendButtonArrow
           threeClickEnabled={campaign.organization.threeClickEnabled}
           onFinalTouchTap={this.handleClickSendMessageButton}
-          disabled={this.state.disabled}
+          disabled={this.state.disabled || this.state.notSendableButForceDisplay}
         />
       )
     }
@@ -898,7 +913,8 @@ AssignmentTexterContact.propTypes = {
   router: PropTypes.object,
   mutations: PropTypes.object,
   refreshData: PropTypes.func,
-  onExitTexter: PropTypes.func
+  onExitTexter: PropTypes.func,
+  forceDisabledDisplayIfNotSendable: PropTypes.bool
 }
 
 const mapMutationsToProps = () => ({

@@ -73,7 +73,7 @@ export default function makeRoutes(requireAuth = () => { }) {
                 <Route
                   path=':contactId'
                   components={{
-                    fullScreen: (props) => <TexterTodo {...props} />
+                    fullScreen: (props) => <TexterTodo {...props} reviewMode />
                   }}
                 />
               </Route>

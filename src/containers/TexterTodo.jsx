@@ -116,6 +116,7 @@ export class TexterTodo extends React.Component {
         getNewContacts={this.getNewContacts}
         onRefreshAssignmentContacts={this.refreshAssignmentContacts}
         organizationId={this.props.params.organizationId}
+        reviewMode={this.props.reviewMode}
       />
     )
   }
@@ -126,7 +127,8 @@ TexterTodo.propTypes = {
   params: PropTypes.object,
   data: PropTypes.object,
   mutations: PropTypes.object,
-  router: PropTypes.object
+  router: PropTypes.object,
+  reviewMode: PropTypes.bool
 }
 
 const mapQueriesToProps = ({ ownProps }) => ({
@@ -220,13 +222,14 @@ const mapMutationsToProps = ({ ownProps }) => ({
   }),
   getAssignmentContacts: (contactIds, findNew) => ({
     mutation: gql`
-      mutation getAssignmentContacts($assignmentId: String!, $contactIds: [String]!, $findNew: Boolean) {
-        getAssignmentContacts(assignmentId: $assignmentId, contactIds: $contactIds, findNew: $findNew) {
+      mutation getAssignmentContacts($organizationId: String!, $assignmentId: String!, $contactIds: [String]!, $findNew: Boolean) {
+        getAssignmentContacts(organizationId: $organizationId, assignmentId: $assignmentId, contactIds: $contactIds, findNew: $findNew) {
           ${contactDataFragment}
         }
       }
     `,
     variables: {
+      organizationId: ownProps.params.organizationId,
       assignmentId: ownProps.params.assignmentId,
       contactIds,
       findNew: !!findNew

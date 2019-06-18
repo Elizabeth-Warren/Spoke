@@ -9,6 +9,7 @@ import LoadingIndicator from './LoadingIndicator'
 import { StyleSheet, css } from 'aphrodite'
 import { withRouter } from 'react-router'
 import Check from 'material-ui/svg-icons/action/check-circle'
+import Lock from 'material-ui/svg-icons/action/lock-outline'
 import Empty from '../components/Empty'
 import RaisedButton from 'material-ui/RaisedButton'
 
@@ -162,6 +163,10 @@ export class AssignmentTexter extends React.Component {
       console.log('getContactData length', newIndex, getIds.length)
       this.setState({ loading: true })
       const contactData = await this.props.loadContacts(getIds)
+      if (this.props.reviewMode && contactData.errors) {
+        this.setState({ contactDataErrors: contactData.errors })
+      }
+
       const { data: { getAssignmentContacts } } = contactData
       if (getAssignmentContacts) {
         const newContactData = {}
@@ -176,6 +181,7 @@ export class AssignmentTexter extends React.Component {
         })
         console.log('getContactData results<new data>', newContactData, getAssignmentContacts)
         this.setState({
+          contactDataErrors: undefined,
           loading: false,
           contactCache: { ...this.state.contactCache,
                           ...newContactData } })
@@ -335,6 +341,10 @@ export class AssignmentTexter extends React.Component {
     }
     const contactData = this.state.contactCache[contact.id]
     if (!contactData) {
+      if (this.props.reviewMode && this.state.contactDataErrors) {
+        console.log('REVIEW MODE + CONTACT DATA ERRORS ' + this.state.contactDataErrors)
+        return this.renderNotAuthorized()
+      }
       const self = this
       console.log('NO CONTACT DATA <curInd><ctct><reloadDelay><curcontacts>', self.state.currentContactIndex,
                   contact, self.state.reloadDelay, this.props.contacts)
@@ -386,9 +396,26 @@ export class AssignmentTexter extends React.Component {
         onFinishContact={this.handleFinishContact}
         refreshData={this.props.refreshData}
         onExitTexter={this.handleExitTexter}
+        forceDisabledDisplayIfNotSendable={this.props.reviewMode}
       />
     )
   }
+
+  renderNotAuthorized() {
+    return (
+      <div>
+        <Empty
+          title='You are not allowed to see that conversation.'
+          icon={<Lock />}
+          content={(<RaisedButton
+            label='Back To Todos'
+            onClick={this.handleExitTexter}
+          />)}
+        />
+      </div>
+    )
+  }
+
   renderEmpty() {
     return (
       <div>
@@ -422,7 +449,8 @@ AssignmentTexter.propTypes = {
   loadContacts: PropTypes.func,
   getNewContacts: PropTypes.func,
   assignContactsIfNeeded: PropTypes.func,
-  organizationId: PropTypes.string
+  organizationId: PropTypes.string,
+  reviewMode: PropTypes.bool
 }
 
 export default withRouter(AssignmentTexter)
