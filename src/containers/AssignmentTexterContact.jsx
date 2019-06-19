@@ -236,13 +236,16 @@ export class AssignmentTexterContact extends React.Component {
 
   componentDidMount() {
     const { contact } = this.props
-    if (contact.optOut || !this.isContactBetweenTextingHours(contact)) {
-      if (!this.props.forceDisabledDisplayIfNotSendable) {
+    if (!this.props.forceDisabledDisplayIfNotSendable) {
+      if (contact.optOut) {
         this.skipContact()
-      } else {
-        this.setState({notSendableButForceDisplay: true })
+      } else if (!this.isContactBetweenTextingHours(contact)) {
+        setTimeout(() => {
+          this.props.refreshData()
+          this.setState({ disabled: false })
+        }, 1500)
       }
-    }
+    } 
 
     const node = this.refs.messageScrollContainer
     // Does not work without this setTimeout
@@ -540,7 +543,7 @@ export class AssignmentTexterContact extends React.Component {
     }
 
     if (campaign.overrideOrganizationTextingHours) {
-      config.campaignTextingHours = { 
+      config.campaignTextingHours = {
         textingHoursStart: campaign.textingHoursStart,
         textingHoursEnd: campaign.textingHoursEnd,
         textingHoursEnforced: campaign.textingHoursEnforced,
