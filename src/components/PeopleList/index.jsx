@@ -262,6 +262,7 @@ export class PeopleList extends Component {
           onPreviousPageClick={this.handlePreviousPageClick}
           onRowSizeChange={this.handleRowSizeChanged}
           rowSizeList={PEOPLE_PAGE_ROW_SIZES.sort((a, b) => a - b)}
+          footerToolbarStyle={{ paddingRight: '100px' }}
         />
         {this.props.organizationId && (
           <div>
