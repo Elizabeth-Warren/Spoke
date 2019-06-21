@@ -17,6 +17,7 @@ import { dataTest } from '../lib/attributes'
 import PeopleList from '../components/PeopleList'
 import { StyleSheet, css } from 'aphrodite'
 import Search from '../components/Search'
+import SimpleRolesDropdown, {ALL_ROLES} from '../components/PeopleList/SimpleRolesDropdown'
 
 const styles = StyleSheet.create({
   settings: {
@@ -71,25 +72,16 @@ class AdminPersonList extends React.Component {
   }
 
   handleFilterChange = (changedItems) => {
-    const campaignId = this.makeQueryItem('campaignId', changedItems.campaignId || this.state.campaignId)
-    const sortBy = this.makeQueryItem('sortBy', changedItems.sortBy || this.state.sortBy)
-    const searchString = this.makeQueryItem('searchString', _.has(changedItems, 'searchString') ? changedItems.searchString : this.state.searchString)
+    const campaignId = this.makeQueryItem('campaignId', changedItems.campaignId || this.props.location.query.campaignId)
+    const sortBy = this.makeQueryItem('sortBy', changedItems.sortBy || this.props.location.query.sortBy)
+    const role = changedItems.role !== ALL_ROLES && this.makeQueryItem('role', changedItems.role || this.props.location.query.role)
+    const searchString = this.makeQueryItem('searchString', _.has(changedItems, 'searchString') ? changedItems.searchString : this.props.location.query.searchString)
 
-    const query = [campaignId, sortBy, searchString].filter(item => item !== undefined).join('&')
+    const query = [campaignId, sortBy, role, searchString].filter(item => item !== undefined).join('&')
 
     this.props.router.push(
       `/admin/${this.props.params.organizationId}/people${query && '?' + query}`
     )
-  }
-
-  componentWillReceiveProps = (nextProps) => {
-    const location = nextProps.location
-    this.setState({
-      campaignId: location.query.campaignId,
-      sortBy: location.query.sortBy,
-      searchString: location.query.searchString
-    })
-
   }
 
   handleCampaignChange = (event, index, value) => {
@@ -113,13 +105,16 @@ class AdminPersonList extends React.Component {
     this.handleFilterChange({ searchString })
   }
 
+  handleRoleChanged = (role) => {
+    this.handleFilterChange({ role })
+  }
   
   renderCampaignList = () => {
     const { organizationData: { organization } } = this.props
     const campaigns = organization ? organization.campaigns : { campaigns: [] }
     return (
       <DropDownMenu
-        value={this.state.campaignId}
+        value={this.props.location.query.campaignId}
         onChange={this.handleCampaignChange}
       >
         <MenuItem primaryText='All Campaigns' />
@@ -136,7 +131,7 @@ class AdminPersonList extends React.Component {
 
   renderSortBy = () => (
     <DropDownMenu
-      value={this.state.sortBy || this.DEFAULT_SORT_BY_VALUE}
+      value={this.props.location.query.sortBy || this.DEFAULT_SORT_BY_VALUE}
       onChange={this.handleSortByChanged}
     >
       {this.SORTS.map((sort) => (
@@ -150,6 +145,13 @@ class AdminPersonList extends React.Component {
     </DropDownMenu>
   )
 
+  renderRoles = () => (
+    <SimpleRolesDropdown
+      onChange={this.handleRoleChanged}
+      selectedRole={this.props.location.query.role || ALL_ROLES }
+    />
+  )
+
   render() {
     const { organizationData } = this.props
     const { userData: { currentUser } } = this.props
@@ -159,22 +161,24 @@ class AdminPersonList extends React.Component {
         <Paper className={css(styles.settings)} zDepth='3'>
           <div>
             {this.renderCampaignList()}
+            {this.renderRoles()}
             {this.renderSortBy()}
           </div>
           <Search
             onSearchRequested={this.handleSearchRequested}
-            searchString={this.state.searchString}
+            searchString={this.props.location.query.searchString}
             onCancelSearch={this.handleCancelSearch}
             hintText='Search for first name, last name, or email. Hit enter to search.'
           />
         </Paper>
         <PeopleList
           organizationId={organizationData.organization && organizationData.organization.id}
-          campaignsFilter={{ campaignId: this.state.campaignId && parseInt(this.state.campaignId, 10) }}
+          campaignsFilter={{ campaignId: this.props.location.query.campaignId && parseInt(this.props.location.query.campaignId, 10) }}
           utc={this.state.utc}
           currentUser={currentUser}
-          sortBy={this.state.sortBy || this.DEFAULT_SORT_BY_VALUE}
-          searchString={this.state.searchString}
+          sortBy={this.props.location.query.sortBy || this.DEFAULT_SORT_BY_VALUE}
+          searchString={this.props.location.query.searchString}
+          role={this.props.location.query.role}
           location={this.props.location}
         />
         <FloatingActionButton

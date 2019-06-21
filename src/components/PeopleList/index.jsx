@@ -2,15 +2,12 @@ import React, { Component } from 'react'
 import type from 'prop-types'
 import FlatButton from 'material-ui/FlatButton'
 import loadData from '../../containers/hoc/load-data'
-import { withRouter } from 'react-router'
 import gql from 'graphql-tag'
 import LoadingIndicator from '../../components/LoadingIndicator'
 import DataTables from 'material-ui-datatables'
-import DropDownMenu from 'material-ui/DropDownMenu'
-import MenuItem from 'material-ui/MenuItem'
 import UserEditDialog from './UserEditDialog'
 import ResetPasswordDialog from './ResetPasswordDialog'
-import { getHighestRole, ROLE_HIERARCHY } from '../../lib'
+import RolesDropdown from './RolesDropdown'
 import { dataTest } from '../../lib/attributes'
 
 import PeopleIcon from 'material-ui/svg-icons/social/people'
@@ -46,6 +43,7 @@ export class PeopleList extends Component {
     this.requestUserEditClose = this.requestUserEditClose.bind(this)
     this.updateUser = this.updateUser.bind(this)
     this.handlePasswordResetClose = this.handlePasswordResetClose.bind(this)
+    this.handleChange = this.handleChange.bind(this)
   }
 
   prepareTableColumns = () => [
@@ -153,7 +151,26 @@ export class PeopleList extends Component {
   }
 
   componentWillReceiveProps = (nextProps) => {
-    console.log(nextProps)
+    // this is a hack
+    // without this, some graphql updates did not happen
+    // until the next location pop
+    // which means the list of people did not reflect what was in the URL
+    // and the values of the filters and sort
+    // the hack reloads the entire page if the filters or sort changed
+    // and users is not loading -- the fact that it's not loading means
+    // the graphql update is not happening
+    const nextLocation = nextProps.location
+    const currentLocation = this.props.location
+
+    if (nextLocation.action === 'POP'
+      && (nextLocation.query.searchString !== currentLocation.query.searchString
+        || nextLocation.query.campaignId !== currentLocation.query.campaignId
+        || nextLocation.query.sortBy !== currentLocation.query.sortBy
+        || nextLocation.query.role !== currentLocation.query.role)
+      && !nextProps.users.loading
+      ) {
+      window.location.reload()
+    }
   }
 
   handleNextPageClick = () => {
@@ -170,10 +187,12 @@ export class PeopleList extends Component {
   }
 
   handleChange = async (userId, value) => {
+    this.setState({ editingOrganizationRoles: true })
     await this
       .props
       .mutations
       .editOrganizationRoles(this.props.organizationId, this.props.campaignsFilter.campaignId, userId, [value])
+    this.setState({ editingOrganizationRoles: false })
   }
 
   requestUserEditClose = () => {
@@ -194,22 +213,12 @@ export class PeopleList extends Component {
   renderRolesDropdown = (columnKey, row) => {
     const { roles, texterId } = row
     const { currentUser } = this.props
-    return (
-      <DropDownMenu
-        value={getHighestRole(roles)}
-        disabled={texterId === currentUser.id || getHighestRole(roles) === 'OWNER' && getHighestRole(currentUser.roles) !== 'OWNER'}
-        onChange={(event, index, value) => this.handleChange(texterId, value)}
-      >
-        {ROLE_HIERARCHY.map((option) => (
-          <MenuItem
-            key={texterId + '_' + option}
-            value={option}
-            disabled={option === 'OWNER' && getHighestRole(currentUser.roles) !== 'OWNER'}
-            primaryText={`${option.charAt(0).toUpperCase()}${option.substring(1).toLowerCase()}`}
-          />
-        ))}
-      </DropDownMenu>
-    )
+    return (<RolesDropdown
+      roles={roles}
+      texterId={texterId}
+      currentUser={currentUser}
+      onChange={this.handleChange}
+    />)
   }
 
   renderEditButton = (columnKey, row) => {
@@ -236,7 +245,7 @@ export class PeopleList extends Component {
   }
 
   render() {
-    if (this.props.users.loading) {
+    if (this.props.users.loading || this.state.editingOrganizationRoles) {
       return <LoadingIndicator />
     }
 
@@ -346,11 +355,12 @@ const mapQueriesToProps = ({ ownProps }) => ({
   users: {
     query: gql`
         query getUsers(
-        $organizationId: String!
-        $cursor: OffsetLimitCursor
-        $campaignsFilter: CampaignsFilter
-        $sortBy: SortPeopleBy
-        $filterString: String
+          $organizationId: String!
+          $cursor: OffsetLimitCursor
+          $campaignsFilter: CampaignsFilter
+          $sortBy: SortPeopleBy
+          $filterString: String
+          $role: String
         ) {
             people(
                 organizationId: $organizationId
@@ -358,6 +368,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
                 campaignsFilter: $campaignsFilter
                 sortBy: $sortBy
                 filterString: $filterString
+                role: $role
             ) {
                 ...on PaginatedUsers {
                     pageInfo {
@@ -380,7 +391,8 @@ const mapQueriesToProps = ({ ownProps }) => ({
       organizationId: ownProps.organizationId,
       campaignsFilter: ownProps.campaignsFilter,
       sortBy: ownProps.sortBy || 'FIRST_NAME',
-      filterString: ownProps.location.query.searchString
+      filterString: ownProps.searchString,
+      role: ownProps.role
     },
     forceFetch: true
   }
