@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import { withRouter } from 'react-router'
+import _ from 'lodash'
 import OrganizationJoinLink from '../components/OrganizationJoinLink'
 import FlatButton from 'material-ui/FlatButton'
 import FloatingActionButton from 'material-ui/FloatingActionButton'
@@ -8,6 +9,7 @@ import DropDownMenu from 'material-ui/DropDownMenu'
 import MenuItem from 'material-ui/MenuItem'
 import ContentAdd from 'material-ui/svg-icons/content/add'
 import Dialog from 'material-ui/Dialog'
+import Paper from 'material-ui/Paper'
 import theme from '../styles/theme'
 import loadData from './hoc/load-data'
 import gql from 'graphql-tag'
@@ -18,7 +20,9 @@ import Search from '../components/Search'
 
 const styles = StyleSheet.create({
   settings: {
-    display: 'flex'
+    display: 'flex',
+    flexDirection: 'column',
+    padding: '20px'
   }
 })
 class AdminPersonList extends React.Component {
@@ -32,8 +36,6 @@ class AdminPersonList extends React.Component {
       open: false,
       userEdit: false,
       passwordResetHash: '',
-      sortBy: this.FIRST_NAME_SORT.value,
-      searchString: ''
     }
   }
 
@@ -62,16 +64,37 @@ class AdminPersonList extends React.Component {
     this.OLDEST_SORT
   ]
 
-  handleFilterChange = (campaignId) => {
-    const query = '?' + (campaignId ? `campaignId=${campaignId}` : '')
+  DEFAULT_SORT_BY_VALUE = this.FIRST_NAME_SORT.value
+
+  makeQueryItem = (name, value) => {
+    return value ? `${name}=${value}` : undefined
+  }
+
+  handleFilterChange = (changedItems) => {
+    const campaignId = this.makeQueryItem('campaignId', changedItems.campaignId || this.state.campaignId)
+    const sortBy = this.makeQueryItem('sortBy', changedItems.sortBy || this.state.sortBy)
+    const searchString = this.makeQueryItem('searchString', _.has(changedItems, 'searchString') ? changedItems.searchString : this.state.searchString)
+
+    const query = [campaignId, sortBy, searchString].filter(item => item !== undefined).join('&')
+
     this.props.router.push(
-      `/admin/${this.props.params.organizationId}/people${query}`
+      `/admin/${this.props.params.organizationId}/people${query && '?' + query}`
     )
+  }
+
+  componentWillReceiveProps = (nextProps) => {
+    const location = nextProps.location
+    this.setState({
+      campaignId: location.query.campaignId,
+      sortBy: location.query.sortBy,
+      searchString: location.query.searchString
+    })
+
   }
 
   handleCampaignChange = (event, index, value) => {
     // We send 0 when there is a campaign change, because presumably we start on page 1
-    this.handleFilterChange(value)
+    this.handleFilterChange({ campaignId: value })
   }
 
   handleOpen() {
@@ -83,11 +106,11 @@ class AdminPersonList extends React.Component {
   }
 
   handleSortByChanged = (event, index, sortBy) => {
-    this.setState({ sortBy })
+    this.handleFilterChange({ sortBy })
   }
 
   handleSearchRequested = (searchString) => {
-    this.setState({ searchString })
+    this.handleFilterChange({ searchString })
   }
 
   
@@ -96,7 +119,7 @@ class AdminPersonList extends React.Component {
     const campaigns = organization ? organization.campaigns : { campaigns: [] }
     return (
       <DropDownMenu
-        value={this.props.location.query.campaignId}
+        value={this.state.campaignId}
         onChange={this.handleCampaignChange}
       >
         <MenuItem primaryText='All Campaigns' />
@@ -113,7 +136,7 @@ class AdminPersonList extends React.Component {
 
   renderSortBy = () => (
     <DropDownMenu
-      value={this.state.sortBy}
+      value={this.state.sortBy || this.DEFAULT_SORT_BY_VALUE}
       onChange={this.handleSortByChanged}
     >
       {this.SORTS.map((sort) => (
@@ -133,22 +156,26 @@ class AdminPersonList extends React.Component {
 
     return (
       <div>
-        <div className={css(styles.settings)}>
-          {this.renderCampaignList()}
-          {this.renderSortBy()}
+        <Paper className={css(styles.settings)} zDepth='3'>
+          <div>
+            {this.renderCampaignList()}
+            {this.renderSortBy()}
+          </div>
           <Search
             onSearchRequested={this.handleSearchRequested}
             searchString={this.state.searchString}
             onCancelSearch={this.handleCancelSearch}
+            hintText='Search for first name, last name, or email. Hit enter to search.'
           />
-        </div>
+        </Paper>
         <PeopleList
           organizationId={organizationData.organization && organizationData.organization.id}
-          campaignsFilter={{ campaignId: this.props.location.query.campaignId && parseInt(this.props.location.query.campaignId, 10) }}
+          campaignsFilter={{ campaignId: this.state.campaignId && parseInt(this.state.campaignId, 10) }}
           utc={this.state.utc}
           currentUser={currentUser}
-          sortBy={this.state.sortBy}
+          sortBy={this.state.sortBy || this.DEFAULT_SORT_BY_VALUE}
           searchString={this.state.searchString}
+          location={this.props.location}
         />
         <FloatingActionButton
           {...dataTest('addPerson')}

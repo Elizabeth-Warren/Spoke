@@ -152,6 +152,10 @@ export class PeopleList extends Component {
     })
   }
 
+  componentWillReceiveProps = (nextProps) => {
+    console.log(nextProps)
+  }
+
   handleNextPageClick = () => {
     this.changePage(1, this.state.pageSize)
   }
@@ -263,6 +267,7 @@ export class PeopleList extends Component {
           onRowSizeChange={this.handleRowSizeChanged}
           rowSizeList={PEOPLE_PAGE_ROW_SIZES.sort((a, b) => a - b)}
           footerToolbarStyle={{ paddingRight: '100px' }}
+          tableWrapperStyle={{ marginTop: '20px' }}
         />
         {this.props.organizationId && (
           <div>
@@ -294,7 +299,8 @@ PeopleList.propTypes = {
   utc: type.string,
   currentUser: type.object,
   sortBy: type.string,
-  searchString: type.string
+  searchString: type.string,
+  location: type.object
 }
 
 const organizationFragment = `
@@ -374,11 +380,11 @@ const mapQueriesToProps = ({ ownProps }) => ({
       organizationId: ownProps.organizationId,
       campaignsFilter: ownProps.campaignsFilter,
       sortBy: ownProps.sortBy || 'FIRST_NAME',
-      filterString: ownProps.searchString
+      filterString: ownProps.location.query.searchString
     },
     forceFetch: true
   }
 })
 
 
-export default loadData(withRouter(PeopleList), { mapQueriesToProps, mapMutationsToProps })
+export default loadData(PeopleList, { mapQueriesToProps, mapMutationsToProps })
