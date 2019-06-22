@@ -12,7 +12,7 @@ const ConversationLink = ({ conversation, organizationId }) => {
 
   const url = `${baseUrl}/app/${organizationId}/todos/${assignmentId}/review/${campaignContactId}`
 
-  const textContent = "Copy this link and send it to somone you want to look at this conversation.  The texter to whom it's currently assigned and any user who is at least a supervolunteer will be able to see the conversation."
+  const textContent = "Copy this link and send it to someone you want to look at this conversation.  The texter to whom it's currently assigned and any user who is at least a supervolunteer will be able to see the conversation."
 
   return (
     <DisplayLink url={url} textContent={textContent} />
