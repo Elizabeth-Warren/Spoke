@@ -74,6 +74,7 @@ export default function renderIndex(html, css, assetMap, store) {
       window.TZ="${process.env.TZ || ''}"
       window.DST_REFERENCE_TIMEZONE="${process.env.DST_REFERENCE_TIMEZONE || 'America/New_York'}"
       window.PASSPORT_STRATEGY="${process.env.PASSPORT_STRATEGY || ''}"
+      window.PEOPLE_PAGE_ROW_SIZES="${process.env.PEOPLE_PAGE_ROW_SIZES || ''}"
     </script>
     <script src="${assetMap['bundle.js']}"></script>
   </body>

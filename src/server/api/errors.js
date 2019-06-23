@@ -48,6 +48,21 @@ export async function assignmentRequired(user, assignmentId, assignment) {
   return true
 }
 
+export async function assignmentOrSupervolunteerRequired(organizationId, user, assignmentId, assignment) {
+  try {
+    await assignmentRequired(user, assignmentId, assignment)
+  } catch (e) {
+    console.log(typeof e)
+    if (e instanceof GraphQLError) {
+      accessRequired(user, organizationId, 'SUPERVOLUNTEER', true)
+    } else {
+      throw (e)
+    }
+  }
+
+  return true
+}
+
 export function superAdminRequired(user) {
   authRequired(user)
 

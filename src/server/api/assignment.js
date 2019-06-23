@@ -20,6 +20,13 @@ export function addWhereClauseForContactsFilterMessageStatusIrrespectiveOfPastDu
 }
 
 export function getContacts(assignment, contactsFilter, organization, campaign, forCount = false) {
+  if (contactsFilter && contactsFilter.contactId) {
+    return r.knex('campaign_contact').where({
+      assignment_id: assignment.id,
+      id: contactsFilter.contactId
+    })
+  }
+
   // / returns list of contacts eligible for contacting _now_ by a particular user
   const textingHoursEnforced = organization.texting_hours_enforced
   const textingHoursStart = organization.texting_hours_start

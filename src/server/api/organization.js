@@ -28,7 +28,8 @@ export const resolvers = {
     },
     people: async (organization, { role, campaignId, sortBy }, { user }) => {
       await accessRequired(user, organization.id, 'SUPERVOLUNTEER')
-      return buildSortedUserOrganizationQuery(organization.id, role, campaignId, sortBy)
+      const campaignsFilter = { campaignId }
+      return buildSortedUserOrganizationQuery(organization.id, role, campaignsFilter, sortBy)
     },
     threeClickEnabled: (organization) => organization.features.indexOf('threeClick') !== -1,
     textingHoursEnforced: (organization) => organization.texting_hours_enforced,

@@ -1,6 +1,6 @@
 import gql from 'graphql-tag'
 
-import { schema as userSchema, resolvers as userResolvers, buildUserOrganizationQuery } from './user'
+import { schema as userSchema } from './user'
 import {
   schema as conversationSchema,
   getConversations,
@@ -193,7 +193,7 @@ const rootSchema = gql`
     availableActions(organizationId:String!): [Action]
     conversations(cursor:OffsetLimitCursor!, organizationId:String!, campaignsFilter:CampaignsFilter, assignmentsFilter:AssignmentsFilter, contactsFilter:ContactsFilter, utc:String): PaginatedConversations
     campaigns(organizationId:String!, cursor:OffsetLimitCursor, campaignsFilter: CampaignsFilter): CampaignsReturn
-    people(organizationId:String!, cursor:OffsetLimitCursor, campaignsFilter:CampaignsFilter, role: String, sortBy: SortPeopleBy): UsersReturn
+    people(organizationId:String!, cursor:OffsetLimitCursor, campaignsFilter:CampaignsFilter, role: String, sortBy: SortPeopleBy, filterString: String): UsersReturn
   }
 
   type RootMutation {
@@ -225,7 +225,7 @@ const rootSchema = gql`
     archiveCampaigns(ids: [String!]): [Campaign],
     unarchiveCampaign(id:String!): Campaign,
     sendReply(id: String!, message: String!): CampaignContact
-    getAssignmentContacts(assignmentId: String!, contactIds: [String], findNew: Boolean): [CampaignContact],
+    getAssignmentContacts(organizationId: String!, assignmentId: String!, contactIds: [String], findNew: Boolean): [CampaignContact],
     findNewCampaignContact(assignmentId: String!, numberContacts: Int!): FoundContact,
     assignUserToCampaign(organizationUuid: String!, campaignId: String!): Campaign
     userAgreeTerms(userId: String!): User

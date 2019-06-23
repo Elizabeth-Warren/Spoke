@@ -17,7 +17,10 @@ export function addCampaignsFilterToQuery(queryParam, campaignsFilter) {
     }
     if ('campaignId' in campaignsFilter) {
       query = query.where('campaign.id', parseInt(campaignsFilter.campaignId, 10))
+    } else if ('campaignIds' in campaignsFilter && campaignsFilter.campaignIds.length > 0) {
+      query = query.whereIn('campaign.id', campaignsFilter.campaignIds)
     }
+
     if (resultSize && !pageSize) {
       query = query.limit(resultSize)
     }
@@ -187,12 +190,12 @@ export const resolvers = {
       return query
     },
     interactionSteps: async (campaign, _, { user }) => {
-      await accessRequired(user, campaign.organization_id, 'TEXTER', true)
+      await accessRequired(user, campaign.organization_id, 'SUSPENDED', true)
       return campaign.interactionSteps
         || cacheableData.campaign.dbInteractionSteps(campaign.id)
     },
     cannedResponses: async (campaign, { userId }, { user }) => {
-      await accessRequired(user, campaign.organization_id, 'TEXTER', true)
+      await accessRequired(user, campaign.organization_id, 'SUSPENDED', true)
       return await cacheableData.cannedResponse.query({
         userId: userId || '',
         campaignId: campaign.id
@@ -215,7 +218,7 @@ export const resolvers = {
       // This is the same as hasUnassignedContacts, but the access control
       // is different because for TEXTERs it's just for dynamic campaigns
       // but hasUnassignedContacts for admins is for the campaigns list
-      await accessRequired(user, campaign.organization_id, 'TEXTER', true)
+      await accessRequired(user, campaign.organization_id, 'SUSPENDED', true)
       if (!campaign.use_dynamic_assignment || campaign.is_archived) {
         return false
       }

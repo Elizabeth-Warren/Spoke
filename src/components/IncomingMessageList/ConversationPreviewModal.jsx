@@ -8,6 +8,7 @@ import FlatButton from 'material-ui/FlatButton'
 import loadData from '../../containers//hoc/load-data'
 import wrapMutations from '../../containers/hoc/wrap-mutations'
 import MessageResponse from './MessageResponse';
+import ConversationLinkDialog from '../ConversationLinkDialog'
 
 const styles = StyleSheet.create({
   conversationRow: {
@@ -58,7 +59,7 @@ class ConversationPreviewBody extends Component {
     super(props)
 
     this.state = {
-      messages: props.conversation.messages
+      messages: props.conversation.messages,
     }
 
     this.messagesChanged = this.messagesChanged.bind(this)
@@ -87,8 +88,17 @@ class ConversationPreviewModal extends Component {
     super(props)
 
     this.state = {
-      optOutError: ''
+      optOutError: '',
+      conversationLinkDialogOpen: false
     }
+  }
+
+  handleClickLink = () => {
+    this.setState({ conversationLinkDialogOpen: true })
+  }
+
+  handleCloseLinkRequested = () => {
+    this.setState({ conversationLinkDialogOpen: false })
   }
 
   handleClickOptOut = async () => {
@@ -114,41 +124,55 @@ class ConversationPreviewModal extends Component {
 
     const primaryActions = [
       <FlatButton
-        label="Opt-Out"
-        secondary={true}
+        label='Link'
+        secondary
+        onClick={this.handleClickLink}
+      />,
+      <FlatButton
+        label='Opt-Out'
+        secondary
         onClick={this.handleClickOptOut}
       />,
       <FlatButton
-        label="Close"
-        primary={true}
+        label='Close'
+        primary
         onClick={this.props.onRequestClose}
       />
     ]
 
     return (
-      <Dialog
-        title='Messages'
-        open={isOpen}
-        actions={primaryActions}
-        modal={false}
-        onRequestClose={this.props.onRequestClose}
-      >
-        <div>
-          {isOpen && <ConversationPreviewBody {...this.props} />}
-          <Dialog
-            title='Error Opting Out'
-            open={!!this.state.optOutError}
-            modal={false}
-          >
-            <p>{this.state.optOutError}</p>
-          </Dialog>
-        </div>
-      </Dialog>
+      <div>
+        <Dialog
+          title='Messages'
+          open={isOpen}
+          actions={primaryActions}
+          modal={false}
+          onRequestClose={this.props.onRequestClose}
+        >
+          <div>
+            {isOpen && <ConversationPreviewBody {...this.props} />}
+            <Dialog
+              title='Error Opting Out'
+              open={!!this.state.optOutError}
+              modal={false}
+            >
+              <p>{this.state.optOutError}</p>
+            </Dialog>
+          </div>
+        </Dialog>
+        <ConversationLinkDialog
+          open={this.state.conversationLinkDialogOpen}
+          requestClose={this.handleCloseLinkRequested}
+          conversation={this.props.conversation}
+          organizationId={this.props.organizationId}
+        />
+      </div>
     )
   }
 }
 
 ConversationPreviewModal.propTypes = {
+  organizationId: PropTypes.string,
   conversation: PropTypes.object,
   onRequestClose: PropTypes.func
 }
