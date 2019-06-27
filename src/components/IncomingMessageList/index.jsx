@@ -30,15 +30,8 @@ const prepareDataTableData = (conversations) => conversations.map(conversation =
 })
 )
 
-const prepareSelectedRowsData = (conversations, rowsSelected) => {
-  let selection = rowsSelected
-  if (rowsSelected === 'all') {
-    selection = Array.from(Array(conversations.length).keys())
-  } else if (rowsSelected === 'none') {
-    selection = []
-  }
-
-  return selection.map(selectedIndex => {
+const prepareSelectedRowsData = (conversations, selectedIndices) => {
+  return selectedIndices.map(selectedIndex => {
     const conversation = conversations[selectedIndex]
     return {
       campaignId: conversation.campaign.id,
@@ -53,16 +46,16 @@ export class IncomingMessageList extends Component {
     super(props)
 
     this.state = {
-      selectedRows: [],
+      selectedIndices: [],
       activeConversation: undefined
     }
   }
 
   componentDidUpdate = (prevProps) => {
-    if (this.props.clearSelectedMessages && this.state.selectedRows.length > 0) {
+    if (this.props.clearSelectedMessages && this.state.selectedIndices.length > 0) {
       this.setState(
         {
-          selectedRows: []
+          selectedIndices: [],
         })
       this.props.onConversationSelected([], [])
     }
@@ -170,11 +163,27 @@ export class IncomingMessageList extends Component {
     }
   ]
 
+  prepareSelectedIndices = (conversations, rowsSelected) => {
+    let selection = undefined
+
+    if (rowsSelected === 'all') {
+      selection = Array.from(Array(conversations.length).keys())
+    } else if (rowsSelected === 'none') {
+      selection = []
+    } else {
+      selection = rowsSelected
+    }
+
+    return selection
+  }
+
   handleNextPageClick = () => {
     const { limit, offset, total } = this.props.conversations.conversations.pageInfo
     const currentPage = Math.floor(offset / limit)
     const maxPage = Math.floor(total / limit)
     const newPage = Math.min(maxPage, currentPage + 1)
+    this.setState({selectedIndices:[]})
+    this.props.onConversationSelected([], [])
     this.props.onPageChanged(newPage)
   }
 
@@ -182,18 +191,24 @@ export class IncomingMessageList extends Component {
     const { limit, offset } = this.props.conversations.conversations.pageInfo
     const currentPage = Math.floor(offset / limit)
     const newPage = Math.max(0, currentPage - 1)
+    this.setState({selectedIndices:[]})
+    this.props.onConversationSelected([], [])
     this.props.onPageChanged(newPage)
   }
 
   handleRowSizeChanged = (index, value) => {
+    this.setState({selectedIndices:[]})
     this.props.onPageSizeChanged(value)
   }
 
   handleRowsSelected = (rowsSelected) => {
-    this.setState({ selectedRows: rowsSelected })
     const conversations = this.props.conversations.conversations.conversations
-    const selectedConversations = prepareSelectedRowsData(conversations, rowsSelected)
-    this.props.onConversationSelected(rowsSelected, selectedConversations)
+    const selectedIndices = this.prepareSelectedIndices(conversations, rowsSelected)
+
+    const selectedConversations = prepareSelectedRowsData(conversations, selectedIndices)
+    this.props.onConversationSelected(selectedConversations)
+
+    this.setState({ selectedIndices })
   }
 
   handleOpenConversation = (contact) => {
@@ -231,7 +246,7 @@ export class IncomingMessageList extends Component {
           onRowSizeChange={this.handleRowSizeChanged}
           rowSizeList={this.props.rowSizeList}
           onRowSelection={this.handleRowsSelected}
-          selectedRows={clearSelectedMessages ? null : this.state.selectedRows}
+          selectedRows={clearSelectedMessages ? null : this.state.selectedIndices}
           showFooterToolbar={false}
           toolbarTop
           toolbarBottom

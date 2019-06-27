@@ -114,6 +114,7 @@ export class AdminIncomingMessageList extends Component {
     }
 
     await this.setState({
+      clearSelectedMessages: true,
       campaignsFilter,
       needsRender: true
     })
@@ -125,6 +126,7 @@ export class AdminIncomingMessageList extends Component {
       assignmentsFilter.texterId = texterId
     }
     await this.setState({
+      clearSelectedMessages: true,
       assignmentsFilter,
       needsRender: true
     })
@@ -136,6 +138,7 @@ export class AdminIncomingMessageList extends Component {
       { messageStatus: messagesFilter }
     )
     await this.setState({
+      clearSelectedMessages: true,
       contactsFilter,
       needsRender: true
     })
@@ -180,20 +183,12 @@ export class AdminIncomingMessageList extends Component {
     await this.setState({ needsRender: true, pageSize })
   }
 
-  handleRowSelection = async (selectedRows, data) => {
-    if (this.state.previousSelectedRows === 'all' && selectedRows !== 'all') {
-      await this.setState({
-        previousSelectedRows: [],
-        campaignIdsContactIds: [],
-        needsRender: false
-      })
-    } else {
-      await this.setState({
-        previousSelectedRows: selectedRows,
-        campaignIdsContactIds: data,
-        needsRender: false
-      })
-    }
+  handleRowSelection = async (data) => {
+    console.log(`*** SELECTED CONVERSATIONS *** ${data.length}`)
+    await this.setState({
+      campaignIdsContactIds: data,
+      needsRender: false
+    })
   }
 
   handleCampaignsReceived = async (campaigns) => {
@@ -227,6 +222,7 @@ export class AdminIncomingMessageList extends Component {
     )
 
     this.setState({
+      clearSelectedMessages: true,
       contactsFilter,
       includeNotOptedOutConversations: !this.state
         .includeNotOptedOutConversations
@@ -249,6 +245,7 @@ export class AdminIncomingMessageList extends Component {
     )
 
     this.setState({
+      clearSelectedMessages: true,
       contactsFilter,
       includeNotOptedOutConversations,
       includeOptedOutConversations: !this.state.includeOptedOutConversations
@@ -268,6 +265,7 @@ export class AdminIncomingMessageList extends Component {
       this.state.includeArchivedCampaigns
     )
     this.setState({
+      clearSelectedMessages: true,
       campaignsFilter,
       includeActiveCampaigns: !this.state.includeActiveCampaigns
     })
@@ -283,6 +281,7 @@ export class AdminIncomingMessageList extends Component {
     )
 
     this.setState({
+      clearSelectedMessages: true,
       campaignsFilter,
       includeActiveCampaigns,
       includeArchivedCampaigns: !this.state.includeArchivedCampaigns
