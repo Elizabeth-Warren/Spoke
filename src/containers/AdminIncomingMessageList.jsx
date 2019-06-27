@@ -365,6 +365,8 @@ export class AdminIncomingMessageList extends Component {
               onConversationSelected={this.handleRowSelection}
               onConversationCountChanged={this.conversationCountChanged}
               clearSelectedMessages={this.state.clearSelectedMessages}
+              toolbarTop
+              toolbarBottom
             />
           </div>
           )}
