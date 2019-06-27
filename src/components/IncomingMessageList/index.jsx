@@ -1,15 +1,23 @@
-import React, { Component } from 'react'
-import type from 'prop-types'
+import { css, StyleSheet } from 'aphrodite'
+import gql from 'graphql-tag'
 import FlatButton from 'material-ui/FlatButton'
 import ActionOpenInNew from 'material-ui/svg-icons/action/open-in-new'
-import loadData from '../../containers/hoc/load-data'
+import type from 'prop-types'
+import React, { Component } from 'react'
 import { withRouter } from 'react-router'
-import gql from 'graphql-tag'
+import { MESSAGE_STATUSES } from '../../components/IncomingMessageFilter'
 import LoadingIndicator from '../../components/LoadingIndicator'
-import DataTables from 'material-ui-datatables'
+import loadData from '../../containers/hoc/load-data'
+import DualNavDataTables from '../DualNavDataTables'
 import ConversationPreviewModal from './ConversationPreviewModal'
 
-import { MESSAGE_STATUSES } from '../../components/IncomingMessageFilter'
+const styles = StyleSheet.create({
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end'
+  }
+})
 
 const prepareDataTableData = (conversations) => conversations.map(conversation => ({
   campaignTitle: conversation.campaign.title,
@@ -207,8 +215,8 @@ export class IncomingMessageList extends Component {
     const displayPage = Math.floor(offset / limit) + 1
     const tableData = prepareDataTableData(conversations)
     return (
-      <div>
-        <DataTables
+      <div className={css(styles.container)}>
+        <DualNavDataTables
           data={tableData}
           columns={this.prepareTableColumns()}
           multiSelectable
@@ -223,6 +231,9 @@ export class IncomingMessageList extends Component {
           onRowSizeChange={this.handleRowSizeChanged}
           onRowSelection={this.handleRowsSelected}
           selectedRows={clearSelectedMessages ? null : this.state.selectedRows}
+          showFooterToolbar={false}
+          toolbarTop
+          toolbarBottom
         />
         <ConversationPreviewModal
           organizationId={this.props.organizationId}
