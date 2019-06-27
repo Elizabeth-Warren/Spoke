@@ -17,7 +17,7 @@ import { dataTest } from '../lib/attributes'
 import PeopleList from '../components/PeopleList'
 import { StyleSheet, css } from 'aphrodite'
 import Search from '../components/Search'
-import SimpleRolesDropdown, {ALL_ROLES} from '../components/PeopleList/SimpleRolesDropdown'
+import SimpleRolesDropdown, { ALL_ROLES } from '../components/PeopleList/SimpleRolesDropdown'
 
 const styles = StyleSheet.create({
   settings: {

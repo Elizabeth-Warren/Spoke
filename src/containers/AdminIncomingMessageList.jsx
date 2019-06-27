@@ -369,6 +369,8 @@ export class AdminIncomingMessageList extends Component {
               onConversationCountChanged={this.conversationCountChanged}
               clearSelectedMessages={this.state.clearSelectedMessages}
               rowSizeList={CONVERSATION_LIST_ROW_SIZES.sort((a, b) => a - b)}
+              toolbarTop
+              toolbarBottom
             />
           </div>
           )}

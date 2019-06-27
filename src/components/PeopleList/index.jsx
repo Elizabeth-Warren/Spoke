@@ -12,6 +12,7 @@ import { dataTest } from '../../lib/attributes'
 
 import PeopleIcon from 'material-ui/svg-icons/social/people'
 import Empty from '../../components/Empty'
+import InitiatePasswordResetDialog from '../../containers/InitiatePasswordResetDialog'
 
 const prepareDataTableData = (users) => users.map(user => ({
   texterId: user.id,
@@ -168,7 +169,7 @@ export class PeopleList extends Component {
         || nextLocation.query.sortBy !== currentLocation.query.sortBy
         || nextLocation.query.role !== currentLocation.query.role)
       && !nextProps.users.loading
-      ) {
+    ) {
       window.location.reload()
     }
   }
@@ -235,11 +236,18 @@ export class PeopleList extends Component {
   renderChangePasswordButton = (columnKey, row) => {
     const { texterId } = row
     const { currentUser } = this.props
-    return (
+    return window.PASSPORT_STRATEGY === 'local' ? (
       <FlatButton
         label='Reset Password'
         disabled={currentUser.id === texterId}
         onTouchTap={() => { this.resetPassword(texterId) }}
+      />
+    ) : (
+      <InitiatePasswordResetDialog
+        currentUser={currentUser.id}
+        userId={texterId}
+        organizationId={this.props.organizationId}
+        disabled={currentUser.id === texterId}
       />
     )
   }
