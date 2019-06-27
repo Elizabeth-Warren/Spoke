@@ -13,6 +13,9 @@ import { withRouter } from 'react-router'
 import wrapMutations from './hoc/wrap-mutations'
 import PaginatedUsersRetriever from './PaginatedUsersRetriever'
 
+const CONVERSATION_LIST_ROW_SIZES = (typeof window !== 'undefined' && window.CONVERSATION_LIST_ROW_SIZES && JSON.parse(window.CONVERSATION_LIST_ROW_SIZES)) || [10, 30, 50, 100]
+const INITIAL_PAGE_SIZE = CONVERSATION_LIST_ROW_SIZES[0]
+
 function getCampaignsFilterForCampaignArchiveStatus(
   includeActiveCampaigns,
   includeArchivedCampaigns
@@ -61,7 +64,7 @@ export class AdminIncomingMessageList extends Component {
 
     this.state = {
       page: 0,
-      pageSize: 10,
+      pageSize: INITIAL_PAGE_SIZE,
       campaignsFilter: { isArchived: false },
       contactsFilter: { isOptedOut: false },
       assignmentsFilter: {},
@@ -365,6 +368,7 @@ export class AdminIncomingMessageList extends Component {
               onConversationSelected={this.handleRowSelection}
               onConversationCountChanged={this.conversationCountChanged}
               clearSelectedMessages={this.state.clearSelectedMessages}
+              rowSizeList={CONVERSATION_LIST_ROW_SIZES.sort((a, b) => a - b)}
               toolbarTop
               toolbarBottom
             />

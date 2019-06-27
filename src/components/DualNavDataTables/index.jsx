@@ -20,7 +20,7 @@ const dualNavDataTypesOnPropTypes = {
 }
 
 const filterDataTablesProps = (props) =>
-  _.pickBy(props, (prop) => !(prop in dualNavDataTypesOnPropTypes))
+  _.pickBy(props, (value, key) => !(key in dualNavDataTypesOnPropTypes))
 
 
 const DualNavDataTables = (props) => (
@@ -30,6 +30,7 @@ const DualNavDataTables = (props) => (
     {props.toolbarTop && (<TableToolbar
       page={props.page}
       rowSize={props.rowSize}
+      rowSizeList={props.rowSizeList}
       count={props.count}
       onNextPageClick={props.onNextPageClick}
       onPreviousPageClick={props.onPreviousPageClick}
@@ -43,6 +44,7 @@ const DualNavDataTables = (props) => (
     {props.toolbarBottom && (<TableToolbar
       page={props.page}
       rowSize={props.rowSize}
+      rowSizeList={props.rowSizeList}
       count={props.count}
       onNextPageClick={props.onNextPageClick}
       onPreviousPageClick={props.onPreviousPageClick}
