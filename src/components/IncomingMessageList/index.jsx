@@ -221,6 +221,7 @@ export class IncomingMessageList extends Component {
           onNextPageClick={this.handleNextPageClick}
           onPreviousPageClick={this.handlePreviousPageClick}
           onRowSizeChange={this.handleRowSizeChanged}
+          rowSizeList={this.props.rowSizeList}
           onRowSelection={this.handleRowsSelected}
           selectedRows={clearSelectedMessages ? null : this.state.selectedRows}
         />
@@ -246,7 +247,8 @@ IncomingMessageList.propTypes = {
   onConversationCountChanged: type.func,
   utc: type.string,
   conversations: type.object,
-  clearSelectedMessages: type.bool
+  clearSelectedMessages: type.bool,
+  rowSizeList: type.arrayOf(type.number)
 }
 
 const mapQueriesToProps = ({ ownProps }) => ({
