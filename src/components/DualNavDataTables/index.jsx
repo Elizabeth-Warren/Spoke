@@ -3,6 +3,7 @@ import DataTables, { DataTableProps } from 'material-ui-datatables'
 import type from 'prop-types'
 import React from 'react'
 import TableToolbar from './TableToolbar'
+import _ from 'lodash'
 
 
 const styles = StyleSheet.create({
@@ -12,6 +13,15 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end'
   }
 })
+
+const dualNavDataTypesOnPropTypes = {
+  toolbarTop: type.bool,
+  toolbarBottom: type.bool
+}
+
+const filterDataTablesProps = (props) =>
+  _.pickBy(props, (prop) => !(prop in dualNavDataTypesOnPropTypes))
+
 
 const DualNavDataTables = (props) => (
   <div
@@ -27,7 +37,7 @@ const DualNavDataTables = (props) => (
       borderBottom
     />)}
     <DataTables
-      {...props}
+      {...filterDataTablesProps(props)}
       showFooterToolbar={false}
     />
     {props.toolbarBottom && (<TableToolbar
@@ -44,8 +54,7 @@ const DualNavDataTables = (props) => (
 
 DualNavDataTables.propTypes = {
   ...DataTableProps,
-  toolbarTop: type.bool,
-  toolbarBottom: type.bool
+  ...dualNavDataTypesOnPropTypes
 }
 
 
