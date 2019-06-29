@@ -19,6 +19,8 @@ import { StyleSheet, css } from 'aphrodite'
 import Search from '../components/Search'
 import SimpleRolesDropdown, { ALL_ROLES } from '../components/PeopleList/SimpleRolesDropdown'
 
+export const ALL_CAMPAIGNS = -1
+
 const styles = StyleSheet.create({
   settings: {
     display: 'flex',
@@ -71,8 +73,16 @@ class AdminPersonList extends React.Component {
     return value ? `${name}=${value}` : undefined
   }
 
+  determineCampaignIdForFilter = (changedItems) => {
+    if (changedItems.campaignId && changedItems.campaignId === ALL_CAMPAIGNS) {
+      return undefined
+    }
+
+    return changedItems.campaignId || this.props.location.query.campaignId
+  }
+
   handleFilterChange = (changedItems) => {
-    const campaignId = this.makeQueryItem('campaignId', changedItems.campaignId || this.props.location.query.campaignId)
+    const campaignId = this.makeQueryItem('campaignId', this.determineCampaignIdForFilter(changedItems))
     const sortBy = this.makeQueryItem('sortBy', changedItems.sortBy || this.props.location.query.sortBy)
     const role = changedItems.role !== ALL_ROLES && this.makeQueryItem('role', changedItems.role || this.props.location.query.role)
     const searchString = this.makeQueryItem('searchString', _.has(changedItems, 'searchString') ? changedItems.searchString : this.props.location.query.searchString)
@@ -114,10 +124,14 @@ class AdminPersonList extends React.Component {
     const campaigns = organization ? organization.campaigns : { campaigns: [] }
     return (
       <DropDownMenu
-        value={this.props.location.query.campaignId}
+        value={this.props.location.query.campaignId || ALL_CAMPAIGNS}
         onChange={this.handleCampaignChange}
       >
-        <MenuItem primaryText='All Campaigns' />
+        <MenuItem
+          primaryText='All Campaigns'
+          value={ALL_CAMPAIGNS}
+          key={ALL_CAMPAIGNS}
+        />
         {campaigns.campaigns.map(campaign => (
           <MenuItem
             value={campaign.id}
