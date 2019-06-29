@@ -10,6 +10,7 @@ import LoadingIndicator from '../../components/LoadingIndicator'
 import loadData from '../../containers/hoc/load-data'
 import DualNavDataTables from '../DualNavDataTables'
 import ConversationPreviewModal from './ConversationPreviewModal'
+import ConfirmChangePageWithConvosSelectedDialog from './ConfirmChangePageWithConvosSelectedDialog'
 
 const styles = StyleSheet.create({
   container: {
@@ -47,15 +48,22 @@ export class IncomingMessageList extends Component {
 
     this.state = {
       selectedIndices: [],
-      activeConversation: undefined
+      activeConversation: undefined,
+      confirmPageChange: {
+        open: false,
+        pageDelta: 0
+      }
     }
+
+    this.handleCloseConfirmChangePageWithConvosSelectedDialog =
+      this.handleCloseConfirmChangePageWithConvosSelectedDialog.bind(this)
   }
 
   componentDidUpdate = (prevProps) => {
     if (this.props.clearSelectedMessages && this.state.selectedIndices.length > 0) {
       this.setState(
         {
-          selectedIndices: [],
+          selectedIndices: []
         })
       this.props.onConversationSelected([], [])
     }
@@ -177,27 +185,55 @@ export class IncomingMessageList extends Component {
     return selection
   }
 
-  handleNextPageClick = () => {
+  handlePageChanged = (pageDelta) => {
     const { limit, offset, total } = this.props.conversations.conversations.pageInfo
     const currentPage = Math.floor(offset / limit)
     const maxPage = Math.floor(total / limit)
-    const newPage = Math.min(maxPage, currentPage + 1)
-    this.setState({selectedIndices:[]})
+    const newPage = Math.min(maxPage, currentPage + pageDelta)
+    this.setState({ selectedIndices: [] })
     this.props.onConversationSelected([], [])
     this.props.onPageChanged(newPage)
+  }
+
+  handlePageChangeClick = (pageDelta) => {
+    if (this.state.selectedIndices.length > 0) {
+      this.setState({
+        confirmPageChange: {
+          open: true,
+          pageDelta
+        }
+      })
+      return
+    }
+
+    // else
+    this.handlePageChanged(pageDelta)
+  }
+
+  handleNextPageClick = () => {
+    this.handlePageChangeClick(1)
   }
 
   handlePreviousPageClick = () => {
-    const { limit, offset } = this.props.conversations.conversations.pageInfo
-    const currentPage = Math.floor(offset / limit)
-    const newPage = Math.max(0, currentPage - 1)
-    this.setState({selectedIndices:[]})
-    this.props.onConversationSelected([], [])
-    this.props.onPageChanged(newPage)
+    this.handlePageChangeClick(-1)
+  }
+
+  handleCloseConfirmChangePageWithConvosSelectedDialog = (changePage) => {
+    if (changePage) {
+      this.handlePageChanged(this.state.confirmPageChange.pageDelta)
+    }
+
+    this.setState({
+      confirmPageChange: {
+        open: false,
+        pageDelta: 0
+      }
+    })
+
   }
 
   handleRowSizeChanged = (index, value) => {
-    this.setState({selectedIndices:[]})
+    this.setState({ selectedIndices: [] })
     this.props.onPageSizeChanged(value)
   }
 
@@ -250,6 +286,11 @@ export class IncomingMessageList extends Component {
           showFooterToolbar={false}
           toolbarTop
           toolbarBottom
+        />
+        <ConfirmChangePageWithConvosSelectedDialog
+          open={this.state.confirmPageChange.open}
+          pageDelta={this.state.confirmPageChange.pageDelta}
+          onRequestClose={this.handleCloseConfirmChangePageWithConvosSelectedDialog}
         />
         <ConversationPreviewModal
           organizationId={this.props.organizationId}
