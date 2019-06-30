@@ -17,24 +17,33 @@ const styles = {
 }
 
 const SelectedCampaigns = (props) => (
-    <div className={css(ssStyles.container)}>
-      {
-        props.campaigns.map((campaign) => (
-          <Chip
-            style={styles.chip}
-            key={campaign.key}
-            onRequestDelete={() => props.onDeleteRequested(campaign.key)}
-          >
-            {campaign.text}
-          </Chip>
-        ))
-      }
-    </div>
-  )
+  <div className={css(ssStyles.container)}>
+    {props.campaigns.length && (<Chip
+      style={styles.chip}
+      key={0}
+      onClick={props.onClear}
+      backgroundColor='#FFC0CB'
+    >
+      Clear campaigns
+    </Chip>)}
+    {
+      props.campaigns.map((campaign) => (
+        <Chip
+          style={styles.chip}
+          key={campaign.key}
+          onRequestDelete={() => props.onDeleteRequested(campaign.key)}
+        >
+          {campaign.text}
+        </Chip>
+      ))
+    }
+  </div>
+)
 
 SelectedCampaigns.propTypes = {
   campaigns: PropTypes.array.isRequired,
-  onDeleteRequested: PropTypes.func.isRequired
+  onDeleteRequested: PropTypes.func.isRequired,
+  onClear: PropTypes.func.isRequired
 }
 
 export default SelectedCampaigns

@@ -104,14 +104,7 @@ class IncomingMessageFilter extends Component {
     }
     if (campaignId) {
       const selectedCampaigns = this.makeSelectedCampaignsArray(selection.rawValue, selection.text)
-      this.setState(
-        {
-          selectedCampaigns,
-          campaignSearchText: ''
-        }
-      )
-
-      this.fireCampaignChanged(selectedCampaigns)
+      this.applySelectedCampaigns(selectedCampaigns)
     }
   }
 
@@ -132,8 +125,7 @@ class IncomingMessageFilter extends Component {
     }
   }
 
-  handleCampaignRemoved = (campaignId) => {
-    const selectedCampaigns = this.state.selectedCampaigns.filter(campaign => campaign.key !== campaignId)
+  applySelectedCampaigns = (selectedCampaigns) => {
     this.setState(
       {
         selectedCampaigns,
@@ -142,6 +134,15 @@ class IncomingMessageFilter extends Component {
     )
 
     this.fireCampaignChanged(selectedCampaigns)
+  }
+
+  handleCampaignRemoved = (campaignId) => {
+    const selectedCampaigns = this.state.selectedCampaigns.filter(campaign => campaign.key !== campaignId)
+    this.applySelectedCampaigns(selectedCampaigns)
+  }
+
+  handleClearCampaigns = () => {
+    this.applySelectedCampaigns([])
   }
 
   fireCampaignChanged = (selectedCampaigns) => {
@@ -153,7 +154,7 @@ class IncomingMessageFilter extends Component {
   makeSelectedCampaignsArray = (campaignId, campaignText) => {
     const selectedCampaign = { key: campaignId, text: campaignText }
     if (campaignId === ALL_CAMPAIGNS) {
-      return [selectedCampaign]
+      return []
     }
     return _.concat(this.state.selectedCampaigns.filter(this.removeAllCampaignsFromCampaignsArray), selectedCampaign)
   }
@@ -296,6 +297,7 @@ class IncomingMessageFilter extends Component {
             <SelectedCampaigns
               campaigns={this.state.selectedCampaigns}
               onDeleteRequested={this.handleCampaignRemoved}
+              onClear={this.handleClearCampaigns}
             />
           </div>
         </CardText>
