@@ -24,6 +24,7 @@ const ConversationLinkDialoag = (props) => (
     <ConversationLink
       organizationId={props.organizationId}
       conversation={props.conversation}
+      text={props.text}
     />
   </Dialog>
 )
@@ -32,7 +33,8 @@ ConversationLinkDialoag.propTypes = {
   open: PropTypes.bool,
   requestClose: PropTypes.func,
   conversation: PropTypes.object,
-  organizationId: PropTypes.string
+  organizationId: PropTypes.string,
+  text: PropTypes.text
 }
 
 

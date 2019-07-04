@@ -165,6 +165,7 @@ class ConversationPreviewModal extends Component {
           requestClose={this.handleCloseLinkRequested}
           conversation={this.props.conversation}
           organizationId={this.props.organizationId}
+          text="Copy this link and send it to someone you want to look at this conversation.  The texter to whom it's currently assigned and any user who is at least a supervolunteer will be able to see the conversation."
         />
       </div>
     )
