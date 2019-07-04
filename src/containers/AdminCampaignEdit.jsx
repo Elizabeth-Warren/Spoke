@@ -667,11 +667,11 @@ const mapQueriesToProps = ({ ownProps }) => ({
     pollInterval: 60000
   },
   organizationData: {
-    query: gql`query getOrganizationData($organizationId: String!) {
+    query: gql`query getOrganizationData($organizationId: String!, $sortBy: SortPeopleBy) {
       organization(id: $organizationId) {
         id
         uuid
-        texters: people {
+        texters: people(sortBy: $sortBy) {
           id
           firstName
           lastName
@@ -680,7 +680,8 @@ const mapQueriesToProps = ({ ownProps }) => ({
       }
     }`,
     variables: {
-      organizationId: ownProps.params.organizationId
+      organizationId: ownProps.params.organizationId,
+      sortBy: 'FIRST_NAME'
     },
     pollInterval: 20000
   },

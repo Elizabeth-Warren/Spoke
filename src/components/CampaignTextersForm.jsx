@@ -238,10 +238,9 @@ export default class CampaignTextersForm extends React.Component {
   })
 
   formValues() {
-    const unorderedTexters = this.props.formValues.texters
     return {
       ...this.props.formValues,
-      texters: orderBy(unorderedTexters, ['firstName', 'lastName'], ['asc', 'asc'])
+      texters: this.props.formValues.texters
     }
   }
 
