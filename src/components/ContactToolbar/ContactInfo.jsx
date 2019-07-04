@@ -15,8 +15,18 @@ const styles = StyleSheet.create({
   },
   conversationLink: {
     paddingTop: '25px'
+  },
+  button: {
+    backgroundColor: 'blue',
+    width: '28px',
+    minWidth: '28px',
+    minHeight: '28px',
+    height: '28px',
+    paddingTop: '2px',
+    marginTop: '3px'
   }
 })
+
 
 export default class ContactInfo extends React.Component {
 
@@ -43,11 +53,14 @@ export default class ContactInfo extends React.Component {
   }
 
   renderButton = () => (
-    <IconButton
+    <FlatButton
+      className={css(styles.button)}
       onTouchTap={this.handleOpenDialog}
     >
-      <ActionInfoOutline />
-    </IconButton>
+      <ActionInfoOutline
+        color='white'
+      />
+    </FlatButton>
   )
 
   renderDialog = () => (
