@@ -73,9 +73,9 @@ export default class ContactInfo extends React.Component {
       <div
         className={css(styles.container)}
       >
-        <span>Campaign ID: {this.props.campaign.id}</span>
-        <span>Assignment ID: {this.props.campaignContact.assignmentId}</span>
-        <span>Campaign contact ID: {this.props.campaignContact.id}</span>
+        <span>Campaign: {this.props.campaign.id} {this.props.campaign.title}</span>
+        <span>Texter: {this.props.assignment.texter.displayName}</span>
+        <span>Contact: {this.props.campaignContact.id} {this.props.campaignContact.firstName}</span>
         <div
           className={css(styles.conversationLink)}
         >
@@ -103,6 +103,7 @@ export default class ContactInfo extends React.Component {
 ContactInfo.propTypes = {
   open: PropTypes.bool,
   campaign: PropTypes.object,
-  campaignContact: PropTypes.object
+  campaignContact: PropTypes.object,
+  assignment: PropTypes.object
 }
 

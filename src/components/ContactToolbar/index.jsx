@@ -86,6 +86,7 @@ const ContactToolbar = function ContactToolbar(props) {
           <ContactInfo
             campaign={props.campaign}
             campaignContact={props.campaignContact}
+            assignment={props.assignment}
           />
         </ToolbarGroup>
       </Toolbar>
@@ -96,7 +97,8 @@ const ContactToolbar = function ContactToolbar(props) {
 ContactToolbar.propTypes = {
   campaignContact: PropTypes.object, // contacts for current assignment
   rightToolbarIcon: PropTypes.element,
-  campaign: PropTypes.object
+  campaign: PropTypes.object,
+  assignment: PropTypes.object
 }
 
 export default ContactToolbar

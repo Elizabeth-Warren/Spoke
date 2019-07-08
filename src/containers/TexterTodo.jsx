@@ -152,9 +152,11 @@ const mapQueriesToProps = ({ ownProps }) => ({
           id
           firstName
           lastName
+          displayName
         }
         campaign {
           id
+          title
           isArchived
           useDynamicAssignment
           overrideOrganizationTextingHours
