@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'
 import React from 'react'
 import DisplayLink from './DisplayLink'
 
-const ConversationLink = ({ conversation, organizationId }) => {
+const ConversationLink = ({ conversation, organizationId, text }) => {
   let baseUrl = 'http://base'
   if (typeof window !== 'undefined') {
     baseUrl = window.location.origin
@@ -12,14 +12,13 @@ const ConversationLink = ({ conversation, organizationId }) => {
 
   const url = `${baseUrl}/app/${organizationId}/todos/${assignmentId}/review/${campaignContactId}`
 
-  const textContent = "Copy this link and send it to someone you want to look at this conversation.  The texter to whom it's currently assigned and any user who is at least a supervolunteer will be able to see the conversation."
-
   return (
-    <DisplayLink url={url} textContent={textContent} />
+    <DisplayLink url={url} textContent={text} />
   )
 }
 
 ConversationLink.propTypes = {
+  text: PropTypes.string,
   organizationId: PropTypes.string,
   conversation: PropTypes.object
 }

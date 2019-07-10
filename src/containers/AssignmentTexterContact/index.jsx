@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import { StyleSheet, css } from 'aphrodite'
-import ContactToolbar from '../components/ContactToolbar'
-import MessageList from '../components/MessageList'
-import CannedResponseMenu from '../components/CannedResponseMenu'
-import AssignmentTexterSurveys from '../components/AssignmentTexterSurveys'
+import ContactToolbar from '../../components/ContactToolbar'
+import MessageList from '../../components/MessageList'
+import CannedResponseMenu from '../../components/CannedResponseMenu'
+import AssignmentTexterSurveys from '../../components/AssignmentTexterSurveys'
 import RaisedButton from 'material-ui/RaisedButton'
 import FlatButton from 'material-ui/FlatButton'
 import NavigateHomeIcon from 'material-ui/svg-icons/action/home'
@@ -13,25 +13,25 @@ import IconButton from 'material-ui/IconButton/IconButton'
 import { Toolbar, ToolbarGroup } from 'material-ui/Toolbar'
 import { Card, CardActions, CardTitle } from 'material-ui/Card'
 import Divider from 'material-ui/Divider'
-import { applyScript } from '../lib/scripts'
+import { applyScript } from '../../lib/scripts'
 import gql from 'graphql-tag'
-import loadData from './hoc/load-data'
+import loadData from '../hoc/load-data'
 import yup from 'yup'
-import GSForm from '../components/forms/GSForm'
+import GSForm from '../../components/forms/GSForm'
 import Form from 'react-formal'
-import GSSubmitButton from '../components/forms/GSSubmitButton'
-import SendButton from '../components/SendButton'
-import BulkSendButton from '../components/BulkSendButton'
-import SendButtonArrow from '../components/SendButtonArrow'
+import GSSubmitButton from '../../components/forms/GSSubmitButton'
+import SendButton from '../../components/SendButton'
+import BulkSendButton from '../../components/BulkSendButton'
+import SendButtonArrow from '../../components/SendButtonArrow'
 import CircularProgress from 'material-ui/CircularProgress'
 import Snackbar from 'material-ui/Snackbar'
-import { getChildren, getTopMostParent, interactionStepForId, log, isBetweenTextingHours } from '../lib'
+import { getChildren, getTopMostParent, interactionStepForId, log, isBetweenTextingHours } from '../../lib'
 import { withRouter } from 'react-router'
-import wrapMutations from './hoc/wrap-mutations'
-import Empty from '../components/Empty'
+import wrapMutations from '../hoc/wrap-mutations'
+import Empty from '../../components/Empty'
 import CreateIcon from 'material-ui/svg-icons/content/create'
-import { dataTest } from '../lib/attributes'
-import { getContactTimezone } from '../lib/timezones'
+import { dataTest } from '../../lib/attributes'
+import { getContactTimezone } from '../../lib/timezones'
 
 const styles = StyleSheet.create({
   mobile: {
@@ -736,6 +736,7 @@ export class AssignmentTexterContact extends React.Component {
     return (
       <ContactToolbar
         campaign={this.props.campaign}
+        assignment={this.props.assignment}
         campaignContact={contact}
         onOptOut={this.handleNavigateNext}
         rightToolbarIcon={(

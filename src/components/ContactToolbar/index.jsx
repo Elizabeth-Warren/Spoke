@@ -1,10 +1,10 @@
 import PropTypes from 'prop-types'
 import React from 'react'
 import { Toolbar, ToolbarGroup, ToolbarTitle } from 'material-ui/Toolbar'
-import { getDisplayPhoneNumber } from '../lib/phone-format'
-import { getLocalTime, getContactTimezone } from '../lib/timezones'
-import { getProcessEnvDstReferenceTimezone } from '../lib/tz-helpers'
+import { getLocalTime, getContactTimezone } from '../../lib/timezones'
+import { getProcessEnvDstReferenceTimezone } from '../../lib/tz-helpers'
 import { grey100 } from 'material-ui/styles/colors'
+import ContactInfo from './ContactInfo'
 
 const inlineStyles = {
   toolbar: {
@@ -82,6 +82,13 @@ const ContactToolbar = function ContactToolbar(props) {
           }
           {rightToolbarIcon}
         </ToolbarGroup>
+        <ToolbarGroup>
+          <ContactInfo
+            campaign={props.campaign}
+            campaignContact={props.campaignContact}
+            assignment={props.assignment}
+          />
+        </ToolbarGroup>
       </Toolbar>
     </div>
   )
@@ -90,7 +97,8 @@ const ContactToolbar = function ContactToolbar(props) {
 ContactToolbar.propTypes = {
   campaignContact: PropTypes.object, // contacts for current assignment
   rightToolbarIcon: PropTypes.element,
-  campaign: PropTypes.object
+  campaign: PropTypes.object,
+  assignment: PropTypes.object
 }
 
 export default ContactToolbar
