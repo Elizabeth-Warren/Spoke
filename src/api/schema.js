@@ -180,7 +180,15 @@ const rootSchema = gql`
     LAST_NAME
     NEWEST
     OLDEST
-  } 
+  }
+
+  enum SortCampaignsBy {
+    DUE_DATE_ASC,
+    DUE_DATE_DESC,
+    ID_ASC,
+    ID_DESC,
+    TITLE
+  }
 
   type RootQuery {
     currentUser: User
@@ -192,7 +200,7 @@ const rootSchema = gql`
     organizations: [Organization]
     availableActions(organizationId:String!): [Action]
     conversations(cursor:OffsetLimitCursor!, organizationId:String!, campaignsFilter:CampaignsFilter, assignmentsFilter:AssignmentsFilter, contactsFilter:ContactsFilter, utc:String): PaginatedConversations
-    campaigns(organizationId:String!, cursor:OffsetLimitCursor, campaignsFilter: CampaignsFilter): CampaignsReturn
+    campaigns(organizationId:String!, cursor:OffsetLimitCursor, campaignsFilter: CampaignsFilter, sortBy: SortCampaignsBy): CampaignsReturn
     people(organizationId:String!, cursor:OffsetLimitCursor, campaignsFilter:CampaignsFilter, role: String, sortBy: SortPeopleBy, filterString: String): UsersReturn
   }
 

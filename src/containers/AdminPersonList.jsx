@@ -28,6 +28,7 @@ const styles = StyleSheet.create({
     padding: '20px'
   }
 })
+
 class AdminPersonList extends React.Component {
 
   constructor(props) {
