@@ -1,4 +1,5 @@
 import thinky from './thinky'
+
 const type = thinky.type
 import { requiredString, optionalString, timestamp } from './custom-types'
 
@@ -31,7 +32,8 @@ const CampaignContact = thinky.createModel('campaign_contact', type.object().sch
   timezone_offset: type
     .string()
     .default('')
-    .required()
+    .required(),
+  has_unresolved_tags: type.boolean().default(false)
 }).allowExtra(false), { noAutoCreation: true })
 
 CampaignContact.ensureIndex('assignment_id')

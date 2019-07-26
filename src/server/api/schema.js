@@ -19,6 +19,7 @@ import {
   Message,
   Organization,
   QuestionResponse,
+  Tag,
   User,
   UserOrganization,
   r,
@@ -247,6 +248,10 @@ async function updateInteractionSteps(
     }
     await updateInteractionSteps(campaignId, is.interactionSteps, origCampaignRecord, idMap)
   })
+}
+
+const includeTags = (info) => {
+  return true // TODO LMP
 }
 
 const rootMutations = {
@@ -809,6 +814,26 @@ const rootMutations = {
       contact.message_status = messageStatus
       return await contact.save()
     },
+    addTagToCampaignContact: async (
+      _,
+      { campaignContactId, tag, comment },
+      { loaders, user }
+    ) => {
+      const dbTag = new Tag({
+        campaign_contact_id: campaignContactId,
+        tag,
+        created_by: user.id
+      })
+      await dbTag.save()
+
+      await r
+        .knex('campaign_contact')
+        .where({id: campaignContactId})
+        .update({ has_unresolved_tags: true})
+        .catch(log.error)
+
+      return true
+    },
     getAssignmentContacts: async (_, { organizationId, assignmentId, contactIds, findNew }, { loaders, user }) => {
       await assignmentOrSupervolunteerRequired(organizationId, user, assignmentId)
       const contacts = contactIds.map(async (contactId) => {
@@ -1302,8 +1327,10 @@ const rootResolvers = {
     conversations: async (
       _,
       { cursor, organizationId, campaignsFilter, assignmentsFilter, contactsFilter, utc },
-      { user }
+      context,
+      info
     ) => {
+      const { user } = context
       await accessRequired(user, organizationId, 'SUPERVOLUNTEER', true)
 
       return getConversations(
@@ -1312,7 +1339,7 @@ const rootResolvers = {
         campaignsFilter,
         assignmentsFilter,
         contactsFilter,
-        utc
+        includeTags(info)
       )
     },
     campaigns: async (_, { organizationId, cursor, campaignsFilter }, { user }) => {

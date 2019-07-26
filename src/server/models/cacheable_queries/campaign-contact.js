@@ -124,6 +124,7 @@ export const campaignContactCache = {
               'campaign_contact.external_id',
               'campaign_contact.message_status',
               'campaign_contact.timezone_offset',
+              'campaign_contact.has_unresolved_tags',
               'zip_code.city',
               'zip_code.state')
     if (campaign) {

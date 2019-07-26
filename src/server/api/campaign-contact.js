@@ -22,7 +22,8 @@ export const resolvers = {
       'customFields',
       'messageStatus',
       'assignmentId',
-      'external_id'
+      'external_id',
+      'hasUnresolvedTags'
     ], CampaignContact),
     messageStatus: async (campaignContact, _, { loaders }) => {
       if (campaignContact.message_status) {
@@ -173,6 +174,7 @@ export const resolvers = {
         // fake ID so we don't need to look up existance
         return (isOptedOut ? { id: 'optout' } : null)
       }
-    }
+    },
+    tags: (campaignContact) => campaignContact.tags
   }
 }

@@ -13,6 +13,7 @@ const contactDataFragment = `
         cell
         zip
         customFields
+        hasUnresolvedTags
         optOut {
           id
         }

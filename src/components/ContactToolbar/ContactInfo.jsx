@@ -1,9 +1,8 @@
-import PropTypes, { arrayOf } from 'prop-types'
+import PropTypes from 'prop-types'
 import React from 'react'
 import { StyleSheet, css } from 'aphrodite'
 
 import ActionInfoOutline from 'material-ui/svg-icons/action/info-outline'
-import IconButton from 'material-ui/IconButton'
 import Dialog from 'material-ui/Dialog'
 import FlatButton from 'material-ui/FlatButton'
 import ConversationLink from '../../components/ConversationLink'

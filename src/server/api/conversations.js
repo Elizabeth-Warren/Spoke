@@ -20,22 +20,40 @@ function getConversationsJoinsAndWhereClause(
   query = buildCampaignQuery(query, organizationId, campaignsFilter)
 
   if (assignmentsFilter) {
-    if ('texterId' in assignmentsFilter && assignmentsFilter.texterId !== null)
+    if ('texterId' in assignmentsFilter && assignmentsFilter.texterId !== null) {
       query = query.where({ 'assignment.user_id': assignmentsFilter.texterId })
+    }
   }
 
   query = addWhereClauseForContactsFilterMessageStatusIrrespectiveOfPastDue(
     query,
     contactsFilter && contactsFilter.messageStatus)
 
-  if (contactsFilter && 'isOptedOut' in contactsFilter) {
-    const subQuery = (r.knex.select('cell')
-      .from('opt_out')
-      .whereRaw('opt_out.cell=campaign_contact.cell'))
-    if (contactsFilter.isOptedOut) {
+  if (contactsFilter) {
+    if ('contactId' in contactsFilter) {
+      query = query.where({
+        'campaign_contact.id': contactsFilter.contactId
+      })
+    }
+
+    if ('isOptedOut' in contactsFilter) {
+      const subQuery = (r.knex.select('cell')
+        .from('opt_out')
+        .whereRaw('opt_out.cell=campaign_contact.cell'))
+      if (contactsFilter.isOptedOut) {
+        query = query.whereExists(subQuery)
+      } else {
+        query = query.whereNotExists(subQuery)
+      }
+    }
+
+    if ('tags' in contactsFilter) {
+      const subQuery = (r.knex.select('tag')
+        .from('tag')
+        .whereRaw('tag.campaign_contact_id=campaign_contact.id')
+        .whereIn('tag.tag', contactsFilter.tags)
+      )
       query = query.whereExists(subQuery)
-    } else {
-      query = query.whereNotExists(subQuery)
     }
   }
 
@@ -65,7 +83,7 @@ export async function getConversations(
   campaignsFilter,
   assignmentsFilter,
   contactsFilter,
-  utc
+  includeTags
 ) {
   /* Query #1 == get campaign_contact.id for all the conversations matching
   * the criteria with offset and limit. */
@@ -85,13 +103,9 @@ export async function getConversations(
   offsetLimitQuery = offsetLimitQuery.limit(cursor.limit).offset(cursor.offset)
 
   const ccIdRows = await offsetLimitQuery
-  const ccIds = ccIdRows.map((ccIdRow) => {
-    return ccIdRow.cc_id
-  })
+  const ccIds = ccIdRows.map((ccIdRow) => ccIdRow.cc_id)
 
-  /* Query #2 -- get all the columns we need, including messages, using the
-  * cc_ids from Query #1 to scope the results to limit, offset */
-  let query = r.knex.select(
+  const fieldsArray = [
     'campaign_contact.id as cc_id',
     'campaign_contact.first_name as cc_first_name',
     'campaign_contact.last_name as cc_last_name',
@@ -100,6 +114,7 @@ export async function getConversations(
     'campaign_contact.is_opted_out',
     'campaign_contact.updated_at',
     'campaign_contact.assignment_id',
+    'campaign_contact.has_unresolved_tags',
     'opt_out.cell as opt_out_cell',
     'user.id as u_id',
     'user.first_name as u_first_name',
@@ -114,6 +129,18 @@ export async function getConversations(
     'message.contact_number',
     'message.created_at',
     'message.is_from_contact'
+  ]
+
+  const tagsFields = [
+    'tag.tag',
+    'tag.created_at',
+
+  ]
+
+  /* Query #2 -- get all the columns we need, including messages, using the
+  * cc_ids from Query #1 to scope the results to limit, offset */
+  let query = r.knex.select(
+    ...fieldsArray
   )
 
   query = getConversationsJoinsAndWhereClause(
@@ -144,6 +171,24 @@ export async function getConversations(
 
   const conversationRows = await query
 
+  const tags = {}
+  if (includeTags) {
+    const tagsQuery = r.knex
+      .select('tag', 'created_at', 'campaign_contact_id')
+      .from('tag')
+      .whereIn('campaign_contact_id', ccIds)
+      .orderBy('tag.created_at')
+    const tagsRows = await tagsQuery
+    for (const tagRow of tagsRows) {
+      const ccId = tagRow.campaign_contact_id
+      const tag = tagRow.tag
+      const createdAt = tagRow.created_at
+      tags[ccId] = tags[ccId] || []
+      tags[ccId].push({tag, createdAt})
+      console.log(ccId)
+    }
+  }
+
   /* collapse the rows to produce an array of objects, with each object
   * containing the fields for one conversation, each having an array of
   * message objects */
@@ -164,6 +209,9 @@ export async function getConversations(
       ccId = conversationRow.cc_id
       conversation = _.omit(conversationRow, messageFields)
       conversation.messages = []
+      if (includeTags) {
+        conversation.tags = tags[ccId] ? tags[ccId] : []
+      }
       conversations.push(conversation)
     }
     conversation.messages.push(

@@ -423,8 +423,19 @@ export class AssignmentTexterContact extends React.Component {
 
   handleSkipContact = async () => {
     await this.handleSubmitSurveys()
+    await this.handleApplyTag()
     await this.handleEditMessageStatus('closed')
     this.props.onFinishContact()
+  }
+
+  handleApplyTag = async () => {
+    if (!!this.state.tag) {
+      await this.props.mutations.addTag(this.props.contact.id, this.state.tag, '')
+      this.setState({
+        tag: undefined,
+        skipComment: undefined
+      })
+    }
   }
 
   handleEditMessageStatus = async (messageStatus) => {
@@ -979,6 +990,18 @@ const mapMutationsToProps = () => ({
     `,
     variables: {
       assignmentId
+    }
+  }),
+  addTag: (campaignContactId, tag, comment) => ({
+    mutation: gql`
+      mutation addTag($campaignContactId: String!, $tag: String!, $comment: String) {
+        addTagToCampaignContact(campaignContactId: $campaignContactId, tag: $tag, comment: $comment)
+      }
+    `,
+    variables: {
+      campaignContactId,
+      tag,
+      comment
     }
   })
 })

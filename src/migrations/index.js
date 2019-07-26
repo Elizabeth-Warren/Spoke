@@ -184,7 +184,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 14
+    auto: true, // 15
     date: '2019-05-13',
     migrate: async () => {
       console.log('setting sequence value for canned_response')
@@ -192,7 +192,53 @@ const migrations = [
       await r.knex.raw(`ALTER SEQUENCE canned_response_id_seq RESTART WITH ${maxId + 1}`)
       console.log(`set sequence canned_response_id_seq to ${maxId + 1}`)
     }
-  }
+  },
+  { auto: true, // 16
+    date: '2019-07-16',
+    migrate: async () => {
+      const tableExists = await r.knex.schema.hasTable('tag')
+      if (!tableExists) {
+        console.log('adding tag table')
+        await r.knex.schema.createTable('tag', (table) => {
+          table.increments()
+          table.integer('campaign_contact_id')
+            .unsigned()
+            .references('id')
+            .inTable('campaign_contact')
+            .index()
+          table.string('tag').index()
+          table.timestamp('created_at').default(r.knex.fn.now())
+          table.integer('created_by')
+            .unsigned()
+            .references('id')
+            .inTable('user')
+          table.timestamp('resolved_at')
+            .nullable()
+            .default(null)
+          table.integer('resolved_by')
+            .unsigned()
+            .nullable()
+            .default(null)
+            .references('id')
+            .inTable('user')
+        })
+        console.log('added tag table')
+      } else {
+        console.log('tag table already exists')
+      }
+    }
+  },
+  {
+    auto: true, // 17
+    date: '2019-07-26',
+    migrate: async () => {
+      console.log('adding has_unresolved_messages to campaign_contact')
+      await r.knex.schema.alterTable('campaign_contact', (table) => {
+        table.boolean('has_unresolved_tags').notNullable().default(false)
+      })
+      console.log('added has_unresolved_messages to campaign_contact')
+    }
+  },
 
   /* migration template
      {auto: true, //if auto is false, then it will block the migration running automatically

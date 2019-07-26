@@ -19,6 +19,7 @@ import UserCell from './user-cell'
 import Message from './message'
 import ZipCode from './zip-code'
 import Log from './log'
+import Tag from './tag'
 
 import thinky from './thinky'
 import datawarehouse from './datawarehouse'
@@ -57,6 +58,7 @@ const tableList = [
   'opt_out',  // good candidate
   'pending_message_part',
   'question_response',
+  'tag',
   'user_cell',
   'user_organization',
   'zip_code' // good candidate (or by contact)?
@@ -98,6 +100,7 @@ const createLoaders = () => ({
   migrations: createLoader(Migrations),
   optOut: createLoader(OptOut),
   pendingMessagePart: createLoader(PendingMessagePart),
+  tag: createLoader(Tag),
   questionResponse: createLoader(QuestionResponse),
   userCell: createLoader(UserCell),
   userOrganization: createLoader(UserOrganization)
@@ -126,6 +129,7 @@ export {
   PendingMessagePart,
   CannedResponse,
   QuestionResponse,
+  Tag,
   UserCell,
   UserOrganization,
   User,

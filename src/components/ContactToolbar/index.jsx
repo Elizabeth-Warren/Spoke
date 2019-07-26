@@ -1,10 +1,18 @@
 import PropTypes from 'prop-types'
+import { StyleSheet, css } from 'aphrodite'
 import React from 'react'
 import { Toolbar, ToolbarGroup, ToolbarTitle } from 'material-ui/Toolbar'
 import { getLocalTime, getContactTimezone } from '../../lib/timezones'
 import { getProcessEnvDstReferenceTimezone } from '../../lib/tz-helpers'
 import { grey100 } from 'material-ui/styles/colors'
 import ContactInfo from './ContactInfo'
+import Tags from './Tags'
+
+const styles = StyleSheet.create({
+  tagButton: {
+    marginRight: '10px'
+  }
+})
 
 const inlineStyles = {
   toolbar: {
@@ -63,7 +71,7 @@ const ContactToolbar = function ContactToolbar(props) {
       <Toolbar
         style={inlineStyles.toolbar}
       >
-        <ToolbarGroup >
+        <ToolbarGroup>
           <ToolbarTitle text={campaignContact.firstName} />
           <ToolbarTitle
             style={inlineStyles.cellToolbarTitle}
@@ -83,6 +91,12 @@ const ContactToolbar = function ContactToolbar(props) {
           {rightToolbarIcon}
         </ToolbarGroup>
         <ToolbarGroup>
+          <Tags
+            className={css(styles.tagButton)}
+            campaign={props.campaign}
+            campaignContact={props.campaignContact}
+            assignment={props.assignment}
+          />
           <ContactInfo
             campaign={props.campaign}
             campaignContact={props.campaignContact}

@@ -2,36 +2,29 @@ import gql from 'graphql-tag'
 
 import { schema as userSchema } from './user'
 import {
-  schema as conversationSchema,
-  getConversations,
-  resolvers as conversationsResolver
+  schema as conversationSchema
 } from './conversations'
-import { schema as organizationSchema, resolvers as organizationResolvers } from './organization'
-import { schema as campaignSchema, resolvers as campaignResolvers } from './campaign'
+import { schema as organizationSchema } from './organization'
+import { schema as campaignSchema } from './campaign'
 import {
-  schema as assignmentSchema,
-  resolvers as assignmentResolvers
+  schema as assignmentSchema
 } from './assignment'
 import {
-  schema as interactionStepSchema,
-  resolvers as interactionStepResolvers
+  schema as interactionStepSchema
 } from './interaction-step'
-import { schema as questionSchema, resolvers as questionResolvers } from './question'
+import { schema as questionSchema } from './question'
 import {
-  schema as questionResponseSchema,
-  resolvers as questionResponseResolvers
+  schema as questionResponseSchema
 } from './question-response'
-import { schema as optOutSchema, resolvers as optOutResolvers } from './opt-out'
-import { schema as messageSchema, resolvers as messageResolvers } from './message'
+import { schema as optOutSchema } from './opt-out'
+import { schema as messageSchema } from './message'
 import {
-  schema as campaignContactSchema,
-  resolvers as campaignContactResolvers
+  schema as campaignContactSchema
 } from './campaign-contact'
 import {
-  schema as cannedResponseSchema,
-  resolvers as cannedResponseResolvers
+  schema as cannedResponseSchema
 } from './canned-response'
-import { schema as inviteSchema, resolvers as inviteResolvers } from './invite'
+import { schema as inviteSchema } from './invite'
 
 
 const rootSchema = gql`
@@ -226,6 +219,7 @@ const rootSchema = gql`
     sendMessage(message:MessageInput!, campaignContactId:String!): CampaignContact,
     createOptOut(optOut:OptOutInput!, campaignContactId:String!):CampaignContact,
     editCampaignContactMessageStatus(messageStatus: String!, campaignContactId:String!): CampaignContact,
+    addTagToCampaignContact(campaignContactId: String!, tag: String!, comment: String): Boolean,
     deleteQuestionResponses(interactionStepIds:[String], campaignContactId:String!): CampaignContact,
     updateQuestionResponses(questionResponses:[QuestionResponseInput], campaignContactId:String!): CampaignContact,
     startCampaign(id:String!): Campaign,

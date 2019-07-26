@@ -1,10 +1,13 @@
-export const schema = `
+import gql from 'graphql-tag'
+
+export const schema = gql`
   input ContactsFilter {
     contactId: ID
     messageStatus: String
     isOptedOut: Boolean
     validTimezone: Boolean
     includePastDue: Boolean
+    tags: [String]
   }
 
   type Timezone {
@@ -16,6 +19,15 @@ export const schema = `
     timezone: Timezone
     city: String
     state: String
+  }
+
+  type Tag {
+    tag: String!
+    comment: String
+    createdBy: User!
+    createdAt: Date
+    resolvedBy: User
+    resolvedAt: Date
   }
 
   type CampaignContact {
@@ -35,6 +47,8 @@ export const schema = `
     interactionSteps: [InteractionStep]
     messageStatus: String
     assignmentId: String
+    tags: [Tag],
+    hasUnresolvedTags: Boolean
   }
 `
 
