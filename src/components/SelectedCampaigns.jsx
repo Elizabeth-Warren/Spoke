@@ -18,7 +18,7 @@ const styles = {
 
 const SelectedCampaigns = (props) => (
   <div className={css(ssStyles.container)}>
-    {props.campaigns.length && (<Chip
+    {!!props.campaigns.length && (<Chip
       style={styles.chip}
       key={0}
       onClick={props.onClear}
