@@ -167,7 +167,7 @@ export default class CampaignInteractionStepsForm extends React.Component {
             <Form.Field
               {...dataTest('editorInteraction')}
               name='script'
-              type='script'
+              __type='script'
               fullWidth
               customFields={this.props.customFields}
               label='Script'
@@ -206,7 +206,7 @@ export default class CampaignInteractionStepsForm extends React.Component {
     </div>)
   }
 
-  render() {
+  doRender = () => {
     const tree = makeTree(this.state.interactionSteps)
 
     return (
@@ -224,6 +224,13 @@ export default class CampaignInteractionStepsForm extends React.Component {
         />
       </div>
     )
+  }
+
+  render() {
+    console.log('render', Date.now())
+    const rendered = this.doRender()
+    console.log('rendered', Date.now())
+    return rendered
   }
 
 }

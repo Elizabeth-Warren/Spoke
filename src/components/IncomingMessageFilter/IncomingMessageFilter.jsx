@@ -6,12 +6,14 @@ import { Card, CardHeader, CardText } from 'material-ui/Card'
 import AutoComplete from 'material-ui/AutoComplete'
 import SelectField from 'material-ui/SelectField'
 import MenuItem from 'material-ui/MenuItem'
-import theme from '../styles/theme'
-import { dataSourceItem } from './utils'
-import SelectedCampaigns from './SelectedCampaigns'
+import theme from '../../styles/theme'
+import { dataSourceItem } from '../utils'
+import SelectedCampaigns from '../SelectedCampaigns'
+import { MessageStatusFilter, MESSAGE_STATUSES } from './MessageStatusFilter'
 
 import { StyleSheet, css } from 'aphrodite'
 import _ from 'lodash'
+import CampaignFilter from './CampaignFilter';
 
 const styles = StyleSheet.create({
   container: {
@@ -31,37 +33,6 @@ const styles = StyleSheet.create({
     marginRight: '30px'
   }
 })
-
-export const MESSAGE_STATUSES = {
-  all: {
-    name: 'All',
-    children: ['needsResponse', 'needsMessage', 'convo', 'messaged']
-  },
-  needsResponse: {
-    name: 'Needs Texter Response',
-    children: []
-  },
-  needsMessage: {
-    name: 'Needs First Message',
-    children: []
-  },
-  convo: {
-    name: 'Active Conversation',
-    children: []
-  },
-  messaged: {
-    name: 'First Message Sent',
-    children: []
-  },
-  closed: {
-    name: 'Closed',
-    children: []
-  }
-}
-
-export const ALL_CAMPAIGNS = -1
-
-export const CAMPAIGN_TYPE_FILTERS = [[ALL_CAMPAIGNS, 'All Campaigns']]
 
 export const ALL_TEXTERS = -1
 
@@ -180,21 +151,6 @@ class IncomingMessageFilter extends Component {
       return left.text.localeCompare(right.text, 'en', { sensitivity: 'base' })
     })
 
-    const campaignNodes = CAMPAIGN_TYPE_FILTERS.map(campaignTypeFilter =>
-      dataSourceItem(campaignTypeFilter[1], campaignTypeFilter[0])
-    ).concat(
-      !this.props.campaigns
-        ? []
-        : this.props.campaigns.filter(this.campaignsNotAlreadySelected).map(campaign => {
-          const campaignId = parseInt(campaign.id, 10)
-          const campaignDisplay = `${campaignId}: ${campaign.title}`
-          return dataSourceItem(campaignDisplay, campaignId)
-        })
-    )
-    campaignNodes.sort((left, right) => {
-      return left.text.localeCompare(right.text, 'en', { sensitivity: 'base' })
-    })
-
     return (
       <Card>
         <CardHeader title='Message Filter' actAsExpander showExpandableButton />
@@ -237,45 +193,23 @@ class IncomingMessageFilter extends Component {
 
           <div className={css(styles.container)}>
             <div className={css(styles.flexColumn)}>
-              <SelectField
-                multiple
-                value={this.state.messageFilter}
-                hintText={'Which messages?'}
-                floatingLabelText={'Contact message status'}
-                floatingLabelFixed
+              <MessageStatusFilter
+                messageFilter={this.state.messageFilter}
                 onChange={this.onMessageFilterSelectChanged}
-              >
-                {Object.keys(MESSAGE_STATUSES).map(messageStatus => {
-                  const displayText = MESSAGE_STATUSES[messageStatus].name
-                  const isChecked =
-                    this.state.messageFilter &&
-                    this.state.messageFilter.indexOf(messageStatus) > -1
-                  return (
-                    <MenuItem
-                      key={messageStatus}
-                      value={messageStatus}
-                      primaryText={displayText}
-                      insetChildren
-                      checked={isChecked}
-                    />
-                  )
-                })}
-              </SelectField>
+              />
             </div>
             <div className={css(styles.spacer)} />
             <div className={css(styles.flexColumn)}>
-              <AutoComplete
-                filter={AutoComplete.caseInsensitiveFilter}
-                maxSearchResults={8}
+              <CampaignFilter
+                campaigns={this.props.campaigns}
+                campaignsNotAlreadySelected={this.state.campaignsNotAlreadySelected}
                 onFocus={() => this.setState({ campaignSearchText: '' })}
-                onUpdateInput={campaignSearchText =>
-                  this.setState({ campaignSearchText })
+                onSearchTextUpdated={
+                  campaignSearchText =>
+                    this.setState({ campaignSearchText })
                 }
-                searchText={this.state.campaignSearchText}
-                dataSource={campaignNodes}
-                hintText={'Search for a campaign'}
-                floatingLabelText={'Select a campaign'}
-                onNewRequest={this.onCampaignSelected}
+                campaignSearchText={this.state.campaignSearchText}
+                onCampaignSelected={this.onCampaignSelected}
               />
             </div>
             <div className={css(styles.spacer)} />
