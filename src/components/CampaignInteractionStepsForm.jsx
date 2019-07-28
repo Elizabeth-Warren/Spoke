@@ -45,12 +45,6 @@ export default class CampaignInteractionStepsForm extends React.Component {
     displayAllSteps: false
   }
 
-  componentDidUpdate = (prevProps, prevState) => {
-    if (!this.state.displayAllSteps) {
-      this.setState({ displayAllSteps: true })
-    }
-  }
-
   componentDidMount = () => {
     if (!this.state.displayAllSteps) {
       this.setState({ displayAllSteps: true })
