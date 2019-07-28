@@ -199,7 +199,6 @@ export default class CampaignInteractionStepsForm extends React.Component {
   }
 
   render() {
-    console.log('render')
     const tree = makeTree(this.state.interactionSteps)
 
     return (
