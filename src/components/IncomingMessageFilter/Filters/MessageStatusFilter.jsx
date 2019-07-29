@@ -58,7 +58,7 @@ export const MessageStatusFilter = (props) =>
   </SelectField>
 
 MessageStatusFilter.propTypes = {
-  messageFilter: type.string.isRequired,
+  messageFilter: type.array.isRequired,
   onChange: type.func.isRequired
 }
 

@@ -1,5 +1,5 @@
 import IncomingMessageFilter from './IncomingMessageFilter'
-import { MESSAGE_STATUSES } from './MessageStatusFilter'
+import { MESSAGE_STATUSES } from './Filters/MessageStatusFilter'
 
 export {
   MESSAGE_STATUSES,

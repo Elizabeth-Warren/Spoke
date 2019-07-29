@@ -1,6 +1,6 @@
 import React from 'react'
 import type from 'prop-types'
-import { dataSourceItem } from '../utils'
+import { dataSourceItem } from '../../utils'
 import AutoComplete from 'material-ui/AutoComplete'
 
 
@@ -8,8 +8,7 @@ export const ALL_CAMPAIGNS = -1
 
 export const CAMPAIGN_TYPE_FILTERS = [[ALL_CAMPAIGNS, 'All Campaigns']]
 
-export const CampaignFilter = (props) => {
-
+export const CampaignsFilter = (props) => {
   const campaignNodes = CAMPAIGN_TYPE_FILTERS.map(campaignTypeFilter =>
     dataSourceItem(campaignTypeFilter[1], campaignTypeFilter[0])
   ).concat(
@@ -25,27 +24,27 @@ export const CampaignFilter = (props) => {
     return left.text.localeCompare(right.text, 'en', { sensitivity: 'base' })
   })
 
-    (<AutoComplete
-      filter={AutoComplete.caseInsensitiveFilter}
-      maxSearchResults={8}
-      onFocus={props.onFocus}
-      onUpdateInput={props.onSearchTextUpdated}
-      searchText={props.campaignSearchText}
-      dataSource={campaignNodes}
-      hintText={'Search for a campaign'}
-      floatingLabelText={'Select a campaign'}
-      onNewRequest={props.onCampaignSelected}
-    />
+  return (<AutoComplete
+    filter={AutoComplete.caseInsensitiveFilter}
+    maxSearchResults={8}
+    onFocus={props.onFocus}
+    onUpdateInput={props.onSearchTextUpdated}
+    searchText={props.campaignSearchText}
+    dataSource={campaignNodes}
+    hintText={'Search for a campaign'}
+    floatingLabelText={'Select a campaign'}
+    onNewRequest={props.onCampaignSelected}
+  />
     )
 }
 
-CampaignFilter.propTypes = {
+CampaignsFilter.propTypes = {
   campaigns: type.array.isRequired,
-  campaignsNotAlreadySelected: type.array.isRequired,
+  campaignsNotAlreadySelected: type.func.isRequired,
   onFocus: type.func.isRequired,
   onSearchTextUpdated: type.func.isRequired,
   campaignSearchText: type.string.isRequired,
   onCampaignSelected: type.func.isRequired
 }
 
-export default CampaignFilter
+export default CampaignsFilter

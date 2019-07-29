@@ -48,11 +48,14 @@ function getConversationsJoinsAndWhereClause(
     }
 
     if ('tags' in contactsFilter) {
-      const subQuery = (r.knex.select('tag')
+      let subQuery = r.knex.select('tag')
         .from('tag')
         .whereRaw('tag.campaign_contact_id=campaign_contact.id')
-        .whereIn('tag.tag', contactsFilter.tags)
-      )
+
+      if (!(contactsFilter.tags.length === 1 && contactsFilter.tags[0] === '*')) {
+        subQuery = subQuery.whereIn('tag.tag', contactsFilter.tags)
+      }
+
       query = query.whereExists(subQuery)
     }
   }

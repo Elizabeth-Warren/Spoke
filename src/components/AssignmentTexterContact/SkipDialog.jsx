@@ -68,7 +68,7 @@ const SkipDialog = (props) => props.open && (
             onChange={(event, key, value) => props.onTagChanged(value)}
             value={props.tag || NO_TAG.value}
           >
-            {TAGS.map((tag) => (<MenuItem
+            {[NO_TAG, ...TAGS].map((tag) => (<MenuItem
               key={tag.value}
               value={tag.value}
               primaryText={tag.display}

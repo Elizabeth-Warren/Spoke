@@ -144,6 +144,33 @@ export class AdminIncomingMessageList extends Component {
     })
   }
 
+  handleTagsFilterChanged = (tagsFilter) => {
+    const contactsFilter = Object.assign(
+      _.omit(this.state.contactsFilter, ['tags']),
+    )
+
+    let newTagsFilter = null
+    if (tagsFilter.anyTag) {
+      newTagsFilter = ['*']
+    } else if (tagsFilter.noTag) {
+      newTagsFilter = []
+    } else if (!tagsFilter.ignoreTags) {
+      newTagsFilter = Object.values(tagsFilter.selectedTags).map(
+        (tagFilter) => tagFilter.value
+      )
+    }
+
+    if (newTagsFilter) {
+      contactsFilter.tags = newTagsFilter
+    }
+
+    this.setState({
+      clearSelectedMessages: true,
+      contactsFilter,
+      needsRender: true
+    })
+  }
+
   handleReassignRequested = async (newTexterUserId) => {
     await this.props.mutations.reassignCampaignContacts(
       this.props.params.organizationId,
@@ -329,6 +356,7 @@ export class AdminIncomingMessageList extends Component {
               onCampaignChanged={this.handleCampaignChanged}
               onTexterChanged={this.handleTexterChanged}
               onMessageFilterChanged={this.handleMessageFilterChange}
+              onTagsFilterChanged={this.handleTagsFilterChanged}
               assignmentsFilter={this.state.assignmentsFilter}
               onActiveCampaignsToggled={this.handleActiveCampaignsToggled}
               onArchivedCampaignsToggled={this.handleArchivedCampaignsToggled}
