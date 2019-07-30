@@ -877,7 +877,7 @@
   dependencies:
     regenerator-runtime "^0.12.0"
 
-"@babel/runtime@^7.0.0", "@babel/runtime@^7.1.2", "@babel/runtime@^7.2.0":
+"@babel/runtime@^7.1.2", "@babel/runtime@^7.2.0":
   version "7.5.4"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.5.4.tgz#cb7d1ad7c6d65676e66b47186577930465b5271b"
   integrity sha512-Na84uwyImZZc3FKf4aUF1tysApzwf3p2yuFBIyBfbzT5glzKTdvYI4KVW4kcgjrzoGUjC7w3YyCHcJKaRxsr2Q==
@@ -5926,11 +5926,6 @@ fn-name@~1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/fn-name/-/fn-name-1.0.1.tgz#de8d8a15388b33cbf2145782171f73770c6030f0"
   integrity sha1-3o2KFTiLM8vyFFeCFx9zdwxgMPA=
-
-fn-name@~2.0.1:
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/fn-name/-/fn-name-2.0.1.tgz#5214d7537a4d06a4a301c0cc262feb84188002e7"
-  integrity sha1-UhTXU3pNBqSjAcDMJi/rhBiAAuc=
 
 follow-redirects@^1.0.0:
   version "1.7.0"
@@ -11530,7 +11525,7 @@ prop-types@^15.5.10, prop-types@^15.5.4, prop-types@^15.5.6, prop-types@^15.5.7,
     object-assign "^4.1.1"
     react-is "^16.8.1"
 
-property-expr@^1.2.0, property-expr@^1.3.1, property-expr@^1.5.0:
+property-expr@^1.2.0, property-expr@^1.3.1:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/property-expr/-/property-expr-1.5.1.tgz#22e8706894a0c8e28d58735804f6ba3a3673314f"
   integrity sha512-CGuc0VUTGthpJXL36ydB6jnbyOf/rAHFvmVrJlH+Rg0DqqLFQGAP6hIaxD/G0OAmBJPhXDHuEJigrp0e0wFV6g==
@@ -11885,6 +11880,11 @@ react-dom@^15.6.1:
     object-assign "^4.1.0"
     prop-types "^15.5.10"
 
+react-dot-fragment@^0.2.9:
+  version "0.2.9"
+  resolved "https://registry.yarnpkg.com/react-dot-fragment/-/react-dot-fragment-0.2.9.tgz#c12adc44851f46b6e389edf6ac78c74735b842fa"
+  integrity sha512-mbxKpzkmziIoZzzvsUwUzpY1Y440aQpMsc9wcnm5rb1M4suMuinhzDGkiqkbmfLNTcAB1GimdfzHtaOAar2aYw==
+
 react-error-overlay@^5.1.4:
   version "5.1.6"
   resolved "https://registry.yarnpkg.com/react-error-overlay/-/react-error-overlay-5.1.6.tgz#0cd73407c5d141f9638ae1e0c63e7b2bf7e9929d"
@@ -11909,10 +11909,10 @@ react-event-listener@^0.6.2:
     prop-types "^15.6.0"
     warning "^4.0.1"
 
-react-formal@^0.18.5:
-  version "0.18.9"
-  resolved "https://registry.yarnpkg.com/react-formal/-/react-formal-0.18.9.tgz#f941ca20d135e7b95187dbd822acc3b623d084ea"
-  integrity sha1-+UHKINE157lRh9vYIqzDtiPQhOo=
+react-formal@^0.20.0:
+  version "0.20.6"
+  resolved "https://registry.yarnpkg.com/react-formal/-/react-formal-0.20.6.tgz#086b636c28bf761403c04ccd659db3bde139eb57"
+  integrity sha1-CGtjbCi/dhQDwEzNZZ2zveE561c=
   dependencies:
     chain-function "^1.0.0"
     classnames "^2.2.5"
@@ -11920,14 +11920,15 @@ react-formal@^0.18.5:
     lodash "^3.10.1"
     pick-attributes "^1.0.2"
     property-expr "^1.3.1"
-    react-input-message "^0.13.1"
+    react-input-message "^0.14.1"
     react-prop-types "^0.3.2"
     react-pure-render "^1.0.2"
-    spy-on-component "^1.0.0"
-    topeka "^0.3.5"
-    uncontrollable "^3.1.0"
+    spy-on-component "^1.0.2"
+    topeka "^0.4.1"
+    uncontrollable "^4.0.3"
+    universal-promise "^1.1.0"
     warning "^2.0.0"
-    yup ">=0.17.0"
+    yup "^0.21.1"
 
 react-hot-api@^0.4.5:
   version "0.4.7"
@@ -11942,13 +11943,13 @@ react-hot-loader@^1.3.0:
     react-hot-api "^0.4.5"
     source-map "^0.4.4"
 
-react-input-message@^0.13.1:
-  version "0.13.3"
-  resolved "https://registry.yarnpkg.com/react-input-message/-/react-input-message-0.13.3.tgz#ee69c76f0628ede1db39c1a7ce751fc6e9cb3564"
-  integrity sha1-7mnHbwYo7eHbOcGnznUfxunLNWQ=
+react-input-message@^0.14.1:
+  version "0.14.2"
+  resolved "https://registry.yarnpkg.com/react-input-message/-/react-input-message-0.14.2.tgz#134f8d99d84261234d78929ad855f71eed39687b"
+  integrity sha1-E0+NmdhCYSNNeJKa2FX3Hu05aHs=
   dependencies:
     classnames "^2.2.3"
-    topeka "^0.3.0"
+    topeka "^0.4.0"
     universal-promise "^1.1.0"
 
 react-is@^16.7.0, react-is@^16.8.1, react-is@^16.8.6:
@@ -13379,7 +13380,7 @@ sprintf-js@~1.0.2:
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   integrity sha1-BOaSb2YolTVPPdAVIDYzuFcpfiw=
 
-spy-on-component@^1.0.0:
+spy-on-component@^1.0.2:
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/spy-on-component/-/spy-on-component-1.1.2.tgz#70cec3a0b87dfb9d5356e288135fd349d138d407"
   integrity sha512-ndyPLiqAPcDETg2VO0TM35uq6kLKvhss2ILBV+jfXZz55lRk5zphmbrHKwwIu9++n56+56KLbY/zhJnPF6Yqyg==
@@ -13732,11 +13733,6 @@ synchronous-promise@^1.0.18:
   resolved "https://registry.yarnpkg.com/synchronous-promise/-/synchronous-promise-1.0.18.tgz#936e8763e6554088cdcf78dc64f7473b972fcefc"
   integrity sha512-UqMAK6BBBXu8qaDI5omlyV9iDpM9nQfgthaBOK0nlfXnMgiuOBv+meWG73CGeCCFRhOOOa2e4rvqYzfynzy5zg==
 
-synchronous-promise@^2.0.6:
-  version "2.0.9"
-  resolved "https://registry.yarnpkg.com/synchronous-promise/-/synchronous-promise-2.0.9.tgz#b83db98e9e7ae826bf9c8261fd8ac859126c780a"
-  integrity sha512-LO95GIW16x69LuND1nuuwM4pjgFGupg7pZ/4lU86AmchPKrhk0o2tpMU2unXRrqo81iAFe1YJ0nAGEVwsrZAgg==
-
 table@^3.7.8:
   version "3.8.3"
   resolved "https://registry.yarnpkg.com/table/-/table-3.8.3.tgz#2bbc542f0fda9861a755d3947fefd8b3f513855f"
@@ -14007,10 +14003,10 @@ toidentifier@1.0.0:
   resolved "https://registry.yarnpkg.com/toidentifier/-/toidentifier-1.0.0.tgz#7e1be3470f1e77948bc43d94a3c8f4d7752ba553"
   integrity sha512-yaOH/Pk/VEhBWWTlhI+qXxDFXlejDGcQipMlyxda9nthulaxLZUNcUqFxokp0vcYnvteJln5FNQDRrxj3YcbVw==
 
-topeka@^0.3.0, topeka@^0.3.5:
-  version "0.3.6"
-  resolved "https://registry.yarnpkg.com/topeka/-/topeka-0.3.6.tgz#708ca4ec03f2bcdd664dcccc8f3b94a27f8c43dd"
-  integrity sha1-cIyk7APyvN1mTczMjzuUon+MQ90=
+topeka@^0.4.0, topeka@^0.4.1:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/topeka/-/topeka-0.4.1.tgz#faa979de592710fc270a02139173125f4f9dced6"
+  integrity sha1-+ql53lknEPwnCgITkXMSX0+dztY=
   dependencies:
     chain-function "^1.0.0"
     classnames "^2.1.5"
@@ -14036,11 +14032,6 @@ toposort@^0.2.10:
   version "0.2.12"
   resolved "https://registry.yarnpkg.com/toposort/-/toposort-0.2.12.tgz#c7d2984f3d48c217315cc32d770888b779491e81"
   integrity sha1-x9KYTz1IwhcxXMMtdwiIt3lJHoE=
-
-toposort@^2.0.2:
-  version "2.0.2"
-  resolved "https://registry.yarnpkg.com/toposort/-/toposort-2.0.2.tgz#ae21768175d1559d48bef35420b2f4962f09c330"
-  integrity sha1-riF2gXXRVZ1IvvNUILL0li8JwzA=
 
 touch@^3.1.0:
   version "3.1.0"
@@ -14251,10 +14242,17 @@ unc-path-regex@^0.1.2:
   resolved "https://registry.yarnpkg.com/unc-path-regex/-/unc-path-regex-0.1.2.tgz#e73dd3d7b0d7c5ed86fbac6b0ae7d8c6a69d50fa"
   integrity sha1-5z3T17DXxe2G+6xrCufYxqadUPo=
 
-uncontrollable@^3.1.0, uncontrollable@^3.1.3:
+uncontrollable@^3.1.3:
   version "3.3.1"
   resolved "https://registry.yarnpkg.com/uncontrollable/-/uncontrollable-3.3.1.tgz#e23b402e7a4c69b1853fb4b43ce34b6480c65b6f"
   integrity sha1-4jtALnpMabGFP7S0PONLZIDGW28=
+  dependencies:
+    invariant "^2.1.0"
+
+uncontrollable@^4.0.3:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/uncontrollable/-/uncontrollable-4.1.0.tgz#e0358291252e1865222d90939b19f2f49f81c1a9"
+  integrity sha1-4DWCkSUuGGUiLZCTmxny9J+Bwak=
   dependencies:
     invariant "^2.1.0"
 
@@ -14365,7 +14363,7 @@ unist-util-stringify-position@^2.0.0:
   dependencies:
     "@types/unist" "^2.0.2"
 
-universal-promise@^1.1.0:
+universal-promise@^1.0.1, universal-promise@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/universal-promise/-/universal-promise-1.1.0.tgz#563f9123372940839598c9d48be5ec33fa69cff1"
   integrity sha1-Vj+RIzcpQIOVmMnUi+XsM/ppz/E=
@@ -15375,17 +15373,18 @@ yargs@~3.10.0:
     decamelize "^1.0.0"
     window-size "0.1.0"
 
-yup@>=0.17.0:
-  version "0.27.0"
-  resolved "https://registry.yarnpkg.com/yup/-/yup-0.27.0.tgz#f8cb198c8e7dd2124beddc2457571329096b06e7"
-  integrity sha512-v1yFnE4+u9za42gG/b/081E7uNW9mUj3qtkmelLbW5YPROZzSH/KUUyJu9Wt8vxFJcT9otL/eZopS0YK1L5yPQ==
+yup@^0.21.1:
+  version "0.21.3"
+  resolved "https://registry.yarnpkg.com/yup/-/yup-0.21.3.tgz#46fc72b46cb58a1e70f4cb78cb645209632e193a"
+  integrity sha1-RvxytGy1ih5w9Mt4y2RSCWMuGTo=
   dependencies:
-    "@babel/runtime" "^7.0.0"
-    fn-name "~2.0.1"
-    lodash "^4.17.11"
-    property-expr "^1.5.0"
-    synchronous-promise "^2.0.6"
-    toposort "^2.0.2"
+    case "^1.2.1"
+    fn-name "~1.0.1"
+    lodash "^4.17.0"
+    property-expr "^1.2.0"
+    toposort "^0.2.10"
+    type-name "^2.0.1"
+    universal-promise "^1.0.1"
 
 yup@^0.24.0:
   version "0.24.1"
