@@ -14,7 +14,8 @@ import TagsFilter from './Filters/TagsFilter'
 const inlineStyles = {
   containerOfContainers: {
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
+    flexWrap: 'nowrap'
   }
 }
 
@@ -188,63 +189,58 @@ class IncomingMessageFilter extends Component {
             </div>
           </div>
 
-          <div>
-            <div className={css(styles.container)}>
-              <div className={css(styles.flexColumn)}>
-                <MessageStatusFilter
-                  messageFilter={this.state.messageFilter}
-                  onChange={this.onMessageFilterSelectChanged}
-                />
-              </div>
-              <div className={css(styles.spacer)} />
-              <div className={css(styles.flexColumn)}>
-                <CampaignFilter
-                  campaigns={this.props.campaigns}
-                  campaignsNotAlreadySelected={this.campaignsNotAlreadySelected}
-                  onFocus={() => this.setState({ campaignSearchText: '' })}
-                  onSearchTextUpdated={
-                    campaignSearchText =>
-                      this.setState({ campaignSearchText })
-                  }
-                  campaignSearchText={this.state.campaignSearchText}
-                  onCampaignSelected={this.onCampaignSelected}
-                />
-              </div>
-              <div className={css(styles.spacer)} />
-              <div className={css(styles.flexColumn)}>
-                <TexterFilter
-                  texters={this.props.texters}
-                  onFocus={() => this.setState({ texterSearchText: '' })}
-                  onSearchTextUpdated={
-                    texterSearchText =>
-                      this.setState({ texterSearchText })
-                  }
-                  texterSearchText={this.state.texterSearchText}
-                  onTexterSelected={this.onTexterSelected}
-                />
-              </div>
-
-              <div>
-                <TagsFilter
-                  onChange={this.onTagsFilterChanged}
-                />
-              </div>
+          <div className={css(styles.container)}>
+            <div className={css(styles.flexColumn)}>
+              <MessageStatusFilter
+                messageFilter={this.state.messageFilter}
+                onChange={this.onMessageFilterSelectChanged}
+              />
             </div>
-
-            <div
-              className={css(styles.containerOfContainers)}
-            >
-              <div className={css(styles.container)}>
-                <SelectedCampaigns
-                  campaigns={this.state.selectedCampaigns}
-                  onDeleteRequested={this.handleCampaignRemoved}
-                  onClear={this.handleClearCampaigns}
-                />
-              </div>
+            <div className={css(styles.spacer)} />
+            <div className={css(styles.flexColumn)}>
+              <CampaignFilter
+                campaigns={this.props.campaigns}
+                campaignsNotAlreadySelected={this.campaignsNotAlreadySelected}
+                onFocus={() => this.setState({ campaignSearchText: '' })}
+                onSearchTextUpdated={
+                  campaignSearchText =>
+                    this.setState({ campaignSearchText })
+                }
+                campaignSearchText={this.state.campaignSearchText}
+                onCampaignSelected={this.onCampaignSelected}
+              />
+            </div>
+            <div className={css(styles.spacer)} />
+            <div className={css(styles.flexColumn)}>
+              <TexterFilter
+                texters={this.props.texters}
+                onFocus={() => this.setState({ texterSearchText: '' })}
+                onSearchTextUpdated={
+                  texterSearchText =>
+                    this.setState({ texterSearchText })
+                }
+                texterSearchText={this.state.texterSearchText}
+                onTexterSelected={this.onTexterSelected}
+              />
             </div>
           </div>
+
+          <div className={css(styles.container)}>
+            <TagsFilter
+              onChange={this.onTagsFilterChanged}
+            />
+          </div>
+
+
+          <div className={css(styles.container)}>
+            <SelectedCampaigns
+              campaigns={this.state.selectedCampaigns}
+              onDeleteRequested={this.handleCampaignRemoved}
+              onClear={this.handleClearCampaigns}
+            />
+          </div>
         </CardText>
-      </Card>
+      </Card >
     )
   }
 }

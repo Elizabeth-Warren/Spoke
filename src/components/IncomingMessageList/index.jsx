@@ -11,6 +11,7 @@ import loadData from '../../containers/hoc/load-data'
 import DualNavDataTables from '../DualNavDataTables'
 import ConversationPreviewModal from './ConversationPreviewModal'
 import ConfirmChangePageWithConvosSelectedDialog from './ConfirmChangePageWithConvosSelectedDialog'
+import TagChip from '../TagChip'
 
 const styles = StyleSheet.create({
   container: {
@@ -27,7 +28,8 @@ const prepareDataTableData = (conversations) => conversations.map(conversation =
   status: conversation.contact.messageStatus,
   messages: conversation.contact.messages,
   assignmentId: conversation.contact.assignmentId,
-  campaignContactId: conversation.contact.id
+  campaignContactId: conversation.contact.id,
+  tags: conversation.contact.tags
 })
 )
 
@@ -141,7 +143,7 @@ export class IncomingMessageList extends Component {
               </span>
               {lastMessage.text}
             </p>
-            )
+          )
         }
         return lastMessageEl
       }
@@ -155,18 +157,18 @@ export class IncomingMessageList extends Component {
         whiteSpace: 'pre-line'
       },
       render: (columnKey, row) => {
-        if (row.messages && row.messages.length > 0) {
-          return (
-            <FlatButton
-              onClick={event => {
-                event.stopPropagation()
-                this.handleOpenConversation(row)
-              }}
-              icon={<ActionOpenInNew />}
-            />
-            )
-        }
-        return ''
+        return (
+          <div>
+            {(row.messages && row.messages.length > 0) && (
+              <FlatButton
+                onClick={event => {
+                  event.stopPropagation()
+                  this.handleOpenConversation(row)
+                }}
+                icon={<ActionOpenInNew />}
+              />)}
+            {this.renderTags(row.tags)}
+          </div>)
       }
     }
   ]
@@ -229,7 +231,6 @@ export class IncomingMessageList extends Component {
         pageDelta: 0
       }
     })
-
   }
 
   handleRowSizeChanged = (index, value) => {
@@ -254,6 +255,12 @@ export class IncomingMessageList extends Component {
   handleCloseConversation = () => {
     this.setState({ activeConversation: undefined })
   }
+
+  renderTags = (tags) => (
+    <div>
+      {tags && tags.map(tag => <TagChip text={tag.tag} />)}
+    </div>
+  )
 
   render() {
     if (this.props.conversations.loading) {
@@ -321,56 +328,59 @@ IncomingMessageList.propTypes = {
 const mapQueriesToProps = ({ ownProps }) => ({
   conversations: {
     query: gql`
-      query Q(
-        $organizationId: String!
-        $cursor: OffsetLimitCursor!
-        $contactsFilter: ContactsFilter
-        $campaignsFilter: CampaignsFilter
-        $assignmentsFilter: AssignmentsFilter
-        $utc: String
+          query Q(
+            $organizationId: String!
+            $cursor: OffsetLimitCursor!
+            $contactsFilter: ContactsFilter
+            $campaignsFilter: CampaignsFilter
+            $assignmentsFilter: AssignmentsFilter
+            $utc: String
       ) {
-        conversations(
-          cursor: $cursor
-          organizationId: $organizationId
-          campaignsFilter: $campaignsFilter
-          contactsFilter: $contactsFilter
-          assignmentsFilter: $assignmentsFilter
-          utc: $utc
+          conversations(
+            cursor: $cursor
+        organizationId: $organizationId
+        campaignsFilter: $campaignsFilter
+        contactsFilter: $contactsFilter
+        assignmentsFilter: $assignmentsFilter
+        utc: $utc
         ) {
           pageInfo {
-            limit
-            offset
-            total
-          }
+        limit
+        offset
+        total
+      }
           conversations {
-            texter {
-              id
-              displayName
-            }
+          texter {
+        id
+        displayName
+      }
             contact {
-              id
+          id
               assignmentId
-              firstName
-              lastName
-              cell
-              messageStatus
+        firstName
+        lastName
+        cell
+        messageStatus
               messages {
-                id
+          id
                 text
-                isFromContact
-              }
+        isFromContact
+      }
               optOut {
-                cell
-              }
-            }
+          cell
+        }
+        tags {
+          tag
+        }
+        }
             campaign {
-              id
+          id
               title
-            }
-          }
         }
       }
-    `,
+    }
+  }
+`,
     variables: {
       organizationId: ownProps.organizationId,
       cursor: ownProps.cursor,
