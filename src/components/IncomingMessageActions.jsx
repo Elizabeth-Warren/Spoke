@@ -1,13 +1,13 @@
 import React, { Component } from 'react'
-import type from "prop-types";
+import type from 'prop-types'
 
-import AutoComplete from "material-ui/AutoComplete";
-import { Card, CardHeader, CardText } from "material-ui/Card";
-import Dialog from "material-ui/Dialog"
-import { getHighestRole } from "../lib/permissions";
-import FlatButton from "material-ui/FlatButton";
-import { css, StyleSheet } from "aphrodite";
-import theme from "../styles/theme";
+import AutoComplete from 'material-ui/AutoComplete'
+import { Card, CardHeader, CardText } from 'material-ui/Card'
+import Dialog from 'material-ui/Dialog'
+import { getHighestRole } from '../lib/permissions'
+import FlatButton from 'material-ui/FlatButton'
+import { css, StyleSheet } from 'aphrodite'
+import theme from '../styles/theme'
 import { dataSourceItem } from './utils'
 
 const styles = StyleSheet.create({
@@ -53,7 +53,7 @@ class IncomingMessageActions extends Component {
   }
 
   onReassignAllMatchingClicked() {
-    this.setState({confirmDialogOpen: true})
+    this.setState({ confirmDialogOpen: true })
   }
 
   onReassignChanged(selection, index) {
@@ -70,19 +70,18 @@ class IncomingMessageActions extends Component {
       texterUserId = selection.value.key
     }
     if (texterUserId) {
-      this.setState({ reassignTo: parseInt(texterUserId, 10) });
+      this.setState({ reassignTo: parseInt(texterUserId, 10) })
     } else {
       this.setState({ reassignTo: undefined })
-
     }
   }
 
   handleConfirmDialogCancel() {
-    this.setState({confirmDialogOpen: false})
+    this.setState({ confirmDialogOpen: false })
   }
 
- handleConfirmDialogReassign() {
-   this.setState({confirmDialogOpen: false})
+  handleConfirmDialogReassign() {
+   this.setState({ confirmDialogOpen: false })
    this.props.onReassignAllMatchingRequested(this.state.reassignTo)
  }
 
@@ -100,13 +99,13 @@ class IncomingMessageActions extends Component {
 
     const confirmDialogActions = [
       <FlatButton
-        label="Cancel"
-        primary={true}
+        label='Cancel'
+        primary
         onClick={this.handleConfirmDialogCancel}
       />,
       <FlatButton
-        label="Reassign"
-        primary={true}
+        label='Reassign'
+        primary
         onClick={this.handleConfirmDialogReassign}
       />
     ]
@@ -138,7 +137,7 @@ class IncomingMessageActions extends Component {
                 onNewRequest={this.onReassignChanged}
               />
             </div>
-            <div className={css(styles.spacer)}/>
+            <div className={css(styles.spacer)} />
             <div className={css(styles.flexColumn)}>
               <FlatButton
                 label={'Reassign selected'}
@@ -158,7 +157,7 @@ class IncomingMessageActions extends Component {
             <Dialog
               actions={confirmDialogActions}
               open={this.state.confirmDialogOpen}
-              modal={true}
+              modal
               onRequestClose={this.handleConfirmDialogCancel}
             >
               {
