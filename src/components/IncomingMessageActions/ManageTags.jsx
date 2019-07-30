@@ -35,7 +35,7 @@ class ManageTags extends Component {
 
     this.state = {
       selectedTags: [],
-      tagsFilter: props.tagsFilter
+      tagsFilter: props.tagsFilter || { selectedTags: {} }
     }
   }
 
@@ -74,13 +74,13 @@ class ManageTags extends Component {
         <RaisedButton
           label={`Remove ${this.pluralizeTags()} from selected`}
           onClick={this.handleRemoveTags}
-          disabled={!this.state.selectedTags.length > 0}
+          disabled={!Object.keys(this.state.tagsFilter.selectedTags || {}).length > 0}
           style={inlineStyles.button}
         />
         <RaisedButton
           label={`Assign ${this.pluralizeTags()} to selected`}
           onClick={this.handleAssignTags}
-          disabled={!this.state.selectedTags.length > 0}
+          disabled={!Object.keys(this.state.tagsFilter.selectedTags || {}).length > 0}
           style={inlineStyles.button}
         />
       </div>
