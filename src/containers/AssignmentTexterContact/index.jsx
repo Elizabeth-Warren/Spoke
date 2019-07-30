@@ -6,20 +6,16 @@ import MessageList from '../../components/MessageList'
 import CannedResponseMenu from '../../components/CannedResponseMenu'
 import AssignmentTexterSurveys from '../../components/AssignmentTexterSurveys'
 import RaisedButton from 'material-ui/RaisedButton'
-import FlatButton from 'material-ui/FlatButton'
 import NavigateHomeIcon from 'material-ui/svg-icons/action/home'
 import { grey100 } from 'material-ui/styles/colors'
 import IconButton from 'material-ui/IconButton/IconButton'
 import { Toolbar, ToolbarGroup } from 'material-ui/Toolbar'
-import { Card, CardActions, CardTitle } from 'material-ui/Card'
-import Divider from 'material-ui/Divider'
 import { applyScript } from '../../lib/scripts'
 import gql from 'graphql-tag'
 import loadData from '../hoc/load-data'
 import yup from 'yup'
 import GSForm from '../../components/forms/GSForm'
 import Form from 'react-formal'
-import GSSubmitButton from '../../components/forms/GSSubmitButton'
 import SendButton from '../../components/SendButton'
 import BulkSendButton from '../../components/BulkSendButton'
 import SendButtonArrow from '../../components/SendButtonArrow'
@@ -32,6 +28,7 @@ import Empty from '../../components/Empty'
 import CreateIcon from 'material-ui/svg-icons/content/create'
 import { dataTest } from '../../lib/attributes'
 import { getContactTimezone } from '../../lib/timezones'
+import { OptOutDialog, SkipDialog } from '../../components/AssignmentTexterContact'
 
 const styles = StyleSheet.create({
   mobile: {
@@ -70,13 +67,6 @@ const styles = StyleSheet.create({
     color: 'white',
     zIndex: 1000000
   },
-  optOutCard: {
-    '@media(max-width: 320px)': {
-      padding: '2px 10px !important'
-    },
-    zIndex: 2000,
-    backgroundColor: 'white'
-  },
   messageForm: {
     backgroundColor: 'red'
   },
@@ -114,12 +104,6 @@ const styles = StyleSheet.create({
       overflowY: 'scroll !important'
     }
   },
-  dialogActions: {
-    marginTop: 20,
-    display: 'flex',
-    flexDirection: 'row',
-    justifyContent: 'flex-end'
-  },
   lgMobileToolBar: {
     '@media(max-width: 449px) and (min-width: 300px)': {
       display: 'inline-block'
@@ -139,9 +123,6 @@ const inlineStyles = {
     '@media(max-width: 450px)': {
       marginBottom: '1'
     }
-  },
-  dialogButton: {
-    display: 'inline-block'
   },
   exitTexterIconButton: {
     float: 'right',
@@ -228,6 +209,7 @@ export class AssignmentTexterContact extends React.Component {
       responsePopoverOpen: false,
       messageText: this.getStartingMessageText(),
       optOutDialogOpen: false,
+      skipDialogOpen: false,
       currentInteractionStep: availableSteps.length > 0 ? availableSteps[availableSteps.length - 1] : null
     }
     this.onEnter = this.onEnter.bind(this)
@@ -245,7 +227,7 @@ export class AssignmentTexterContact extends React.Component {
           this.setState({ disabled: false })
         }, 1500)
       }
-    } 
+    }
 
     const node = this.refs.messageScrollContainer
     // Does not work without this setTimeout
@@ -265,6 +247,9 @@ export class AssignmentTexterContact extends React.Component {
       // pressing the Enter key submits
       if (this.state.optOutDialogOpen) {
         this.handleOptOut()
+      } else if (this.state.skipDialogOpen) {
+        this.handleSkipContact()
+        this.handleCloseSkipDialog()
       } else {
         this.handleClickSendMessageButton()
       }
@@ -436,10 +421,21 @@ export class AssignmentTexterContact extends React.Component {
     }
   }
 
-  handleClickCloseContactButton = async () => {
+  handleSkipContact = async () => {
     await this.handleSubmitSurveys()
+    await this.handleApplyTag()
     await this.handleEditMessageStatus('closed')
     this.props.onFinishContact()
+  }
+
+  handleApplyTag = async () => {
+    if (!!this.state.tag) {
+      await this.props.mutations.addTag([this.props.contact.id], [this.state.tag], '')
+      this.setState({
+        tag: undefined,
+        skipComment: undefined
+      })
+    }
   }
 
   handleEditMessageStatus = async (messageStatus) => {
@@ -472,6 +468,14 @@ export class AssignmentTexterContact extends React.Component {
     } catch (e) {
       this.handleSendMessageError(e)
     }
+  }
+
+  handleOpenSkipDialog = () => {
+    this.setState({ skipDialogOpen: true })
+  }
+
+  handleCloseSkipDialog = () => {
+    this.setState({ skipDialogOpen: false })
   }
 
   handleOpenDialog = () => {
@@ -554,10 +558,6 @@ export class AssignmentTexterContact extends React.Component {
     return isBetweenTextingHours(timezoneData, config)
   }
 
-  optOutSchema = yup.object({
-    optOutMessageText: yup.string()
-  })
-
   skipContact = () => {
     setTimeout(this.props.onFinishContact, 1500)
   }
@@ -572,6 +572,31 @@ export class AssignmentTexterContact extends React.Component {
   })
 
   handleMessageFormChange = ({ messageText }) => this.setState({ messageText })
+
+  renderSkipDialog = () => (
+    <SkipDialog
+      tag={this.state.tag}
+      comment={this.state.skipComment}
+      open={this.state.skipDialogOpen}
+      skipMessageText={this.state.optOutMessageText}
+      disabled={this.state.disabled || this.state.notSendableButForceDisplay}
+      onSkip={this.handleSkipContact}
+      onRequestClose={this.handleCloseSkipDialog}
+      onSkipCommentChanged={(skipComment) => this.setState({ skipComment })}
+      onTagChanged={(tag) => this.setState({ tag })}
+    />
+  )
+
+  renderOptOutDialog = () => (
+    <OptOutDialog
+      open={this.state.optOutDialogOpen}
+      optOutMessageText={this.state.optOutMessageText}
+      disabled={this.state.disabled || this.state.notSendableButForceDisplay}
+      onOptOut={this.handleOptOut}
+      onRequestClose={this.handleCloseDialog}
+      onOptOutMessageTextChanged={(optOutMessageText) => this.setState({ optOutMessageText })}
+    />
+  )
 
   renderMiddleScrollingSection() {
     const { contact } = this.props
@@ -596,16 +621,16 @@ export class AssignmentTexterContact extends React.Component {
       icon={<CreateIcon color='rgb(83, 180, 119)' />}
       hideMobile
     />) : (
-      <div>
-        <AssignmentTexterSurveys
-          contact={contact}
-          interactionSteps={availableInteractionSteps}
-          onQuestionResponseChange={this.handleQuestionResponseChange}
-          currentInteractionStep={this.state.currentInteractionStep}
-          questionResponses={questionResponses}
-        />
-      </div>
-    )
+        <div>
+          <AssignmentTexterSurveys
+            contact={contact}
+            interactionSteps={availableInteractionSteps}
+            onQuestionResponseChange={this.handleQuestionResponseChange}
+            currentInteractionStep={this.state.currentInteractionStep}
+            questionResponses={questionResponses}
+          />
+        </div>
+      )
   }
 
   renderNeedsResponseToggleButton(contact) {
@@ -618,7 +643,7 @@ export class AssignmentTexterContact extends React.Component {
       />)
     } else if (messageStatus === 'needsResponse') {
       button = (<RaisedButton
-        onTouchTap={this.handleClickCloseContactButton}
+        onTouchTap={this.handleOpenSkipDialog}
         label='Skip Reply'
       />)
     }
@@ -770,51 +795,6 @@ export class AssignmentTexterContact extends React.Component {
     />)
   }
 
-  renderOptOutDialog() {
-    if (!this.state.optOutDialogOpen) {
-      return ''
-    }
-    return (
-      <Card>
-        <CardTitle
-          className={css(styles.optOutCard)}
-          title='Opt out user'
-        />
-        <Divider />
-        <CardActions className={css(styles.optOutCard)}>
-          <GSForm
-            className={css(styles.optOutCard)}
-            schema={this.optOutSchema}
-            onChange={({ optOutMessageText }) => this.setState({ optOutMessageText })}
-            value={{ optOutMessageText: this.state.optOutMessageText }}
-            onSubmit={this.handleOptOut}
-          >
-            <Form.Field
-              name='optOutMessageText'
-              fullWidth
-              autoFocus
-              multiLine
-            />
-            <div className={css(styles.dialogActions)}>
-              <FlatButton
-                style={inlineStyles.dialogButton}
-                label='Cancel'
-                onTouchTap={this.handleCloseDialog}
-              />
-              <Form.Button
-                type='submit'
-                style={inlineStyles.dialogButton}
-                component={GSSubmitButton}
-                label={this.state.optOutMessageText.length ? 'Send' : 'Opt Out without Text'}
-                disabled={this.state.disabled || this.state.notSendableButForceDisplay}
-              />
-            </div>
-          </GSForm>
-        </CardActions>
-      </Card>
-    )
-  }
-
   renderCorrectSendButton() {
     const { campaign } = this.props
     const { contact } = this.props
@@ -831,11 +811,11 @@ export class AssignmentTexterContact extends React.Component {
   }
 
   renderBottomFixedSection() {
-    const { optOutDialogOpen } = this.state
+    const { optOutDialogOpen, skipDialogOpen } = this.state
     const { contact } = this.props
     const { messageStatus } = contact
 
-    const message = (optOutDialogOpen) ? '' : (
+    const message = (optOutDialogOpen || skipDialogOpen) ? '' : (
       <div className={css(styles.messageField)}>
         <GSForm
           ref='form'
@@ -862,8 +842,9 @@ export class AssignmentTexterContact extends React.Component {
         {this.renderSurveySection()}
         <div>
           {message}
-          {optOutDialogOpen ? '' : this.renderActionToolbar()}
+          {optOutDialogOpen || skipDialogOpen ? '' : this.renderActionToolbar()}
         </div>
+        {this.renderSkipDialog()}
         {this.renderOptOutDialog()}
         {this.renderCannedResponsePopover()}
       </div>
@@ -1009,6 +990,18 @@ const mapMutationsToProps = () => ({
     `,
     variables: {
       assignmentId
+    }
+  }),
+  addTag: (campaignContactIds, tags, comment) => ({
+    mutation: gql`
+      mutation addTag($campaignContactIds: [String]!, $tags: [String]!, $comment: String) {
+        addTagsToCampaignContacts(campaignContactIds: $campaignContactIds, tags: $tags, comment: $comment)
+      }
+    `,
+    variables: {
+      campaignContactIds,
+      tags,
+      comment
     }
   })
 })

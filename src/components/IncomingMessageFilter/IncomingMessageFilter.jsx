@@ -1,19 +1,26 @@
-import React, { Component } from 'react'
-import type from 'prop-types'
-import Toggle from 'material-ui/Toggle'
-
-import { Card, CardHeader, CardText } from 'material-ui/Card'
-import AutoComplete from 'material-ui/AutoComplete'
-import SelectField from 'material-ui/SelectField'
-import MenuItem from 'material-ui/MenuItem'
-import theme from '../styles/theme'
-import { dataSourceItem } from './utils'
-import SelectedCampaigns from './SelectedCampaigns'
-
-import { StyleSheet, css } from 'aphrodite'
+import { css, StyleSheet } from 'aphrodite'
 import _ from 'lodash'
+import { Card, CardHeader, CardText } from 'material-ui/Card'
+import Toggle from 'material-ui/Toggle'
+import type from 'prop-types'
+import React, { Component } from 'react'
+import theme from '../../styles/theme'
+import SelectedCampaigns from '../SelectedCampaigns'
+import CampaignFilter, { ALL_CAMPAIGNS } from './Filters/CampaignsFilter'
+import MessageStatusFilter, { MESSAGE_STATUSES } from './Filters/MessageStatusFilter'
+import TexterFilter from './Filters/TexterFilter'
+import TagsSelector, { IGNORE_TAGS_FILTER } from '../TagsSelector'
+
+const inlineStyles = {
+  containerOfContainers: {
+    display: 'flex',
+    flexDirection: 'column',
+    flexWrap: 'nowrap'
+  }
+}
 
 const styles = StyleSheet.create({
+  containerOfContainers: inlineStyles.containerOfContainers,
   container: {
     ...theme.layouts.multiColumn.container,
     alignContent: 'flex-start',
@@ -32,48 +39,21 @@ const styles = StyleSheet.create({
   }
 })
 
-export const MESSAGE_STATUSES = {
-  all: {
-    name: 'All',
-    children: ['needsResponse', 'needsMessage', 'convo', 'messaged']
-  },
-  needsResponse: {
-    name: 'Needs Texter Response',
-    children: []
-  },
-  needsMessage: {
-    name: 'Needs First Message',
-    children: []
-  },
-  convo: {
-    name: 'Active Conversation',
-    children: []
-  },
-  messaged: {
-    name: 'First Message Sent',
-    children: []
-  },
-  closed: {
-    name: 'Closed',
-    children: []
-  }
-}
-
-export const ALL_CAMPAIGNS = -1
-
-export const CAMPAIGN_TYPE_FILTERS = [[ALL_CAMPAIGNS, 'All Campaigns']]
-
-export const ALL_TEXTERS = -1
-
-export const TEXTER_FILTERS = [[ALL_TEXTERS, 'All Texters']]
-
 class IncomingMessageFilter extends Component {
   constructor(props) {
     super(props)
 
     this.state = {
-      selectedCampaigns: []
+      selectedCampaigns: [],
+      messageFilter: [],
+      campaignSearchText: '',
+      texterSearchText: '',
+      tagsFilter: IGNORE_TAGS_FILTER
     }
+  }
+  onTagsFilterChanged = (tagsFilter) => {
+    this.setState({ tagsFilter })
+    this.props.onTagsFilterChanged(tagsFilter)
   }
 
   onMessageFilterSelectChanged = (event, index, values) => {
@@ -160,45 +140,19 @@ class IncomingMessageFilter extends Component {
   }
 
   selectedCampaignIds = (selectedCampaigns) => selectedCampaigns.map(campaign => parseInt(campaign.key, 10))
-  
+
   campaignsNotAlreadySelected = (campaign) => {
     return !this.selectedCampaignIds(this.state.selectedCampaigns).includes(parseInt(campaign.id, 10))
   }
 
   render() {
-    const texterNodes = TEXTER_FILTERS.map(texterFilter =>
-      dataSourceItem(texterFilter[1], texterFilter[0])
-    ).concat(
-      !this.props.texters
-        ? []
-        : this.props.texters.map(user => {
-          const userId = parseInt(user.id, 10)
-          return dataSourceItem(user.displayName, userId)
-        })
-    )
-    texterNodes.sort((left, right) => {
-      return left.text.localeCompare(right.text, 'en', { sensitivity: 'base' })
-    })
-
-    const campaignNodes = CAMPAIGN_TYPE_FILTERS.map(campaignTypeFilter =>
-      dataSourceItem(campaignTypeFilter[1], campaignTypeFilter[0])
-    ).concat(
-      !this.props.campaigns
-        ? []
-        : this.props.campaigns.filter(this.campaignsNotAlreadySelected).map(campaign => {
-          const campaignId = parseInt(campaign.id, 10)
-          const campaignDisplay = `${campaignId}: ${campaign.title}`
-          return dataSourceItem(campaignDisplay, campaignId)
-        })
-    )
-    campaignNodes.sort((left, right) => {
-      return left.text.localeCompare(right.text, 'en', { sensitivity: 'base' })
-    })
-
     return (
       <Card>
         <CardHeader title='Message Filter' actAsExpander showExpandableButton />
-        <CardText expandable>
+        <CardText
+          style={inlineStyles.containerOfContainers}
+          expandable
+        >
           <div className={css(styles.container)}>
             <div className={css(styles.toggleFlexColumn)}>
               <Toggle
@@ -237,63 +191,49 @@ class IncomingMessageFilter extends Component {
 
           <div className={css(styles.container)}>
             <div className={css(styles.flexColumn)}>
-              <SelectField
-                multiple
-                value={this.state.messageFilter}
-                hintText={'Which messages?'}
-                floatingLabelText={'Contact message status'}
-                floatingLabelFixed
+              <MessageStatusFilter
+                messageFilter={this.state.messageFilter}
                 onChange={this.onMessageFilterSelectChanged}
-              >
-                {Object.keys(MESSAGE_STATUSES).map(messageStatus => {
-                  const displayText = MESSAGE_STATUSES[messageStatus].name
-                  const isChecked =
-                    this.state.messageFilter &&
-                    this.state.messageFilter.indexOf(messageStatus) > -1
-                  return (
-                    <MenuItem
-                      key={messageStatus}
-                      value={messageStatus}
-                      primaryText={displayText}
-                      insetChildren
-                      checked={isChecked}
-                    />
-                  )
-                })}
-              </SelectField>
+              />
             </div>
             <div className={css(styles.spacer)} />
             <div className={css(styles.flexColumn)}>
-              <AutoComplete
-                filter={AutoComplete.caseInsensitiveFilter}
-                maxSearchResults={8}
+              <CampaignFilter
+                campaigns={this.props.campaigns}
+                campaignsNotAlreadySelected={this.campaignsNotAlreadySelected}
                 onFocus={() => this.setState({ campaignSearchText: '' })}
-                onUpdateInput={campaignSearchText =>
-                  this.setState({ campaignSearchText })
+                onSearchTextUpdated={
+                  campaignSearchText =>
+                    this.setState({ campaignSearchText })
                 }
-                searchText={this.state.campaignSearchText}
-                dataSource={campaignNodes}
-                hintText={'Search for a campaign'}
-                floatingLabelText={'Select a campaign'}
-                onNewRequest={this.onCampaignSelected}
+                campaignSearchText={this.state.campaignSearchText}
+                onCampaignSelected={this.onCampaignSelected}
               />
             </div>
             <div className={css(styles.spacer)} />
             <div className={css(styles.flexColumn)}>
-              <AutoComplete
-                filter={AutoComplete.caseInsensitiveFilter}
-                maxSearchResults={8}
+              <TexterFilter
+                texters={this.props.texters}
                 onFocus={() => this.setState({ texterSearchText: '' })}
-                onUpdateInput={texterSearchText =>
-                  this.setState({ texterSearchText })
+                onSearchTextUpdated={
+                  texterSearchText =>
+                    this.setState({ texterSearchText })
                 }
-                searchText={this.state.texterSearchText}
-                dataSource={texterNodes}
-                hintText={'Search for a texter'}
-                floatingLabelText={'Texter'}
-                onNewRequest={this.onTexterSelected}
+                texterSearchText={this.state.texterSearchText}
+                onTexterSelected={this.onTexterSelected}
               />
             </div>
+          </div>
+
+          <div className={css(styles.container)}>
+            <TagsSelector
+              onChange={this.onTagsFilterChanged}
+              tagsFilter={this.state.tagsFilter}
+            />
+          </div>
+
+
+          <div className={css(styles.container)}>
             <SelectedCampaigns
               campaigns={this.state.selectedCampaigns}
               onDeleteRequested={this.handleCampaignRemoved}
@@ -301,7 +241,7 @@ class IncomingMessageFilter extends Component {
             />
           </div>
         </CardText>
-      </Card>
+      </Card >
     )
   }
 }
@@ -320,6 +260,7 @@ IncomingMessageFilter.propTypes = {
   campaigns: type.array.isRequired,
   texters: type.array.isRequired,
   onMessageFilterChanged: type.func.isRequired,
+  onTagsFilterChanged: type.func.isRequired,
   assignmentsFilter: type.shape({
     texterId: type.number
   }).isRequired

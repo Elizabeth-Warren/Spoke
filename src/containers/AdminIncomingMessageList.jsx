@@ -144,6 +144,34 @@ export class AdminIncomingMessageList extends Component {
     })
   }
 
+  handleTagsFilterChanged = (tagsFilter) => {
+    const contactsFilter = Object.assign(
+      _.omit(this.state.contactsFilter, ['tags']),
+    )
+
+    let newTagsFilter = null
+    if (tagsFilter.anyTag) {
+      newTagsFilter = ['*']
+    } else if (tagsFilter.noTag) {
+      newTagsFilter = []
+    } else if (!tagsFilter.ignoreTags) {
+      newTagsFilter = Object.values(tagsFilter.selectedTags).map(
+        (tagFilter) => tagFilter.value
+      )
+    }
+
+    if (newTagsFilter) {
+      contactsFilter.tags = newTagsFilter
+    }
+
+    this.setState({
+      clearSelectedMessages: true,
+      contactsFilter,
+      tagsFilter,
+      needsRender: true
+    })
+  }
+
   handleReassignRequested = async (newTexterUserId) => {
     await this.props.mutations.reassignCampaignContacts(
       this.props.params.organizationId,
@@ -288,6 +316,28 @@ export class AdminIncomingMessageList extends Component {
     })
   }
 
+  getSelectedCampaignContactIds = () => this.state.campaignIdsContactIds.map(contact => contact.campaignContactId)
+
+  handleAssignTags = async (tags) => {
+    const campaignContactIds = this.getSelectedCampaignContactIds()
+    await this.props.mutations.addTags(campaignContactIds, tags, '')
+    this.setState({
+      utc: Date.now().toString(),
+      needsRender: true,
+      clearSelectedMessages: true,
+    })
+  }
+
+  handleRemoveTags = async (tags) => {
+    const campaignContactIds = this.getSelectedCampaignContactIds()
+    await this.props.mutations.resolveTags(campaignContactIds, tags)
+    this.setState({
+      utc: Date.now().toString(),
+      needsRender: true,
+      clearSelectedMessages: true,
+    })
+  }
+
   conversationCountChanged = (conversationCount) => {
     this.setState({
       conversationCount
@@ -329,6 +379,7 @@ export class AdminIncomingMessageList extends Component {
               onCampaignChanged={this.handleCampaignChanged}
               onTexterChanged={this.handleTexterChanged}
               onMessageFilterChanged={this.handleMessageFilterChange}
+              onTagsFilterChanged={this.handleTagsFilterChanged}
               assignmentsFilter={this.state.assignmentsFilter}
               onActiveCampaignsToggled={this.handleActiveCampaignsToggled}
               onArchivedCampaignsToggled={this.handleArchivedCampaignsToggled}
@@ -353,6 +404,9 @@ export class AdminIncomingMessageList extends Component {
               onReassignRequested={this.handleReassignRequested}
               onReassignAllMatchingRequested={this.handleReassignAllMatchingRequested}
               conversationCount={this.state.conversationCount}
+              tagsFilter={this.state.tagsFilter}
+              onAssignTags={this.handleAssignTags}
+              onRemoveTags={this.handleRemoveTags}
             />
             <br />
             <IncomingMessageList
@@ -452,6 +506,29 @@ const mapMutationsToProps = () => ({
         }
     `,
     variables: { organizationId, campaignsFilter, assignmentsFilter, contactsFilter, newTexterUserId }
+  }),
+  addTags: (campaignContactIds, tags, comment) => ({
+    mutation: gql`
+      mutation addTags($campaignContactIds: [String]!, $tags: [String]!, $comment: String) {
+        addTagsToCampaignContacts(campaignContactIds: $campaignContactIds, tags: $tags, comment: $comment)
+      }
+    `,
+    variables: {
+      campaignContactIds,
+      tags,
+      comment
+    }
+  }),
+  resolveTags: (campaignContactIds, tags) => ({
+    mutation: gql`
+      mutation addTags($campaignContactIds: [String]!, $tags: [String]!) {
+        resolveTags(campaignContactIds: $campaignContactIds, tags: $tags)
+      }
+    `,
+    variables: {
+      campaignContactIds,
+      tags
+    }
   })
 })
 
