@@ -167,6 +167,7 @@ export class AdminIncomingMessageList extends Component {
     this.setState({
       clearSelectedMessages: true,
       contactsFilter,
+      tagsFilter,
       needsRender: true
     })
   }
@@ -315,6 +316,28 @@ export class AdminIncomingMessageList extends Component {
     })
   }
 
+  getSelectedCampaignContactIds = () => this.state.campaignIdsContactIds.map(contact => contact.campaignContactId)
+
+  handleAssignTags = async (tags) => {
+    const campaignContactIds = this.getSelectedCampaignContactIds()
+    await this.props.mutations.addTags(campaignContactIds, tags, '')
+    this.setState({
+      utc: Date.now().toString(),
+      needsRender: true,
+      clearSelectedMessages: true,
+    })
+  }
+
+  handleRemoveTags = async (tags) => {
+    const campaignContactIds = this.getSelectedCampaignContactIds()
+    await this.props.mutations.resolveTags(campaignContactIds, tags)
+    this.setState({
+      utc: Date.now().toString(),
+      needsRender: true,
+      clearSelectedMessages: true,
+    })
+  }
+
   conversationCountChanged = (conversationCount) => {
     this.setState({
       conversationCount
@@ -381,6 +404,9 @@ export class AdminIncomingMessageList extends Component {
               onReassignRequested={this.handleReassignRequested}
               onReassignAllMatchingRequested={this.handleReassignAllMatchingRequested}
               conversationCount={this.state.conversationCount}
+              tagsFilter={this.state.tagsFilter}
+              onAssignTags={this.handleAssignTags}
+              onRemoveTags={this.handleRemoveTags}
             />
             <br />
             <IncomingMessageList
@@ -480,6 +506,29 @@ const mapMutationsToProps = () => ({
         }
     `,
     variables: { organizationId, campaignsFilter, assignmentsFilter, contactsFilter, newTexterUserId }
+  }),
+  addTags: (campaignContactIds, tags, comment) => ({
+    mutation: gql`
+      mutation addTags($campaignContactIds: [String]!, $tags: [String]!, $comment: String) {
+        addTagsToCampaignContacts(campaignContactIds: $campaignContactIds, tags: $tags, comment: $comment)
+      }
+    `,
+    variables: {
+      campaignContactIds,
+      tags,
+      comment
+    }
+  }),
+  resolveTags: (campaignContactIds, tags) => ({
+    mutation: gql`
+      mutation addTags($campaignContactIds: [String]!, $tags: [String]!) {
+        resolveTags(campaignContactIds: $campaignContactIds, tags: $tags)
+      }
+    `,
+    variables: {
+      campaignContactIds,
+      tags
+    }
   })
 })
 

@@ -9,7 +9,7 @@ import SelectedCampaigns from '../SelectedCampaigns'
 import CampaignFilter, { ALL_CAMPAIGNS } from './Filters/CampaignsFilter'
 import MessageStatusFilter, { MESSAGE_STATUSES } from './Filters/MessageStatusFilter'
 import TexterFilter from './Filters/TexterFilter'
-import TagsFilter from './Filters/TagsFilter'
+import TagsSelector, { IGNORE_TAGS_FILTER } from '../TagsSelector'
 
 const inlineStyles = {
   containerOfContainers: {
@@ -48,7 +48,7 @@ class IncomingMessageFilter extends Component {
       messageFilter: [],
       campaignSearchText: '',
       texterSearchText: '',
-      tagsFilter: {}
+      tagsFilter: IGNORE_TAGS_FILTER
     }
   }
   onTagsFilterChanged = (tagsFilter) => {
@@ -226,8 +226,9 @@ class IncomingMessageFilter extends Component {
           </div>
 
           <div className={css(styles.container)}>
-            <TagsFilter
+            <TagsSelector
               onChange={this.onTagsFilterChanged}
+              tagsFilter={this.state.tagsFilter}
             />
           </div>
 

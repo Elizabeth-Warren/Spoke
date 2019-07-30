@@ -430,7 +430,7 @@ export class AssignmentTexterContact extends React.Component {
 
   handleApplyTag = async () => {
     if (!!this.state.tag) {
-      await this.props.mutations.addTag(this.props.contact.id, this.state.tag, '')
+      await this.props.mutations.addTag([this.props.contact.id], [this.state.tag], '')
       this.setState({
         tag: undefined,
         skipComment: undefined
@@ -992,15 +992,15 @@ const mapMutationsToProps = () => ({
       assignmentId
     }
   }),
-  addTag: (campaignContactId, tag, comment) => ({
+  addTag: (campaignContactIds, tags, comment) => ({
     mutation: gql`
-      mutation addTag($campaignContactId: String!, $tag: String!, $comment: String) {
-        addTagToCampaignContact(campaignContactId: $campaignContactId, tag: $tag, comment: $comment)
+      mutation addTag($campaignContactIds: [String]!, $tags: [String]!, $comment: String) {
+        addTagsToCampaignContacts(campaignContactIds: $campaignContactIds, tags: $tags, comment: $comment)
       }
     `,
     variables: {
-      campaignContactId,
-      tag,
+      campaignContactIds,
+      tags,
       comment
     }
   })

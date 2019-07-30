@@ -48,15 +48,23 @@ function getConversationsJoinsAndWhereClause(
     }
 
     if ('tags' in contactsFilter) {
-      let subQuery = r.knex.select('tag')
-        .from('tag')
-        .whereRaw('tag.campaign_contact_id=campaign_contact.id')
+      if (contactsFilter.tags.length === 0) {
+        query.where({ has_unresolved_tags: false })
+      } else {
+        let subQuery = r.knex.select('tag')
+          .from('tag')
+          .whereRaw('tag.campaign_contact_id=campaign_contact.id')
+          .whereNull('resolved_at')
 
-      if (!(contactsFilter.tags.length === 1 && contactsFilter.tags[0] === '*')) {
-        subQuery = subQuery.whereIn('tag.tag', contactsFilter.tags)
+
+        if (!(contactsFilter.tags.length === 1 && contactsFilter.tags[0] === '*')) {
+          subQuery = subQuery.whereIn('tag.tag', contactsFilter.tags)
+        }
+
+        query = query
+          .where({ has_unresolved_tags: true })
+          .whereExists(subQuery)
       }
-
-      query = query.whereExists(subQuery)
     }
   }
 
@@ -180,6 +188,7 @@ export async function getConversations(
       .select('tag', 'created_at', 'campaign_contact_id')
       .from('tag')
       .whereIn('campaign_contact_id', ccIds)
+      .whereNull('resolved_at')
       .orderBy('tag.created_at')
     const tagsRows = await tagsQuery
     for (const tagRow of tagsRows) {
@@ -188,7 +197,6 @@ export async function getConversations(
       const createdAt = tagRow.created_at
       tags[ccId] = tags[ccId] || []
       tags[ccId].push({tag, createdAt})
-      console.log(ccId)
     }
   }
 

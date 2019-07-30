@@ -3,14 +3,14 @@ import type from 'prop-types'
 import SelectField from 'material-ui/SelectField'
 import MenuItem from 'material-ui/MenuItem'
 import Divider from 'material-ui/Divider'
-import { TAGS, NO_TAG, ANY_TAG, IGNORE_TAGS } from '../../../lib/tags'
+import { TAGS, NO_TAG, ANY_TAG, IGNORE_TAGS } from '../lib/tags'
+import _ from 'lodash'
 
 
-const TAG_META_FILTERS = [
-  IGNORE_TAGS,
-  ANY_TAG,
-  NO_TAG
-]
+const TAG_META_FILTERS = {}
+TAG_META_FILTERS[IGNORE_TAGS.key] = IGNORE_TAGS
+TAG_META_FILTERS[ANY_TAG.key] = ANY_TAG
+TAG_META_FILTERS[NO_TAG.key] = NO_TAG
 
 const makeTagMetafilter = (ignoreTags, anyTag, noTag, tagItem) => {
   const filter = {
@@ -27,15 +27,46 @@ const makeTagMetafilter = (ignoreTags, anyTag, noTag, tagItem) => {
   return filter
 }
 
-const IGNORE_TAGS_FILTER = makeTagMetafilter(true, false, false, IGNORE_TAGS)
+export const IGNORE_TAGS_FILTER = makeTagMetafilter(true, false, false, IGNORE_TAGS)
 const ANY_TAG_FILTER = makeTagMetafilter(false, true, false, ANY_TAG)
 const NO_TAG_FILTER = makeTagMetafilter(false, false, true, NO_TAG)
+const EMPTY_TAG_FILTER = makeTagMetafilter(false, false, false, null)
 
-export class TagsFilter extends React.Component {
+export class TagsSelector extends React.Component {
+  static cloneTagFilter = (props) => {
+    if (!props.tagsFilter || Object.keys(props.tagsFilter.selectedTags).length === 0) {
+      return null
+    }
+
+    const selectedTags = Object.keys(props.tagsFilter.selectedTags).reduce((accumulator, key) => {
+      if (!props.hideMetafilters || key > 0) {
+        accumulator[key] = TAGS[key] || TAG_META_FILTERS[key]
+      }
+      return accumulator
+    }, {})
+
+    return {
+      ignoreTags: !props.hideMetafilters && props.tagsFilter.ignoreTags,
+      anyTag: !props.hideMetafilters && props.tagsFilter.anyTag,
+      noTag: !props.hideMetafilters && props.tagsFilter.noTag,
+      selectedTags
+    }
+  }
+
   constructor(props) {
     super(props)
+
+    const tagFilter = TagsSelector.cloneTagFilter(props) || EMPTY_TAG_FILTER
+
     this.state = {
-      tagFilter: IGNORE_TAGS_FILTER
+      tagFilter
+    }
+  }
+
+  componentWillReceiveProps = (props) => {
+    const tagFilter = TagsSelector.cloneTagFilter(props)
+    if (tagFilter) {
+      this.setState({ tagFilter })
     }
   }
 
@@ -57,7 +88,7 @@ export class TagsFilter extends React.Component {
         }
 
         if (itemClicked.key in tagFilter.selectedTags) {
-          tagFilter.selectedTags.delete(itemClicked.key)
+          delete tagFilter.selectedTags[itemClicked.key]
         } else {
           tagFilter.selectedTags[itemClicked.key] = itemClicked
         }
@@ -87,23 +118,27 @@ export class TagsFilter extends React.Component {
     <SelectField
       multiple
       value={Object.values(this.state.tagFilter.selectedTags)}
-      hintText={'Filter by tags?'}
+      hintText={this.props.hintText}
       floatingLabelText={'Tags'}
       floatingLabelFixed
     >
-      {this.createMenuItems(TAG_META_FILTERS)}
-      <Divider
+      {!this.props.hideMetafilters && this.createMenuItems(Object.values(TAG_META_FILTERS))}
+      {!this.props.hideMetafilters && <Divider
         inset
       />
-      {this.createMenuItems(TAGS)}
+      }
+      {this.createMenuItems(Object.values(TAGS))}
     </SelectField>
 
 }
 
 
-TagsFilter.propTypes = {
-  onChange: type.func.isRequired
+TagsSelector.propTypes = {
+  onChange: type.func.isRequired,
+  hideMetafilters: type.bool,
+  tagsFilter: type.object,
+  hintText: type.string
 }
 
 
-export default TagsFilter
+export default TagsSelector

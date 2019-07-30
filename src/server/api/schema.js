@@ -60,6 +60,8 @@ import { change } from '../local-auth-helpers'
 import { getSendBeforeTimeUtc } from '../../lib/timezones'
 
 import request from 'request'
+import { flatten } from 'lodash'
+import { DateTime } from 'timezonecomplete';
 
 const uuidv4 = require('uuid').v4
 const JOBS_SAME_PROCESS = !!(process.env.JOBS_SAME_PROCESS || global.JOBS_SAME_PROCESS)
@@ -814,23 +816,66 @@ const rootMutations = {
       contact.message_status = messageStatus
       return await contact.save()
     },
-    addTagToCampaignContact: async (
+    addTagsToCampaignContacts: async (
       _,
-      { campaignContactId, tag, comment },
+      { campaignContactIds, tags, comment },
       { loaders, user }
     ) => {
-      const dbTag = new Tag({
-        campaign_contact_id: campaignContactId,
-        tag,
-        created_by: user.id
-      })
-      await dbTag.save()
+      const rows = tags.map(tag =>
+        campaignContactIds.map(campaign_contact_id =>
+          ({
+            campaign_contact_id,
+            tag,
+            created_by: user.id
+          })
+        )
+      )
 
-      await r
-        .knex('campaign_contact')
-        .where({id: campaignContactId})
-        .update({ has_unresolved_tags: true})
-        .catch(log.error)
+      await r.knex.transaction(async trx => {
+        await r
+          .knex.batchInsert('tag', flatten(rows))
+          .transacting(trx)
+          .catch(log.error)
+
+        await r
+          .knex('campaign_contact')
+          .whereIn('id', campaignContactIds)
+          .update({ has_unresolved_tags: true })
+          .transacting(trx)
+          .catch(log.error)
+      }).catch(log.error)
+
+      return true
+    },
+    resolveTags: async (
+      _,
+      { campaignContactIds, tags, comment },
+      { loaders, user }
+    ) => {
+      await r.knex.transaction(async trx => {
+        await r
+          .knex('tag')
+          .whereIn('campaign_contact_id', campaignContactIds)
+          .whereIn('tag', tags)
+          .update({
+            resolved_by: user.id,
+            resolved_at: r.knex.fn.now()
+          })
+          .transacting(trx)
+
+        const subQuery = r.knex.select('id')
+          .from('tag')
+          .whereRaw('tag.campaign_contact_id=campaign_contact.id')
+          .whereNull('resolved_at')
+
+        await r
+          .knex('campaign_contact')
+          .whereIn('id', campaignContactIds)
+          .whereNotExists(subQuery)
+          .update({ has_unresolved_tags: false })
+          .transacting(trx)
+          .catch(log.error)
+      }).catch(log.error)
 
       return true
     },
