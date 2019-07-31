@@ -1,5 +1,5 @@
 import { css, StyleSheet } from 'aphrodite'
-import gql from 'graphql-tag'
+import gql from 'graphql-tag' 
 import FlatButton from 'material-ui/FlatButton'
 import ActionOpenInNew from 'material-ui/svg-icons/action/open-in-new'
 import type from 'prop-types'
@@ -304,6 +304,7 @@ export class IncomingMessageList extends Component {
           organizationId={this.props.organizationId}
           conversation={this.state.activeConversation}
           onRequestClose={this.handleCloseConversation}
+          onForceRefresh={this.props.onForceRefresh}
         />
       </div>
     )
@@ -323,7 +324,8 @@ IncomingMessageList.propTypes = {
   utc: type.string,
   conversations: type.object,
   clearSelectedMessages: type.bool,
-  rowSizeList: type.arrayOf(type.number)
+  rowSizeList: type.arrayOf(type.number),
+  onForceRefresh: type.func
 }
 
 const mapQueriesToProps = ({ ownProps }) => ({

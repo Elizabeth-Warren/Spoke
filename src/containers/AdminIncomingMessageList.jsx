@@ -338,6 +338,14 @@ export class AdminIncomingMessageList extends Component {
     })
   }
 
+  handleForceRefresh = (clearSelectedMessages = false) => {
+    this.setState({
+      utc: Date.now().toString(),
+      needsRender: true,
+      clearSelectedMessages
+    })
+  }
+
   conversationCountChanged = (conversationCount) => {
     this.setState({
       conversationCount
@@ -422,6 +430,7 @@ export class AdminIncomingMessageList extends Component {
               onConversationCountChanged={this.conversationCountChanged}
               clearSelectedMessages={this.state.clearSelectedMessages}
               rowSizeList={CONVERSATION_LIST_ROW_SIZES.sort((a, b) => a - b)}
+              onForceRefresh={this.handleForceRefresh}
               toolbarTop
               toolbarBottom
             />

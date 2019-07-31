@@ -966,7 +966,9 @@ const rootMutations = {
         organizationId
       })
 
-      return loaders.campaignContact.load(campaignContactId)
+      return {
+        id: campaignContactId
+      }
     },
     bulkSendMessages: async (_, { assignmentId }, loaders) => {
       if (!process.env.ALLOW_SEND_ALL || !process.env.NOT_IN_USA) {

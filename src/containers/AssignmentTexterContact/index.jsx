@@ -908,10 +908,6 @@ const mapMutationsToProps = () => ({
       mutation createOptOut($optOut: OptOutInput!, $campaignContactId: String!) {
         createOptOut(optOut: $optOut, campaignContactId: $campaignContactId) {
           id
-          optOut {
-            id
-            createdAt
-          }
         }
       }
     `,
