@@ -32,11 +32,11 @@ class MessageResponse extends Component {
   }
 
   createMessageToContact(text) {
-    const { contact, texter  } = this.props.conversation
+    const { texter, assignmentId, contactNumber } = this.props.conversation
 
     return {
-      assignmentId: contact.assignmentId,
-      contactNumber: contact.cell,
+      assignmentId,
+      contactNumber,
       userId: texter.id,
       text
     }
@@ -45,7 +45,7 @@ class MessageResponse extends Component {
   handleMessageFormChange = ({ messageText }) => this.setState({ messageText })
 
   handleMessageFormSubmit = async ({ messageText }) => {
-    const { contact } = this.props.conversation
+    const { campaignContactId } = this.props.conversation
     const message = this.createMessageToContact(messageText)
     if (this.state.isSending) {
       return // stops from multi-send
@@ -54,7 +54,7 @@ class MessageResponse extends Component {
 
     const finalState = { isSending: false }
     try {
-      const response = await this.props.mutations.sendMessage(message, contact.id)
+      const response = await this.props.mutations.sendMessage(message, campaignContactId)
       const { messages } = response.data.sendMessage
       this.props.messagesChanged(messages)
       finalState.messageText = ''
@@ -133,7 +133,8 @@ class MessageResponse extends Component {
 
 MessageResponse.propTypes = {
   conversation: PropTypes.object,
-  messagesChanged: PropTypes.func
+  messagesChanged: PropTypes.func,
+  mutations: PropTypes.object
 }
 
 const mapMutationsToProps = () => ({

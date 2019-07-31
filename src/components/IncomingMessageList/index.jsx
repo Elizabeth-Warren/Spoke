@@ -29,7 +29,8 @@ const prepareDataTableData = (conversations) => conversations.map(conversation =
   messages: conversation.contact.messages,
   assignmentId: conversation.contact.assignmentId,
   campaignContactId: conversation.contact.id,
-  tags: conversation.contact.tags
+  tags: conversation.contact.tags,
+  contactNumber: conversation.contact.cell
 })
 )
 
