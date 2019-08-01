@@ -29,6 +29,7 @@ import CreateIcon from 'material-ui/svg-icons/content/create'
 import { dataTest } from '../../lib/attributes'
 import { getContactTimezone } from '../../lib/timezones'
 import { OptOutDialog, SkipDialog } from '../../components/AssignmentTexterContact'
+import { NO_TAG } from '../../lib/tags'
 
 const styles = StyleSheet.create({
   mobile: {
@@ -429,7 +430,7 @@ export class AssignmentTexterContact extends React.Component {
   }
 
   handleApplyTag = async () => {
-    if (!!this.state.tag) {
+    if (!!this.state.tag && this.state.tag !== NO_TAG.value) {
       await this.props.mutations.addTag([this.props.contact.id], [this.state.tag], '')
       this.setState({
         tag: undefined,
