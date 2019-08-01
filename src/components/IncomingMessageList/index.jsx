@@ -1,5 +1,5 @@
 import { css, StyleSheet } from 'aphrodite'
-import gql from 'graphql-tag' 
+import gql from 'graphql-tag'
 import FlatButton from 'material-ui/FlatButton'
 import ActionOpenInNew from 'material-ui/svg-icons/action/open-in-new'
 import type from 'prop-types'
@@ -365,15 +365,24 @@ const mapQueriesToProps = ({ ownProps }) => ({
         cell
         messageStatus
               messages {
-          id
+                id
                 text
-        isFromContact
+                isFromContact
+                createdAt
       }
               optOut {
           cell
         }
         tags {
           tag
+          createdAt
+          createdBy {
+            displayName
+          }
+          resolvedAt
+          resolvedBy {
+            displayName
+          }
         }
         }
             campaign {
