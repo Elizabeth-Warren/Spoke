@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import gql from 'graphql-tag'
 import { StyleSheet, css } from 'aphrodite'
+import moment from 'moment'
 import Dialog from 'material-ui/Dialog'
 import FlatButton from 'material-ui/FlatButton'
 
@@ -9,13 +10,27 @@ import loadData from '../../containers//hoc/load-data'
 import wrapMutations from '../../containers/hoc/wrap-mutations'
 import MessageResponse from './MessageResponse';
 import ConversationLinkDialog from '../ConversationLinkDialog'
+import theme from '../../styles/theme'
 
 const styles = StyleSheet.create({
   conversationRow: {
     color: 'white',
     padding: '10px',
     borderRadius: '5px',
-    fontWeight: 'normal',
+    fontWeight: 'normal'
+  },
+  fromContact: {
+    marginLeft: undefined,
+    marginRight: '60px',
+    backgroundColor: '#AAAAAA'
+  },
+  fromTexter: {
+    marginLeft: '60px',
+    marginRight: undefined,
+    backgroundColor: 'rgb(33, 150, 243)'
+  },
+  when: {
+    fontSize: theme.text.body.fontSize - 2
   }
 })
 
@@ -33,15 +48,13 @@ class MessageList extends Component {
       <div ref="messageWindow" style={{maxHeight: '300px', overflowY: 'scroll'}}>
         {this.props.messages.map((message, index) => {
           const isFromContact = message.isFromContact
-          const messageStyle = {
-            marginLeft: isFromContact ? undefined : '60px',
-            marginRight: isFromContact ? '60px' : undefined,
-            backgroundColor: isFromContact ? '#AAAAAA' : 'rgb(33, 150, 243)',
-          }
+          const messageStyle = isFromContact ? styles.fromContact : styles.fromTexter
 
           return (
-            <p key={index} className={css(styles.conversationRow)} style={messageStyle}>
+            <p key={index} className={css(styles.conversationRow, messageStyle)}>
               {message.text}
+              <br />
+              <span className={css(styles.when)}>{moment(message.createdAt).fromNow()}</span>
             </p>
           )
         })}
