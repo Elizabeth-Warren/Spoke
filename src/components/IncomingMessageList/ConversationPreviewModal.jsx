@@ -29,6 +29,11 @@ const styles = StyleSheet.create({
     marginRight: undefined,
     backgroundColor: 'rgb(33, 150, 243)'
   },
+  tag: {
+    marginLeft: undefined,
+    marginRight: undefined,
+    backgroundColor: 'pink'
+  },
   when: {
     fontSize: theme.text.body.fontSize - 2
   }
@@ -44,17 +49,25 @@ class MessageList extends Component {
   }
 
   render() {
+    const { messages, tags } = this.props
+    const items = [...messages, ...tags]
+    const sortedItems = items.sort((left, right) => right - left)
     return  (
       <div ref="messageWindow" style={{maxHeight: '300px', overflowY: 'scroll'}}>
-        {this.props.messages.map((message, index) => {
-          const isFromContact = message.isFromContact
-          const messageStyle = isFromContact ? styles.fromContact : styles.fromTexter
+        {sortedItems.map((item, index) => {
+          let itemStyle = null
+          if (!!item.tag) {
+            itemStyle = styles.tag
+          } else {
+            const isFromContact = item.isFromContact
+            itemStyle = isFromContact ? styles.fromContact : styles.fromTexter
+          }
 
           return (
-            <p key={index} className={css(styles.conversationRow, messageStyle)}>
-              {message.text}
+            <p key={index} className={css(styles.conversationRow, itemStyle)}>
+              {item.text || item.tag}
               <br />
-              <span className={css(styles.when)}>{moment(message.createdAt).fromNow()}</span>
+              <span className={css(styles.when)}>{moment(item.createdAt).fromNow()}</span>
             </p>
           )
         })}
@@ -65,6 +78,7 @@ class MessageList extends Component {
 
 MessageList.propTypes = {
   messages: PropTypes.arrayOf(PropTypes.object),
+  tags: PropTypes.arrayOf(PropTypes.object)
 }
 
 class ConversationPreviewBody extends Component {
@@ -85,8 +99,14 @@ class ConversationPreviewBody extends Component {
   render() {
     return (
       <div>
-        <MessageList messages={this.state.messages} />
-        <MessageResponse conversation={this.props.conversation} messagesChanged={this.messagesChanged} />
+        <MessageList
+          messages={this.state.messages}
+          tags={this.props.conversation.tags}
+        />
+        <MessageResponse
+          conversation={this.props.conversation}
+          messagesChanged={this.messagesChanged}
+        />
       </div>
     )
   }
