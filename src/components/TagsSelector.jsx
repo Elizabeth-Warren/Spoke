@@ -3,34 +3,20 @@ import type from 'prop-types'
 import SelectField from 'material-ui/SelectField'
 import MenuItem from 'material-ui/MenuItem'
 import Divider from 'material-ui/Divider'
-import { TAGS, NO_TAG, ANY_TAG, IGNORE_TAGS } from '../lib/tags'
+import { 
+  TAGS,
+  NO_TAG,
+  ANY_TAG,
+  IGNORE_TAGS,
+  TAG_META_FILTERS,
+  IGNORE_TAGS_FILTER,
+  ANY_TAG_FILTER,
+  NO_TAG_FILTER,
+  EMPTY_TAG_FILTER
+} from '../lib/tags'
+
+
 import _ from 'lodash'
-
-
-const TAG_META_FILTERS = {}
-TAG_META_FILTERS[IGNORE_TAGS.key] = IGNORE_TAGS
-TAG_META_FILTERS[ANY_TAG.key] = ANY_TAG
-TAG_META_FILTERS[NO_TAG.key] = NO_TAG
-
-const makeTagMetafilter = (ignoreTags, anyTag, noTag, tagItem) => {
-  const filter = {
-    ignoreTags,
-    anyTag,
-    noTag,
-    selectedTags: {}
-  }
-
-  if (tagItem) {
-    filter.selectedTags[tagItem.key] = tagItem
-  }
-
-  return filter
-}
-
-export const IGNORE_TAGS_FILTER = makeTagMetafilter(true, false, false, IGNORE_TAGS)
-const ANY_TAG_FILTER = makeTagMetafilter(false, true, false, ANY_TAG)
-const NO_TAG_FILTER = makeTagMetafilter(false, false, true, NO_TAG)
-const EMPTY_TAG_FILTER = makeTagMetafilter(false, false, false, null)
 
 export class TagsSelector extends React.Component {
   static cloneTagFilter = (props) => {
