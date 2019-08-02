@@ -12,6 +12,7 @@ import loadData from './hoc/load-data'
 import { withRouter } from 'react-router'
 import wrapMutations from './hoc/wrap-mutations'
 import PaginatedUsersRetriever from './PaginatedUsersRetriever'
+import { ANY_TAG_FILTER } from '../lib/tags'
 
 const CONVERSATION_LIST_ROW_SIZES = (typeof window !== 'undefined' && window.CONVERSATION_LIST_ROW_SIZES && JSON.parse(window.CONVERSATION_LIST_ROW_SIZES)) || [10, 30, 50, 100]
 const INITIAL_PAGE_SIZE = CONVERSATION_LIST_ROW_SIZES[0]
@@ -405,6 +406,7 @@ export class AdminIncomingMessageList extends Component {
               includeOptedOutConversations={
                 this.state.includeOptedOutConversations
               }
+              defaultTagsFilter={ANY_TAG_FILTER}
             />
             <br />
             <IncomingMessageActions

@@ -9,7 +9,8 @@ import SelectedCampaigns from '../SelectedCampaigns'
 import CampaignFilter, { ALL_CAMPAIGNS } from './Filters/CampaignsFilter'
 import MessageStatusFilter, { MESSAGE_STATUSES } from './Filters/MessageStatusFilter'
 import TexterFilter from './Filters/TexterFilter'
-import TagsSelector, { IGNORE_TAGS_FILTER } from '../TagsSelector'
+import TagsSelector from '../TagsSelector'
+
 
 const inlineStyles = {
   containerOfContainers: {
@@ -48,7 +49,7 @@ class IncomingMessageFilter extends Component {
       messageFilter: [],
       campaignSearchText: '',
       texterSearchText: '',
-      tagsFilter: IGNORE_TAGS_FILTER
+      tagsFilter: props.defaultTagsFilter
     }
   }
   onTagsFilterChanged = (tagsFilter) => {
@@ -263,7 +264,8 @@ IncomingMessageFilter.propTypes = {
   onTagsFilterChanged: type.func.isRequired,
   assignmentsFilter: type.shape({
     texterId: type.number
-  }).isRequired
+  }).isRequired,
+  defaultTagsFilter: type.object
 }
 
 export default IncomingMessageFilter
