@@ -7,10 +7,10 @@ import { StyleSheet, css } from 'aphrodite'
 import Dialog from 'material-ui/Dialog'
 import FlatButton from 'material-ui/FlatButton'
 
-import loadData from '../../containers//hoc/load-data'
-import wrapMutations from '../../containers/hoc/wrap-mutations'
-import GSForm from '../../components/forms/GSForm'
-import SendButton from '../../components/SendButton'
+import loadData from '../../../containers//hoc/load-data'
+import wrapMutations from '../../../containers/hoc/wrap-mutations'
+import GSForm from '../../../components/forms/GSForm'
+import SendButton from '../../../components/SendButton'
 
 const styles = StyleSheet.create({
   messageField: {
