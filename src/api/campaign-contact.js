@@ -8,6 +8,7 @@ export const schema = gql`
     validTimezone: Boolean
     includePastDue: Boolean
     tags: [String]
+    includeResolvedTags: Boolean
   }
 
   type Timezone {
