@@ -136,6 +136,13 @@ const mapQueriesToProps = ({ ownProps }) => ({
               tags {
                 tag
                 createdAt
+                createdBy {
+                  displayName
+                }
+                resolvedAt
+                resolvedBy {
+                  displayName
+                }
               }
             }
           }

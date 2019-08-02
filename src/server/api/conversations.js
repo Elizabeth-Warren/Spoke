@@ -142,12 +142,6 @@ export async function getConversations(
     'message.is_from_contact'
   ]
 
-  const tagsFields = [
-    'tag.tag',
-    'tag.created_at',
-
-  ]
-
   /* Query #2 -- get all the columns we need, including messages, using the
   * cc_ids from Query #1 to scope the results to limit, offset */
   let query = r.knex.select(
@@ -185,8 +179,22 @@ export async function getConversations(
   const tags = {}
   if (includeTags) {
     const tagsQuery = r.knex
-      .select('tag', 'created_at', 'campaign_contact_id')
+      .select(
+        'tag',
+        'tag.created_at',
+        'tag.campaign_contact_id',
+        'tag.created_by',
+        'tag.resolved_by',
+        'tag.resolved_at',
+        'creating_user.id as creating_user_id',
+        'creating_user.first_name as creating_user_first_name',
+        'creating_user.last_name as creating_user_last_name',
+        'resolving_user.id as resolving_user_id',
+        'resolving_user.first_name as resolving_user_first_name',
+        'resolving_user.last_name as resolving_user_last_name')
       .from('tag')
+      .join('user as creating_user', 'creating_user.id', 'tag.created_by')
+      .leftJoin('user as resolving_user', 'resolving_user.id', 'tag.resolved_by')
       .whereIn('campaign_contact_id', ccIds)
       .whereNull('resolved_at')
       .orderBy('tag.created_at')
@@ -195,8 +203,19 @@ export async function getConversations(
       const ccId = tagRow.campaign_contact_id
       const tag = tagRow.tag
       const createdAt = tagRow.created_at
+      const createdBy = {
+        id: tagRow.creating_user_id,
+        first_name: tagRow.creating_user_first_name,
+        last_name: tagRow.creating_user_last_name
+      }
+      const resolvedAt = tagRow.resolved_at
+      const resolvedBy = {
+        id: tagRow.resolving_user_id,
+        first_name: tagRow.resolving_user_first_name,
+        last_name: tagRow.resolving_user_last_name
+      }
       tags[ccId] = tags[ccId] || []
-      tags[ccId].push({tag, createdAt})
+      tags[ccId].push({ tag, createdAt, createdBy, resolvedAt, resolvedBy })
     }
   }
 
