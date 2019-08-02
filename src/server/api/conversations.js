@@ -178,7 +178,7 @@ export async function getConversations(
 
   const tags = {}
   if (includeTags) {
-    const tagsQuery = r.knex
+    let tagsQuery = r.knex
       .select(
         'tag',
         'tag.created_at',
@@ -196,8 +196,12 @@ export async function getConversations(
       .join('user as creating_user', 'creating_user.id', 'tag.created_by')
       .leftJoin('user as resolving_user', 'resolving_user.id', 'tag.resolved_by')
       .whereIn('campaign_contact_id', ccIds)
-      .whereNull('resolved_at')
       .orderBy('tag.created_at')
+
+    if (!contactsFilter.includeResolvedTags) {
+      tagsQuery = tagsQuery.whereNull('resolved_at')
+    }
+
     const tagsRows = await tagsQuery
     for (const tagRow of tagsRows) {
       const ccId = tagRow.campaign_contact_id

@@ -259,7 +259,7 @@ export class IncomingMessageList extends Component {
 
   renderTags = (tags) => (
     <div>
-      {tags && tags.map(tag => <TagChip text={tag.tag} />)}
+      {tags && tags.filter(tag => !tag.resolvedAt).map(tag => <TagChip text={tag.tag} />)}
     </div>
   )
 

@@ -21,8 +21,12 @@ const styles = StyleSheet.create({
 
   },
   text: {
-    marginLeft: '10px'
-
+    marginLeft: '10px',
+    display: 'flex',
+    flexDirection: 'column'
+  },
+  strikeout: {
+    textDecoration: 'line-through'
   },
   when: {
     fontSize: theme.text.body.fontSize - 2
@@ -39,12 +43,17 @@ const Tag = (props) =>
       />
     </Avatar>
     <div className={css(styles.text)}>
-      {props.tag.tag}
-      <br />
+      <span className={css(props.tag.resolvedAt && styles.strikeout)}>
+        {props.tag.tag}
+      </span>
       <span className={css(styles.when)}>
         {moment(props.tag.createdAt).fromNow()} -- {props.tag.createdBy.displayName}
       </span>
-   </div>
+      {props.tag.resolvedAt && <span className={css(styles.when)}>
+        {' RESOLVED '}{moment(props.tag.createdAt).fromNow()} -- {props.tag.createdBy.displayName}
+      </span>
+      }
+    </div>
   </p>
 
 Tag.propTypes = {

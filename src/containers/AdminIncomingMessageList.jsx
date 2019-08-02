@@ -52,11 +52,7 @@ function getContactsFilterForConversationOptOutStatus(
     isOptedOut = false
   }
 
-  if (isOptedOut !== undefined) {
-    return { isOptedOut }
-  }
-
-  return {}
+  return { isOptedOut }
 }
 
 export class AdminIncomingMessageList extends Component {
@@ -84,6 +80,7 @@ export class AdminIncomingMessageList extends Component {
       campaignsFilter: { isArchived: false },
       contactsFilter: {
         isOptedOut: false,
+        includeResolvedTags: true,
         tags: AdminIncomingMessageList.tagsFilterStateFromTagsFilter(ANY_TAG_FILTER)
       },
       assignmentsFilter: {},
@@ -152,10 +149,10 @@ export class AdminIncomingMessageList extends Component {
   }
 
   handleMessageFilterChange = async (messagesFilter) => {
-    const contactsFilter = Object.assign(
-      _.omit(this.state.contactsFilter, ['messageStatus']),
-      { messageStatus: messagesFilter }
-    )
+    const contactsFilter = {
+      ...this.state.contactsFilter,
+      messageStatus: messagesFilter
+    }
     await this.setState({
       clearSelectedMessages: true,
       contactsFilter,
@@ -164,14 +161,11 @@ export class AdminIncomingMessageList extends Component {
   }
 
   handleTagsFilterChanged = (tagsFilter) => {
-    const contactsFilter = Object.assign(
-      _.omit(this.state.contactsFilter, ['tags']),
-    )
-
     const newTagsFilter = AdminIncomingMessageList.tagsFilterStateFromTagsFilter(tagsFilter)
 
-    if (newTagsFilter) {
-      contactsFilter.tags = newTagsFilter
+    const contactsFilter = {
+      ...this.state.contactsFilter,
+      tags: newTagsFilter || undefined
     }
 
     this.setState({
@@ -254,11 +248,11 @@ export class AdminIncomingMessageList extends Component {
       this.state.includeOptedOutConversations
     )
 
-    const contactsFilter = Object.assign(
-      _.omit(this.state.contactsFilter, ['isOptedOut']),
-      contactsFilterUpdate
-    )
-
+    const contactsFilter = {
+      ...this.state.contactsFilter,
+      ...contactsFilterUpdate
+    }
+    
     this.setState({
       clearSelectedMessages: true,
       contactsFilter,
@@ -277,10 +271,10 @@ export class AdminIncomingMessageList extends Component {
       !this.state.includeOptedOutConversations
     )
 
-    const contactsFilter = Object.assign(
-      _.omit(this.state.contactsFilter, ['isOptedOut']),
-      contactsFilterUpdate
-    )
+    const contactsFilter = {
+      ...this.state.contactsFilter,
+      ...contactsFilterUpdate
+    }
 
     this.setState({
       clearSelectedMessages: true,
