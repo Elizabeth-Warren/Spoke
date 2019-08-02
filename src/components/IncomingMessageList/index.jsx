@@ -365,9 +365,10 @@ const mapQueriesToProps = ({ ownProps }) => ({
         cell
         messageStatus
               messages {
-          id
+                id
                 text
-        isFromContact
+                isFromContact
+                createdAt
       }
               optOut {
           cell
