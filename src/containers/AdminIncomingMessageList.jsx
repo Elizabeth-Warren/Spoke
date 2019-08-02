@@ -60,6 +60,21 @@ function getContactsFilterForConversationOptOutStatus(
 }
 
 export class AdminIncomingMessageList extends Component {
+  static tagsFilterStateFromTagsFilter = (tagsFilter) => {
+    let newTagsFilter = null
+    if (tagsFilter.anyTag) {
+      newTagsFilter = ['*']
+    } else if (tagsFilter.noTag) {
+      newTagsFilter = []
+    } else if (!tagsFilter.ignoreTags) {
+      newTagsFilter = Object.values(tagsFilter.selectedTags).map(
+        (tagFilter) => tagFilter.value
+      )
+    }
+
+    return newTagsFilter
+  }
+
   constructor(props) {
     super(props)
 
@@ -67,7 +82,10 @@ export class AdminIncomingMessageList extends Component {
       page: 0,
       pageSize: INITIAL_PAGE_SIZE,
       campaignsFilter: { isArchived: false },
-      contactsFilter: { isOptedOut: false },
+      contactsFilter: {
+        isOptedOut: false,
+        tags: AdminIncomingMessageList.tagsFilterStateFromTagsFilter(ANY_TAG_FILTER)
+      },
       assignmentsFilter: {},
       needsRender: false,
       utc: Date.now().toString(),
@@ -150,16 +168,7 @@ export class AdminIncomingMessageList extends Component {
       _.omit(this.state.contactsFilter, ['tags']),
     )
 
-    let newTagsFilter = null
-    if (tagsFilter.anyTag) {
-      newTagsFilter = ['*']
-    } else if (tagsFilter.noTag) {
-      newTagsFilter = []
-    } else if (!tagsFilter.ignoreTags) {
-      newTagsFilter = Object.values(tagsFilter.selectedTags).map(
-        (tagFilter) => tagFilter.value
-      )
-    }
+    const newTagsFilter = AdminIncomingMessageList.tagsFilterStateFromTagsFilter(tagsFilter)
 
     if (newTagsFilter) {
       contactsFilter.tags = newTagsFilter
