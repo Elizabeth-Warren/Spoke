@@ -60,7 +60,7 @@ import { change } from '../local-auth-helpers'
 import { getSendBeforeTimeUtc } from '../../lib/timezones'
 
 import request from 'request'
-import { flatten } from 'lodash'
+import { flatten, get } from 'lodash'
 import { DateTime } from 'timezonecomplete';
 
 const uuidv4 = require('uuid').v4
@@ -1378,7 +1378,10 @@ const rootResolvers = {
       info
     ) => {
       const { user } = context
-      await accessRequired(user, organizationId, 'SUPERVOLUNTEER', true)
+
+      if (!assignmentsFilter || get(assignmentsFilter, 'texterId') !== user.id) {
+        await accessRequired(user, organizationId, 'SUPERVOLUNTEER', true)
+      }
 
       return getConversations(
         cursor,
