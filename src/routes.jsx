@@ -13,6 +13,7 @@ import TopNav from './components/TopNav'
 import DashboardLoader from './containers/DashboardLoader'
 import TexterTodoList from './containers/TexterTodoList'
 import TexterTodo from './containers/TexterTodo'
+import SuspendedTexter from './containers/SuspendedTexter'
 import Login from './components/Login'
 import Terms from './containers/Terms'
 import React from 'react'
@@ -61,6 +62,13 @@ export default function makeRoutes(requireAuth = () => { }) {
             main: (p) => <UserEdit userId={p.params.userId} organizationId={p.params.organizationId} />,
             topNav: (p) => <TopNav title='Account' orgId={p.params.organizationId} />
           }} />
+          <Route
+            path='suspended'
+            components={{
+              main: (p) => <SuspendedTexter organizationId={p.params.organizationId} />,
+              topNav: (p) => <TopNav title='Spoke Texting' orgId={p.params.organizationId} />
+            }}
+          />
           <Route path='todos'>
             <IndexRoute
               components={{

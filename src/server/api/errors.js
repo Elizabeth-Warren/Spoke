@@ -48,13 +48,14 @@ export async function assignmentRequired(user, assignmentId, assignment) {
   return true
 }
 
-export async function assignmentOrSupervolunteerRequired(organizationId, user, assignmentId, assignment) {
+export async function assignmentAndNotSuspended(organizationId, user, assignmentId, assignment, allowSupervolunteer = true) {
   try {
+    await accessRequired(user, organizationId, 'TEXTER')
     await assignmentRequired(user, assignmentId, assignment)
   } catch (e) {
     console.log(typeof e)
-    if (e instanceof GraphQLError) {
-      accessRequired(user, organizationId, 'SUPERVOLUNTEER', true)
+    if (e instanceof GraphQLError && allowSupervolunteer) {
+      await accessRequired(user, organizationId, 'SUPERVOLUNTEER', true)
     } else {
       throw (e)
     }

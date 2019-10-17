@@ -382,7 +382,11 @@ export class AssignmentTexterContact extends React.Component {
       }
       this.setState({ disabled: true })
       console.log('sendMessage', contact.id)
-      await this.props.mutations.sendMessage(message, contact.id)
+      const sendMessageResult = await this.props.mutations.sendMessage(message, contact.id)
+      if (sendMessageResult.errors && this.props.campaign.organization.id) {
+        console.log(`PUSHING AssignmentTexterContact index 387`)
+        this.props.router.push(`/app/${this.props.campaign.organization.id}/suspended`)
+      }
 
       await this.handleSubmitSurveys()
       this.props.onFinishContact(contact.id)

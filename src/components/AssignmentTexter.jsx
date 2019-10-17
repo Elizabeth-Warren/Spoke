@@ -12,6 +12,7 @@ import Check from 'material-ui/svg-icons/action/check-circle'
 import Lock from 'material-ui/svg-icons/action/lock-outline'
 import Empty from '../components/Empty'
 import RaisedButton from 'material-ui/RaisedButton'
+import { get } from 'lodash'
 
 const styles = StyleSheet.create({
   container: {
@@ -153,7 +154,7 @@ export class AssignmentTexter extends React.Component {
         .filter((cId) => !force || !this.state.contactCache[cId])
       console.log('getContactData batch forward ', getIds)
     } else if (!getIds.length
-               && this.props.assignment.campaign.useDynamicAssignment
+               && get(this.props, 'assignment.campaign.useDynamicAssignment')
                // If we have just crossed the threshold of contact data we have, get more
                && contacts[newIndex + BATCH_FORWARD - 1]
                && !contacts[newIndex + BATCH_FORWARD]) {
@@ -163,8 +164,14 @@ export class AssignmentTexter extends React.Component {
       console.log('getContactData length', newIndex, getIds.length)
       this.setState({ loading: true })
       const contactData = await this.props.loadContacts(getIds)
-      if (this.props.reviewMode && contactData.errors) {
-        this.setState({ contactDataErrors: contactData.errors })
+      if (contactData.errors) {
+        if (this.props.reviewMode) {
+          this.setState({ contactDataErrors: contactData.errors })
+        } else if (this.props.organizationId) {
+          // TODO(lmp) push_suspended
+          console.log(`PUSHING AssignmentTexter 172`)
+          this.props.router.push(`/app/${ this.props.organizationId  }/suspended`)
+        }
       }
 
       const { data: { getAssignmentContacts } } = contactData
@@ -344,7 +351,7 @@ export class AssignmentTexter extends React.Component {
       if (this.props.reviewMode && this.state.contactDataErrors) {
         console.log('REVIEW MODE + CONTACT DATA ERRORS ' + this.state.contactDataErrors)
         return this.renderNotAuthorized()
-      }
+        } 
       const self = this
       console.log('NO CONTACT DATA <curInd><ctct><reloadDelay><curcontacts>', self.state.currentContactIndex,
                   contact, self.state.reloadDelay, this.props.contacts)
