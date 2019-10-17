@@ -60,9 +60,6 @@ export class TexterTodo extends React.Component {
 
   shouldComponentUpdate = (nextProps) => {
     if (nextProps.data.errors && this.props.params.organizationId) {
-      // TODO(lmp) push_suspended
-
-      console.log(`PUSHING TexterTodo 65 /app/${this.props.params.organizationId}/todos`)
       this.props.router.push(`/app/${this.props.params.organizationId}/suspended`)
     }
     return true
@@ -118,10 +115,7 @@ export class TexterTodo extends React.Component {
     const { assignment } = this.props.data
 
     if (!assignment || this.props.data.errors && this.props.params.organizationId) {
-      // TODO(lmp) push_suspended
-      console.log(`PUSHING TexterTodoList 122`)
       this.props.router.push(`/app/${this.props.params.organizationId}/suspended`)
-
     }
 
     const contacts = assignment ? assignment.contacts : []

@@ -384,7 +384,6 @@ export class AssignmentTexterContact extends React.Component {
       console.log('sendMessage', contact.id)
       const sendMessageResult = await this.props.mutations.sendMessage(message, contact.id)
       if (sendMessageResult.errors && this.props.campaign.organization.id) {
-        console.log(`PUSHING AssignmentTexterContact index 387`)
         this.props.router.push(`/app/${this.props.campaign.organization.id}/suspended`)
       }
 
@@ -461,7 +460,6 @@ export class AssignmentTexterContact extends React.Component {
       if (optOutMessageText.length) {
         const sendMessageResult = await this.props.mutations.sendMessage(message, contact.id)
         if (sendMessageResult.errors && this.props.campaign.organization.id) {
-          console.log(`PUSHING AssignmentTexterContact index 387`)
           this.props.router.push(`/app/${this.props.campaign.organization.id}/suspended`)
         }
       }

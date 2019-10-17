@@ -168,8 +168,6 @@ export class AssignmentTexter extends React.Component {
         if (this.props.reviewMode) {
           this.setState({ contactDataErrors: contactData.errors })
         } else if (this.props.organizationId) {
-          // TODO(lmp) push_suspended
-          console.log(`PUSHING AssignmentTexter 172`)
           this.props.router.push(`/app/${ this.props.organizationId  }/suspended`)
         }
       }

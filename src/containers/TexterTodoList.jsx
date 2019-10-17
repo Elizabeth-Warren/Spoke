@@ -78,8 +78,6 @@ class TexterTodoList extends React.Component {
     this.termsAgreed()
 
     if (this.props.data.errors && this.props.params.organizationId) {
-      // TODO(lmp) push_suspended
-      console.log(`PUSHING TexterTodoList 82`)
       this.props.router.push(`/app/${this.props.params.organizationId}/suspended`)
       return null
     }
