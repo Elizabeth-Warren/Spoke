@@ -40,7 +40,7 @@ import {
 import {
   accessRequired,
   assignmentRequired,
-  assignmentOrSupervolunteerRequired,
+  assignmentAndNotSuspended,
   authRequired,
   superAdminRequired
 } from './errors'
@@ -880,7 +880,7 @@ const rootMutations = {
       return true
     },
     getAssignmentContacts: async (_, { organizationId, assignmentId, contactIds, findNew }, { loaders, user }) => {
-      await assignmentOrSupervolunteerRequired(organizationId, user, assignmentId)
+      await assignmentAndNotSuspended(organizationId, user, assignmentId)
       const contacts = contactIds.map(async (contactId) => {
         const contact = await loaders.campaignContact.load(contactId)
         if (contact && contact.assignment_id === Number(assignmentId)) {
@@ -1024,10 +1024,11 @@ const rootMutations = {
 
       return []
     },
-    sendMessage: async (_, { message, campaignContactId }, { loaders }) => {
+    sendMessage: async (_, { message, campaignContactId }, { loaders, user }) => {
       const contact = await loaders.campaignContact.load(campaignContactId)
       const campaign = await loaders.campaign.load(contact.campaign_id)
-      if (contact.assignment_id !== parseInt(message.assignmentId) || campaign.is_archived) {
+      await accessRequired(user, campaign.organization_id, 'TEXTER')
+      if (contact.assignment_id !== parseInt(message.assignmentId, 10) || campaign.is_archived) {
         throw new GraphQLError({
           status: 400,
           message: 'Your assignment has changed'
@@ -1312,7 +1313,7 @@ const rootResolvers = {
       const assignment = await loaders.assignment.load(id)
       const campaign = await loaders.campaign.load(assignment.campaign_id)
       if (assignment.user_id === user.id) {
-        await accessRequired(user, campaign.organization_id, 'SUSPENDED', /* allowSuperadmin=*/ true)
+        await accessRequired(user, campaign.organization_id, 'TEXTER', /* allowSuperadmin=*/ true)
       } else {
         await accessRequired(
           user,
@@ -1328,7 +1329,7 @@ const rootResolvers = {
       authRequired(user)
       return r.table('invite').filter({ hash })
     },
-    currentUser: async (_, { id }, { user }) => {
+    currentUser: async (_, unused_, { user }) => {
       if (!user) {
         return null
       }
@@ -1336,11 +1337,15 @@ const rootResolvers = {
         return user
       }
     },
+    currentUserWithAccess: async(_, { organizationId, role }, { user }) => {
+      await accessRequired(user, organizationId, role, false)
+      return user
+    },
     contact: async (_, { id }, { loaders, user }) => {
       authRequired(user)
       const contact = await loaders.campaignContact.load(id)
       const campaign = await loaders.campaign.load(contact.campaign_id)
-      await accessRequired(user, campaign.organization_id, 'SUSPENDED', /* allowSuperadmin=*/ true)
+      await accessRequired(user, campaign.organization_id, 'TEXTER', /* allowSuperadmin=*/ true)
       return contact
     },
     organizations: async (_, { id }, { user }) => {
