@@ -21,6 +21,8 @@ import SimpleRolesDropdown, { ALL_ROLES } from '../components/PeopleList/SimpleR
 
 export const ALL_CAMPAIGNS = -1
 
+const CAMPAIGN_FILTER_SORT = (typeof window !== 'undefined' && window.PEOPLE_PAGE_CAMPAIGN_FILTER_SORT) || "ID_ASC";
+
 const styles = StyleSheet.create({
   settings: {
     display: 'flex',
@@ -253,11 +255,11 @@ const mapQueriesToProps = ({ ownProps }) => ({
     forceFetch: true
   },
   organizationData: {
-    query: gql`query getOrganizationData($organizationId: String!) {
+    query: gql`query getOrganizationData($organizationId: String!, $sortBy: SortCampaignsBy) {
       organization(id: $organizationId) {
         id
         uuid
-        campaigns(campaignsFilter: { isArchived: false }) {
+        campaigns(campaignsFilter: { isArchived: false }, sortBy: $sortBy ) {
           ... on CampaignsList{
             campaigns{
               id
@@ -268,7 +270,8 @@ const mapQueriesToProps = ({ ownProps }) => ({
       }
     }`,
     variables: {
-      organizationId: ownProps.params.organizationId
+      organizationId: ownProps.params.organizationId,
+      sortBy: CAMPAIGN_FILTER_SORT
     },
     forceFetch: true
   }
