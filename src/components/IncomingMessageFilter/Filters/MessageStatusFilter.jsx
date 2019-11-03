@@ -57,7 +57,7 @@ export const MessageStatusFilter = props => (
             className={css(styles.icon)}
             onClick={event => {
               event.stopPropagation();
-              props.onChange([]);
+              props.onChange(undefined, undefined, []);
             }}
           >
             <ClearIcon />
