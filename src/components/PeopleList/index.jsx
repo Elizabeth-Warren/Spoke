@@ -1,34 +1,35 @@
-import React, { Component } from 'react'
-import type from 'prop-types'
-import FlatButton from 'material-ui/FlatButton'
-import loadData from '../../containers/hoc/load-data'
-import gql from 'graphql-tag'
-import LoadingIndicator from '../../components/LoadingIndicator'
-import DataTables from 'material-ui-datatables'
-import UserEditDialog from './UserEditDialog'
-import ResetPasswordDialog from './ResetPasswordDialog'
-import RolesDropdown from './RolesDropdown'
-import { dataTest } from '../../lib/attributes'
+import React, { Component } from "react";
+import type from "prop-types";
+import FlatButton from "material-ui/FlatButton";
+import loadData from "../../containers/hoc/load-data";
+import gql from "graphql-tag";
+import LoadingIndicator from "../../components/LoadingIndicator";
+import DataTables from "material-ui-datatables";
+import UserEditDialog from "./UserEditDialog";
+import ResetPasswordDialog from "./ResetPasswordDialog";
+import RolesDropdown from "./RolesDropdown";
+import { dataTest } from "../../lib/attributes";
 
-import PeopleIcon from 'material-ui/svg-icons/social/people'
-import Empty from '../../components/Empty'
-import InitiatePasswordResetDialog from '../../containers/InitiatePasswordResetDialog'
+import PeopleIcon from "material-ui/svg-icons/social/people";
+import Empty from "../../components/Empty";
+import InitiatePasswordResetDialog from "../../containers/InitiatePasswordResetDialog";
 
-const prepareDataTableData = (users) => users.map(user => ({
-  texterId: user.id,
-  texter: user.displayName,
-  email: user.email,
-  roles: user.roles
-})
-)
+const prepareDataTableData = users =>
+  users.map(user => ({
+    texterId: user.id,
+    texter: user.displayName,
+    email: user.email,
+    roles: user.roles
+  }));
 
-const PEOPLE_PAGE_ROW_SIZES = (typeof window !== 'undefined' && window.PEOPLE_PAGE_ROW_SIZES && JSON.parse(window.PEOPLE_PAGE_ROW_SIZES)) || [100, 200, 500, 1000]
-const INITIAL_PAGE_SIZE = PEOPLE_PAGE_ROW_SIZES[0]
+const PEOPLE_PAGE_ROW_SIZES = (typeof window !== "undefined" &&
+  window.PEOPLE_PAGE_ROW_SIZES &&
+  JSON.parse(window.PEOPLE_PAGE_ROW_SIZES)) || [100, 200, 500, 1000];
+const INITIAL_PAGE_SIZE = PEOPLE_PAGE_ROW_SIZES[0];
 
 export class PeopleList extends Component {
   constructor(props) {
-    super(props)
-
+    super(props);
 
     this.state = {
       open: false,
@@ -38,98 +39,100 @@ export class PeopleList extends Component {
         offset: 0,
         limit: INITIAL_PAGE_SIZE
       },
-      passwordResetHash: ''
-    }
+      passwordResetHash: ""
+    };
 
-    this.requestUserEditClose = this.requestUserEditClose.bind(this)
-    this.updateUser = this.updateUser.bind(this)
-    this.handlePasswordResetClose = this.handlePasswordResetClose.bind(this)
-    this.handleChange = this.handleChange.bind(this)
+    this.requestUserEditClose = this.requestUserEditClose.bind(this);
+    this.updateUser = this.updateUser.bind(this);
+    this.handlePasswordResetClose = this.handlePasswordResetClose.bind(this);
+    this.handleChange = this.handleChange.bind(this);
   }
 
   prepareTableColumns = () => [
     {
-      key: 'texter',
-      label: 'Texter',
+      key: "texter",
+      label: "Texter",
       style: {
-        textOverflow: 'ellipsis',
-        overflow: 'hidden',
-        whiteSpace: 'pre-line'
+        textOverflow: "ellipsis",
+        overflow: "hidden",
+        whiteSpace: "pre-line"
       }
     },
     {
-      key: 'email',
-      label: 'Email',
+      key: "email",
+      label: "Email",
       style: {
-        textOverflow: 'ellipsis',
-        overflow: 'scroll',
-        whiteSpace: 'pre-line'
+        textOverflow: "ellipsis",
+        overflow: "scroll",
+        whiteSpace: "pre-line"
       }
     },
     {
-      key: 'roles',
-      label: 'Role',
+      key: "roles",
+      label: "Role",
       style: {
-        textOverflow: 'ellipsis',
-        overflow: 'scroll',
-        whiteSpace: 'pre-line'
+        textOverflow: "ellipsis",
+        overflow: "scroll",
+        whiteSpace: "pre-line"
       },
       render: this.renderRolesDropdown
     },
     {
-      key: 'edit',
-      label: '',
+      key: "edit",
+      label: "",
       style: {
-        textOverflow: 'ellipsis',
-        overflow: 'scroll',
-        whiteSpace: 'pre-line'
+        textOverflow: "ellipsis",
+        overflow: "scroll",
+        whiteSpace: "pre-line"
       },
       render: this.renderEditButton
     },
     {
-      key: 'password',
-      label: '',
+      key: "password",
+      label: "",
       style: {
-        textOverflow: 'ellipsis',
-        overflow: 'scroll',
-        whiteSpace: 'pre-line'
+        textOverflow: "ellipsis",
+        overflow: "scroll",
+        whiteSpace: "pre-line"
       },
       render: this.renderChangePasswordButton
     }
-  ]
+  ];
 
   editUser(userId) {
     this.setState({
       userEdit: userId
-    })
+    });
   }
 
   updateUser() {
     this.setState({
       userEdit: false
-    })
+    });
     this.props.users.refetch({
       cursor: this.state.cursor
-    })
+    });
   }
 
   async resetPassword(userId) {
-    const { currentUser } = this.props
+    const { currentUser } = this.props;
     if (currentUser.id !== userId) {
-      const res = await this
-        .props
-        .mutations
-        .resetUserPassword(this.props.organizationId, userId)
-      this.setState({ passwordResetHash: res.data.resetUserPassword })
+      const res = await this.props.mutations.resetUserPassword(
+        this.props.organizationId,
+        userId
+      );
+      this.setState({ passwordResetHash: res.data.resetUserPassword });
     }
   }
 
   changePage = (pageDelta, pageSize) => {
-    const { limit, offset, total } = this.props.users.people.pageInfo
-    const currentPage = Math.floor(offset / limit)
-    const pageSizeAdjustedCurrentPage = Math.floor(currentPage * limit / pageSize)
-    const maxPage = Math.floor(total / pageSize)
-    const newPage = Math.min(maxPage, pageSizeAdjustedCurrentPage + pageDelta)
+    const { limit, offset, total } = this.props.users.people.pageInfo;
+    const currentPage = Math.floor(offset / limit);
+    const pageSizeAdjustedCurrentPage = Math.floor(
+      (currentPage * limit) / pageSize
+    );
+    const maxPage = Math.floor(total / pageSize);
+    const newPage = Math.min(maxPage, pageSizeAdjustedCurrentPage + pageDelta);
     this.props.users.fetchMore({
       variables: {
         cursor: {
@@ -142,24 +145,24 @@ export class PeopleList extends Component {
           people: {
             users: []
           }
-        }
+        };
 
         if (fetchMoreResult) {
-          returnValue.people.users = fetchMoreResult.data.people.users
-          returnValue.people.pageInfo = fetchMoreResult.data.people.pageInfo
+          returnValue.people.users = fetchMoreResult.data.people.users;
+          returnValue.people.pageInfo = fetchMoreResult.data.people.pageInfo;
         }
-        return returnValue
+        return returnValue;
       }
-    })
+    });
     this.setState({
       cursor: {
         offset: newPage * pageSize,
         limit: pageSize
       }
-    })
-  }
+    });
+  };
 
-  componentWillReceiveProps = (nextProps) => {
+  componentWillReceiveProps = nextProps => {
     // this is a hack
     // without this, some graphql updates did not happen
     // until the next location pop
@@ -168,87 +171,96 @@ export class PeopleList extends Component {
     // the hack reloads the entire page if the filters or sort changed
     // and users is not loading -- the fact that it's not loading means
     // the graphql update is not happening
-    const nextLocation = nextProps.location
-    const currentLocation = this.props.location
+    const nextLocation = nextProps.location;
+    const currentLocation = this.props.location;
 
-    if (nextLocation.action === 'POP'
-      && (nextLocation.query.searchString !== currentLocation.query.searchString
-        || nextLocation.query.campaignId !== currentLocation.query.campaignId
-        || nextLocation.query.sortBy !== currentLocation.query.sortBy
-        || nextLocation.query.role !== currentLocation.query.role)
-      && !nextProps.users.loading
+    if (
+      nextLocation.action === "POP" &&
+      (nextLocation.query.searchString !== currentLocation.query.searchString ||
+        nextLocation.query.campaignId !== currentLocation.query.campaignId ||
+        nextLocation.query.sortBy !== currentLocation.query.sortBy ||
+        nextLocation.query.role !== currentLocation.query.role) &&
+      !nextProps.users.loading
     ) {
-      window.location.reload()
+      window.location.reload();
     }
-  }
+  };
 
   handleNextPageClick = () => {
-    this.changePage(1, this.state.pageSize)
-  }
+    this.changePage(1, this.state.pageSize);
+  };
 
   handlePreviousPageClick = () => {
-    this.changePage(-1, this.state.pageSize)
-  }
+    this.changePage(-1, this.state.pageSize);
+  };
 
   handleRowSizeChanged = (index, value) => {
-    this.changePage(0, value)
-    this.setState({ pageSize: value })
-  }
+    this.changePage(0, value);
+    this.setState({ pageSize: value });
+  };
 
   handleChange = async (userId, value) => {
-    this.setState({ editingOrganizationRoles: true })
-    await this
-      .props
-      .mutations
-      .editOrganizationRoles(this.props.organizationId, this.props.campaignsFilter.campaignId, userId, [value])
-    this.setState({ editingOrganizationRoles: false })
-  }
+    this.setState({ editingOrganizationRoles: true });
+    await this.props.mutations.editOrganizationRoles(
+      this.props.organizationId,
+      this.props.campaignsFilter.campaignId,
+      userId,
+      [value]
+    );
+    this.setState({ editingOrganizationRoles: false });
+  };
 
   requestUserEditClose = () => {
-    this.setState({ userEdit: false })
-  }
+    this.setState({ userEdit: false });
+  };
 
   handleInviteTexterOpen() {
-    this.setState({ open: true })
+    this.setState({ open: true });
   }
 
   handleInviteTexterClose() {
-    this.setState({ open: false })
+    this.setState({ open: false });
   }
   handlePasswordResetClose() {
-    this.setState({ passwordResetHash: '' })
+    this.setState({ passwordResetHash: "" });
   }
 
   renderRolesDropdown = (columnKey, row) => {
-    const { roles, texterId } = row
-    const { currentUser } = this.props
-    return (<RolesDropdown
-      roles={roles}
-      texterId={texterId}
-      currentUser={currentUser}
-      onChange={this.handleChange}
-    />)
-  }
+    const { roles, texterId } = row;
+    const { currentUser } = this.props;
+    return (
+      <RolesDropdown
+        roles={roles}
+        texterId={texterId}
+        currentUser={currentUser}
+        onChange={this.handleChange}
+      />
+    );
+  };
 
   renderEditButton = (columnKey, row) => {
-    const { texterId } = row
+    const { texterId } = row;
     return (
       <FlatButton
-        {...dataTest('editPerson')}
-        label='Edit'
-        onTouchTap={() => { this.editUser(texterId) }}
+        {...dataTest("editPerson")}
+        label="Edit"
+        onTouchTap={() => {
+          this.editUser(texterId);
+        }}
       />
-    )
-  }
+    );
+  };
 
   renderChangePasswordButton = (columnKey, row) => {
-    const { texterId } = row
-    const { currentUser } = this.props
-    return window.PASSPORT_STRATEGY === 'local' ? (
+    const { texterId } = row;
+    const { currentUser } = this.props;
+    return window.PASSPORT_STRATEGY === "local" ? (
       <FlatButton
-        label='Reset Password'
+        label="Reset Password"
         disabled={currentUser.id === texterId}
-        onTouchTap={() => { this.resetPassword(texterId) }}
+        onTouchTap={() => {
+          this.resetPassword(texterId);
+        }}
       />
     ) : (
       <InitiatePasswordResetDialog
@@ -257,28 +269,23 @@ export class PeopleList extends Component {
         organizationId={this.props.organizationId}
         disabled={currentUser.id === texterId}
       />
-    )
-  }
+    );
+  };
 
   render() {
     if (this.props.users.loading || this.state.editingOrganizationRoles) {
-      return <LoadingIndicator />
+      return <LoadingIndicator />;
     }
 
     if (!this.props.users.people.users.length) {
-      return (
-        <Empty
-          title='No people yet'
-          icon={<PeopleIcon />}
-        />
-      )
+      return <Empty title="No people yet" icon={<PeopleIcon />} />;
     }
 
-    const { users, pageInfo } = this.props.users.people
-    const { organizationId } = this.props
-    const { limit, offset, total } = pageInfo
-    const displayPage = Math.floor(offset / limit) + 1
-    const tableData = prepareDataTableData(users)
+    const { users, pageInfo } = this.props.users.people;
+    const { organizationId } = this.props;
+    const { limit, offset, total } = pageInfo;
+    const displayPage = Math.floor(offset / limit) + 1;
+    const tableData = prepareDataTableData(users);
     return (
       <div>
         <DataTables
@@ -291,8 +298,8 @@ export class PeopleList extends Component {
           onPreviousPageClick={this.handlePreviousPageClick}
           onRowSizeChange={this.handleRowSizeChanged}
           rowSizeList={PEOPLE_PAGE_ROW_SIZES.sort((a, b) => a - b)}
-          footerToolbarStyle={{ paddingRight: '100px' }}
-          tableWrapperStyle={{ marginTop: '20px' }}
+          footerToolbarStyle={{ paddingRight: "100px" }}
+          tableWrapperStyle={{ marginTop: "20px" }}
         />
         {this.props.organizationId && (
           <div>
@@ -311,7 +318,7 @@ export class PeopleList extends Component {
           </div>
         )}
       </div>
-    )
+    );
   }
 }
 
@@ -326,7 +333,7 @@ PeopleList.propTypes = {
   sortBy: type.string,
   searchString: type.string,
   location: type.object
-}
+};
 
 const organizationFragment = `
   id
@@ -336,7 +343,7 @@ const organizationFragment = `
     email
     roles(organizationId: $organizationId)
   }
-`
+`;
 
 const mapMutationsToProps = () => ({
   editOrganizationRoles: (organizationId, campaignId, userId, roles) => ({
@@ -365,54 +372,56 @@ const mapMutationsToProps = () => ({
       userId
     }
   })
-})
+});
 
 const mapQueriesToProps = ({ ownProps }) => ({
   users: {
     query: gql`
-        query getUsers(
-          $organizationId: String!
-          $cursor: OffsetLimitCursor
-          $campaignsFilter: CampaignsFilter
-          $sortBy: SortPeopleBy
-          $filterString: String
-          $role: String
+      query getUsers(
+        $organizationId: String!
+        $cursor: OffsetLimitCursor
+        $campaignsFilter: CampaignsFilter
+        $sortBy: SortPeopleBy
+        $filterString: String
+        $filterBy: FilterPeopleBy
+        $role: String
+      ) {
+        people(
+          organizationId: $organizationId
+          cursor: $cursor
+          campaignsFilter: $campaignsFilter
+          sortBy: $sortBy
+          filterString: $filterString
+          filterBy: $filterBy
+          role: $role
         ) {
-            people(
-                organizationId: $organizationId
-                cursor: $cursor
-                campaignsFilter: $campaignsFilter
-                sortBy: $sortBy
-                filterString: $filterString
-                role: $role
-            ) {
-                ...on PaginatedUsers {
-                    pageInfo {
-                        offset
-                        limit
-                        total
-                    }
-                    users {
-                        id
-                        displayName
-                        email
-                        roles(organizationId: $organizationId)
-                    }
-                }
+          ... on PaginatedUsers {
+            pageInfo {
+              offset
+              limit
+              total
             }
+            users {
+              id
+              displayName
+              email
+              roles(organizationId: $organizationId)
+            }
+          }
         }
+      }
     `,
     variables: {
       cursor: { offset: 0, limit: INITIAL_PAGE_SIZE },
       organizationId: ownProps.organizationId,
       campaignsFilter: ownProps.campaignsFilter,
-      sortBy: ownProps.sortBy || 'FIRST_NAME',
+      sortBy: ownProps.sortBy || "FIRST_NAME",
+      filterBy: ownProps.filterBy || "FIRST_NAME",
       filterString: ownProps.searchString,
       role: ownProps.role
     },
     forceFetch: true
   }
-})
+});
 
-
-export default loadData(PeopleList, { mapQueriesToProps, mapMutationsToProps })
+export default loadData(PeopleList, { mapQueriesToProps, mapMutationsToProps });

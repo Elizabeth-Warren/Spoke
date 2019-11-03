@@ -175,6 +175,13 @@ const rootSchema = gql`
     OLDEST
   }
 
+  enum FilterPeopleBy {
+    FIRST_NAME
+    LAST_NAME
+    EMAIL
+    ANY
+  }
+
   enum SortCampaignsBy {
     DUE_DATE_ASC,
     DUE_DATE_DESC,
@@ -195,7 +202,7 @@ const rootSchema = gql`
     availableActions(organizationId:String!): [Action]
     conversations(cursor:OffsetLimitCursor!, organizationId:String!, campaignsFilter:CampaignsFilter, assignmentsFilter:AssignmentsFilter, contactsFilter:ContactsFilter, utc:String): PaginatedConversations
     campaigns(organizationId:String!, cursor:OffsetLimitCursor, campaignsFilter: CampaignsFilter, sortBy: SortCampaignsBy): CampaignsReturn
-    people(organizationId:String!, cursor:OffsetLimitCursor, campaignsFilter:CampaignsFilter, role: String, sortBy: SortPeopleBy, filterString: String): UsersReturn
+    people(organizationId:String!, cursor:OffsetLimitCursor, campaignsFilter:CampaignsFilter, role: String, sortBy: SortPeopleBy, filterString: String, filterBy: FilterPeopleBy): UsersReturn
   }
 
   type RootMutation {
