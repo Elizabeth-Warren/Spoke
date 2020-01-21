@@ -3,7 +3,7 @@
   "JOBS_SAME_PROCESS": "1",
   "SUPPRESS_SEED_CALLS": "1",
   "AWS_ACCESS_AVAILABLE": "1",
-  "AWS_S3_BUCKET_NAME":  "spoke.example.com",
+  "AWS_S3_BUCKET_NAME": "spoke.example.com",
   "APOLLO_OPTICS_KEY": "",
   "DEFAULT_SERVICE": "twilio",
   "OUTPUT_DIR": "./build",

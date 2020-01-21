@@ -1,32 +1,34 @@
 # Instructions for one click deployment to Heroku
+
 - Create a Heroku account (if you don't have an account). For more questions on Heroku and what it does, please visit [here](https://www.heroku.com/what)
 - The form you fill out in Heroku has a lot of values. These are configuration values (also known as environment variables). Each value is essentially a setting. Some are necessary for deployment and others customize the experience in your instance of Spoke. For more questions about configuration values in this application visit [our documentation on environment variables and what they do](REFERENCE-environment_variables.md). For more questions in general about configuration variables in Heroku, visit [Heroku's config variable explanation page](https://devcenter.heroku.com/articles/config-vars)
 - Do not start any of the processes/dynos besides `web` (see below for non-Twilio uses)
 - The default setup is a free tier for processing and the database. See below for scaling and production requirements
 
 ## Important Note for First Time Deployers:
+
 - There is a variable named `SUPPRESS_SELF_INVITE` in your configuration variables in Heroku. When this is set to nothing, anyone can visit your app and create an organization. When it is set to `true`, this changes login/signup behavior - when a person signs up and visits your app, they will not create an organization. On first deployment, it should be set to nothing to ensure that you have the ability to create an organization and view the full functionality of the application.
 
 ## Instructions for Auth0 configuration variable setup
+
 - Follow the instructions at [Auth0 for authentication](https://github.com/MoveOnOrg/Spoke/blob/main/docs/HOWTO-configure-auth0.md)
   - Where the instructions mention `yourspoke.example.com`, replace it with `<YOUR SPOKE APP>.herokuapp.com` (or in production, possibly the domain you aliased to it in your DNS config)
 
-
 ## Notes about Twilio configuration variable setup
+
 If you need to use Twilio in development but with live keys, click [here](HOWTO_INTEGRATE_TWILIO.md) for instructions.
 When using instructions, please remember that references to NGROK urls should change to your Heroku app url.
 
 Visit [here](https://www.twilio.com/docs/api/messaging/services-and-copilot) to configure messaging service features
 
-
 ## Setting up for production scale (Database, etc)
 
 The default deployment from the Heroku button is free, but has a processing and database limit of 10,000 messages total.
 This may be sufficient for a single small campaign, but if you intend multiple/regular campaigns, we recommend upgrading
-the database and possibly the `web` 'dyno' instance (to [Hobby or Standard](https://devcenter.heroku.com/articles/dynos)).  At the time of this writing a ['hobby basic' level for the database is ~$9.00/month](https://devcenter.heroku.com/articles/heroku-postgres-plans#plan-tiers).
+the database and possibly the `web` 'dyno' instance (to [Hobby or Standard](https://devcenter.heroku.com/articles/dynos)). At the time of this writing a ['hobby basic' level for the database is ~\$9.00/month](https://devcenter.heroku.com/articles/heroku-postgres-plans#plan-tiers).
 
 For production scale, the best time to upgrade the database is before you start using the app, because the easiest path erases all
-previous data.  If you have existing data, please refer to Heroku docs on [how to upgrade a database](https://devcenter.heroku.com/articles/upgrading-heroku-postgres-databases) (it's complicated).
+previous data. If you have existing data, please refer to Heroku docs on [how to upgrade a database](https://devcenter.heroku.com/articles/upgrading-heroku-postgres-databases) (it's complicated).
 
 If you have not used the app, after you've created the instance (filled out the variables, and 'deployed' it)
 follow these steps:
@@ -38,16 +40,17 @@ follow these steps:
 5. Choose the "Heroku Postgres" option and then choose the tier you desire (see Heroku Postgres tier documentation for details)
 6. At the very top of the page for your app, in the upper right click the 'More' button and choose 'Restart all dynos'
 
-
 ## Non-Twilio Processes/Dynos
 
 When using Twilio we recommend keeping the configuration variable `JOBS_SAME_PROCESS` enabled and only running the `web` process/dyno.
-There is another mode mostly for non-Twilio backends, where you may need to run the additional processes to process messages and sending.  Most times, even at high scale, you will want to keep `JOBS_SAME_PROCESS` on and increase or upgrade the dynos for the `web` process.
+There is another mode mostly for non-Twilio backends, where you may need to run the additional processes to process messages and sending. Most times, even at high scale, you will want to keep `JOBS_SAME_PROCESS` on and increase or upgrade the dynos for the `web` process.
 
 ## Email configuration
+
 See [this guide](EMAIL_CONFIGURATION.md) for instructions.
 
 ## Data exporting
+
 In order to export data from campaigns (such as contacts' responses to questions), you need to configure S3 or Bucketeer. See [this guide](DATA_EXPORTING.md) for instructions.
 
 ## Upgrading an existing Heroku app

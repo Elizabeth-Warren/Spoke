@@ -1,86 +1,95 @@
-import { css, StyleSheet } from 'aphrodite'
-import DropDownMenu from 'material-ui/DropDownMenu'
-import FlatButton from 'material-ui/FlatButton'
-import MenuItem from 'material-ui/MenuItem'
-import HardwareKeyboardArrowLeft from 'material-ui/svg-icons/hardware/keyboard-arrow-left'
-import HardwareKeyboardArrowRight from 'material-ui/svg-icons/hardware/keyboard-arrow-right'
-import PropTypes, { arrayOf } from 'prop-types'
-import React from 'react'
-
+import { css, StyleSheet } from "aphrodite";
+import DropDownMenu from "material-ui/DropDownMenu";
+import FlatButton from "material-ui/FlatButton";
+import MenuItem from "material-ui/MenuItem";
+import HardwareKeyboardArrowLeft from "material-ui/svg-icons/hardware/keyboard-arrow-left";
+import HardwareKeyboardArrowRight from "material-ui/svg-icons/hardware/keyboard-arrow-right";
+import PropTypes, { arrayOf } from "prop-types";
+import React from "react";
 
 const styles = StyleSheet.create({
   container: {
-    paddingRight: '24px',
-    display: 'flex',
-    flexDirection: 'row',
-    flexWrap: 'nowrap',
-    color: '#9E9E9E',
-    fontSize: '13.5px',
-    boxSizing: 'border-box',
-    height: '58px',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    minWidth: '100%'
+    paddingRight: "24px",
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "nowrap",
+    color: "#9E9E9E",
+    fontSize: "13.5px",
+    boxSizing: "border-box",
+    height: "58px",
+    justifyContent: "flex-end",
+    alignItems: "center",
+    minWidth: "100%"
   },
   borderTop: {
-    borderTop: '1px solid #E1E4DF'
+    borderTop: "1px solid #E1E4DF"
   },
   borderBottom: {
-    borderBottom: '1px solid #E1E4DF'
+    borderBottom: "1px solid #E1E4DF"
   },
   menu: {
-    paddingBottom: '9px'
+    paddingBottom: "9px"
   },
   buttons: {
-    display: 'flex',
-    alignItems: 'center',
-    marginLeft: '8px',
-    marginRight: '8px'
+    display: "flex",
+    alignItems: "center",
+    marginLeft: "8px",
+    marginRight: "8px"
   },
   XOfY: {
-    margin: '0px 8px'
+    margin: "0px 8px"
   },
   rowsPerPage: {
-    display: 'flex',
-    margin: '0px 8px',
-    alignItems: 'center'
+    display: "flex",
+    margin: "0px 8px",
+    alignItems: "center"
   }
-})
+});
 
 const inlineStyles = {
   inactiveMenuText: {
-    color: '#9E9E9E'
+    color: "#9E9E9E"
   },
   button: {
-    paddingTop: '3px',
-    width: '36px',
-    minWidth: '36px'
+    paddingTop: "3px",
+    width: "36px",
+    minWidth: "36px"
   },
-  activeNavigationButtonColor: '#939AA1',
-  inactiveNavigationButtonColor: '#DFE0E3'
-}
+  activeNavigationButtonColor: "#939AA1",
+  inactiveNavigationButtonColor: "#DFE0E3"
+};
 
-const rowSizeList = (props) => (props.rowSizeList && props.rowSizeList.length) && props.rowSizeList || [10, 30, 50, 100]
+const rowSizeList = props =>
+  (props.rowSizeList && props.rowSizeList.length && props.rowSizeList) || [
+    10,
+    30,
+    50,
+    100
+  ];
 
-const rowSizeMenuItems = (props) =>
-  rowSizeList(props).map((rowSize) => (
-    <MenuItem
-      key={rowSize}
-      value={rowSize}
-      primaryText={rowSize}
-    />
-  )
-  )
+const rowSizeMenuItems = props =>
+  rowSizeList(props).map(rowSize => (
+    <MenuItem key={rowSize} value={rowSize} primaryText={rowSize} />
+  ));
 
-const numberOfFirstConvoOnPage = (props) => ((props.page - 1) * props.rowSize) + 1
-const conversationsCurrentlyDisplayed = (props) => Math.min(numberOfFirstConvoOnPage(props) + props.rowSize - 1, props.count)
-const pageXOfY = (props) => `${numberOfFirstConvoOnPage(props)} - ${conversationsCurrentlyDisplayed(props)} of ${props.count}`
-const previousPageButtonDisabled = (props) => props.page === 1
-const nextPageButtonDisabled = (props) => (props.page) * props.rowSize > props.count
+const numberOfFirstConvoOnPage = props => (props.page - 1) * props.rowSize + 1;
+const conversationsCurrentlyDisplayed = props =>
+  Math.min(numberOfFirstConvoOnPage(props) + props.rowSize - 1, props.count);
+const pageXOfY = props =>
+  `${numberOfFirstConvoOnPage(props)} - ${conversationsCurrentlyDisplayed(
+    props
+  )} of ${props.count}`;
+const previousPageButtonDisabled = props => props.page === 1;
+const nextPageButtonDisabled = props =>
+  props.page * props.rowSize > props.count;
 
-const TableToolbar = (props) => (
+const TableToolbar = props => (
   <div
-    className={css(styles.container, props.borderTop && styles.borderTop, props.borderBottom && styles.borderBottom)}
+    className={css(
+      styles.container,
+      props.borderTop && styles.borderTop,
+      props.borderBottom && styles.borderBottom
+    )}
   >
     <div className={css(styles.rowsPerPage)}>
       <div>Rows per page:</div>
@@ -103,7 +112,17 @@ const TableToolbar = (props) => (
         style={inlineStyles.button}
       >
         <HardwareKeyboardArrowLeft
-          style={previousPageButtonDisabled(props) ? { color: inlineStyles.inactiveNavigationButtonColor, fill: inlineStyles.inactiveNavigationButtonColor } : { color: inlineStyles.activeNavigationButtonColor, fill: inlineStyles.activeNavigationButtonColor }}
+          style={
+            previousPageButtonDisabled(props)
+              ? {
+                  color: inlineStyles.inactiveNavigationButtonColor,
+                  fill: inlineStyles.inactiveNavigationButtonColor
+                }
+              : {
+                  color: inlineStyles.activeNavigationButtonColor,
+                  fill: inlineStyles.activeNavigationButtonColor
+                }
+          }
         />
       </FlatButton>
       <FlatButton
@@ -112,12 +131,22 @@ const TableToolbar = (props) => (
         style={inlineStyles.button}
       >
         <HardwareKeyboardArrowRight
-          style={nextPageButtonDisabled(props) ? { color: inlineStyles.inactiveNavigationButtonColor, fill: inlineStyles.inactiveNavigationButtonColor } : { color: inlineStyles.activeNavigationButtonColor, fill: inlineStyles.activeNavigationButtonColor }}
+          style={
+            nextPageButtonDisabled(props)
+              ? {
+                  color: inlineStyles.inactiveNavigationButtonColor,
+                  fill: inlineStyles.inactiveNavigationButtonColor
+                }
+              : {
+                  color: inlineStyles.activeNavigationButtonColor,
+                  fill: inlineStyles.activeNavigationButtonColor
+                }
+          }
         />
       </FlatButton>
     </div>
   </div>
-)
+);
 
 TableToolbar.propTypes = {
   rowSizeList: arrayOf(PropTypes.number),
@@ -129,6 +158,6 @@ TableToolbar.propTypes = {
   onNextPageClick: PropTypes.func.isRequired,
   borderBottom: PropTypes.bool,
   borderTop: PropTypes.bool
-}
+};
 
-export default TableToolbar
+export default TableToolbar;

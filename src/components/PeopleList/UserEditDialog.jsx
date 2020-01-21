@@ -1,14 +1,14 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React from "react";
+import PropTypes from "prop-types";
 
-import Dialog from 'material-ui/Dialog'
-import UserEdit from '../../containers/UserEdit'
-import { dataTest } from '../../lib/attributes'
+import Dialog from "material-ui/Dialog";
+import UserEdit from "../../containers/UserEdit";
+import { dataTest } from "../../lib/attributes";
 
-const UserEditDialog = (props) => (
+const UserEditDialog = props => (
   <Dialog
-    {...dataTest('editPersonDialog')}
-    title='Edit user'
+    {...dataTest("editPersonDialog")}
+    title="Edit user"
     modal={false}
     open={props.open}
     onRequestClose={props.requestClose}
@@ -19,7 +19,7 @@ const UserEditDialog = (props) => (
       onRequestClose={props.updateUser}
     />
   </Dialog>
-)
+);
 
 UserEditDialog.propTypes = {
   open: PropTypes.bool,
@@ -27,7 +27,6 @@ UserEditDialog.propTypes = {
   userId: PropTypes.number,
   updateUser: PropTypes.func,
   requestClose: PropTypes.func
-}
+};
 
-
-export default UserEditDialog
+export default UserEditDialog;

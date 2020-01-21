@@ -5,21 +5,22 @@
 - ACTION_HANDLERS should equal "actionkit-rsvp"
 - AK_BASEURL should be your base url from your ActionKit account
 - AK_SECRET should be your secret from your ActionKit account
-    + Refer to ActionKit's [Hashing documentation](https://docs.actionkit.com/docs/manual/developer/hashing.html#actionkit-s-hashing-system) for instructions on where to find your secret
+  - Refer to ActionKit's [Hashing documentation](https://docs.actionkit.com/docs/manual/developer/hashing.html#actionkit-s-hashing-system) for instructions on where to find your secret
 
 ## Step Two - making sure you have the correct data in your contacts list
 
 - In order for ActionKit RSVP Syncing to work with Spoke, we have to make sure we're including the correct information in our CSV upload AND set up the interaction steps correctly in the campaign script.
 
 ### Uploading CSVs with the Correct Information
+
 - When you upload a CSV to Spoke, you must make sure you have the following fields filled out for each contact:
-  * external_id (the actionkit user_id)
-  * event_page
-  * event_id
-  * cell
-  * firstName
-  * lastName
-- The external_id refers to the actionkit  user.id found in your actionkit database for users
+  - external_id (the actionkit user_id)
+  - event_page
+  - event_id
+  - cell
+  - firstName
+  - lastName
+- The external_id refers to the actionkit user.id found in your actionkit database for users
 - The event_id refers to the event id found in AK. The easiest way to find this is in the url slug for the event page
 - The event_page refers to the page name in action kit. The slug in the url in the AK event page is sometimes unreliable/confusing
 - In order for AK event syncing to work, external_id, event_page and event_id need to be correct.
@@ -34,12 +35,13 @@
 ## Note about Email Subscription Suppression
 
 - If you want to signup people for emails who've clicked yes, you'll need to add another column to your csv. Columns will be:
-  * external_id (the actionkit user_id)
-  * event_page
-  * event_id
-  * cell
-  * firstName
-  * lastName
-  * suppress_subscribe
 
-  In the suppress_subscribe column, all the row values should be equal to `0` (to denote false). If you do not include this column, it will automatically default to true which means folks who signup for an event will not be added to the mailable list. 
+  - external_id (the actionkit user_id)
+  - event_page
+  - event_id
+  - cell
+  - firstName
+  - lastName
+  - suppress_subscribe
+
+  In the suppress_subscribe column, all the row values should be equal to `0` (to denote false). If you do not include this column, it will automatically default to true which means folks who signup for an event will not be added to the mailable list.

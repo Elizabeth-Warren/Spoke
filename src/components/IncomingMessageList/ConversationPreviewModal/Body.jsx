@@ -1,21 +1,21 @@
-import React, { Component } from 'react'
-import PropTypes from 'prop-types'
-import MessageResponse from './MessageResponse'
-import MessageList from './MessageList'
+import React, { Component } from "react";
+import PropTypes from "prop-types";
+import MessageResponse from "./MessageResponse";
+import MessageList from "./MessageList";
 
 export default class ConversationPreviewBody extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     this.state = {
       messages: props.conversation.messages
-    }
+    };
 
-    this.messagesChanged = this.messagesChanged.bind(this)
+    this.messagesChanged = this.messagesChanged.bind(this);
   }
 
   messagesChanged(messages) {
-    this.setState({ messages })
+    this.setState({ messages });
   }
 
   render() {
@@ -30,10 +30,10 @@ export default class ConversationPreviewBody extends Component {
           messagesChanged={this.messagesChanged}
         />
       </div>
-    )
+    );
   }
 }
 
 ConversationPreviewBody.propTypes = {
   conversation: PropTypes.object
-}
+};

@@ -1,13 +1,13 @@
-import React from 'react'
-import type from 'prop-types'
-import { Card, CardHeader, CardText } from 'material-ui/Card'
-import Reassign from './Reassign'
-import ManageTags from './ManageTags'
+import React from "react";
+import type from "prop-types";
+import { Card, CardHeader, CardText } from "material-ui/Card";
+import Reassign from "./Reassign";
+import ManageTags from "./ManageTags";
 
-const IncomingMessageActions = (props) =>
+const IncomingMessageActions = props => (
   <Card>
     <CardHeader
-      title={' Message Actions '}
+      title={" Message Actions "}
       actAsExpander
       showExpandableButton
     />
@@ -25,6 +25,7 @@ const IncomingMessageActions = (props) =>
       />
     </CardText>
   </Card>
+);
 
 IncomingMessageActions.propTypes = {
   people: type.array,
@@ -34,6 +35,6 @@ IncomingMessageActions.propTypes = {
   onRemoveTags: type.func.isRequired,
   conversationCount: type.number,
   tagsFilter: type.object
-}
+};
 
-export default IncomingMessageActions
+export default IncomingMessageActions;

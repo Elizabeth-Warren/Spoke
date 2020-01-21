@@ -1,53 +1,57 @@
-import { css, StyleSheet } from 'aphrodite'
-import gql from 'graphql-tag'
-import FlatButton from 'material-ui/FlatButton'
-import ActionOpenInNew from 'material-ui/svg-icons/action/open-in-new'
-import type from 'prop-types'
-import React, { Component } from 'react'
-import { withRouter } from 'react-router'
-import { MESSAGE_STATUSES } from '../../components/IncomingMessageFilter'
-import LoadingIndicator from '../../components/LoadingIndicator'
-import loadData from '../../containers/hoc/load-data'
-import DualNavDataTables from '../DualNavDataTables'
-import ConversationPreviewModal from './ConversationPreviewModal'
-import ConfirmChangePageWithConvosSelectedDialog from './ConfirmChangePageWithConvosSelectedDialog'
-import TagChip from '../TagChip'
+import { css, StyleSheet } from "aphrodite";
+import gql from "graphql-tag";
+import FlatButton from "material-ui/FlatButton";
+import ActionOpenInNew from "material-ui/svg-icons/action/open-in-new";
+import type from "prop-types";
+import React, { Component } from "react";
+import { withRouter } from "react-router";
+import { MESSAGE_STATUSES } from "../../components/IncomingMessageFilter";
+import LoadingIndicator from "../../components/LoadingIndicator";
+import loadData from "../../containers/hoc/load-data";
+import DualNavDataTables from "../DualNavDataTables";
+import ConversationPreviewModal from "./ConversationPreviewModal";
+import ConfirmChangePageWithConvosSelectedDialog from "./ConfirmChangePageWithConvosSelectedDialog";
+import TagChip from "../TagChip";
 
 const styles = StyleSheet.create({
   container: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-end'
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "flex-end"
   }
-})
+});
 
-const prepareDataTableData = (conversations) => conversations.map(conversation => ({
-  campaignTitle: conversation.campaign.title,
-  texter: conversation.texter.displayName,
-  to: conversation.contact.firstName + ' ' + conversation.contact.lastName + (conversation.contact.optOut.cell ? '⛔️' : ''),
-  status: conversation.contact.messageStatus,
-  messages: conversation.contact.messages,
-  assignmentId: conversation.contact.assignmentId,
-  campaignContactId: conversation.contact.id,
-  tags: conversation.contact.tags,
-  contactNumber: conversation.contact.cell
-})
-)
+const prepareDataTableData = conversations =>
+  conversations.map(conversation => ({
+    campaignTitle: conversation.campaign.title,
+    texter: conversation.texter.displayName,
+    to:
+      conversation.contact.firstName +
+      " " +
+      conversation.contact.lastName +
+      (conversation.contact.optOut.cell ? "⛔️" : ""),
+    status: conversation.contact.messageStatus,
+    messages: conversation.contact.messages,
+    assignmentId: conversation.contact.assignmentId,
+    campaignContactId: conversation.contact.id,
+    tags: conversation.contact.tags,
+    contactNumber: conversation.contact.cell
+  }));
 
 const prepareSelectedRowsData = (conversations, selectedIndices) => {
   return selectedIndices.map(selectedIndex => {
-    const conversation = conversations[selectedIndex]
+    const conversation = conversations[selectedIndex];
     return {
       campaignId: conversation.campaign.id,
       campaignContactId: conversation.contact.id,
       messageIds: conversation.contact.messages.map(message => message.id)
-    }
-  })
-}
+    };
+  });
+};
 
 export class IncomingMessageList extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     this.state = {
       selectedIndices: [],
@@ -56,174 +60,194 @@ export class IncomingMessageList extends Component {
         open: false,
         pageDelta: 0
       }
-    }
+    };
 
-    this.handleCloseConfirmChangePageWithConvosSelectedDialog =
-      this.handleCloseConfirmChangePageWithConvosSelectedDialog.bind(this)
+    this.handleCloseConfirmChangePageWithConvosSelectedDialog = this.handleCloseConfirmChangePageWithConvosSelectedDialog.bind(
+      this
+    );
   }
 
-  componentDidUpdate = (prevProps) => {
-    if (this.props.clearSelectedMessages && this.state.selectedIndices.length > 0) {
-      this.setState(
-        {
-          selectedIndices: []
-        })
-      this.props.onConversationSelected([], [])
+  componentDidUpdate = prevProps => {
+    if (
+      this.props.clearSelectedMessages &&
+      this.state.selectedIndices.length > 0
+    ) {
+      this.setState({
+        selectedIndices: []
+      });
+      this.props.onConversationSelected([], []);
     }
 
-    let previousPageInfo = { total: 0 }
+    let previousPageInfo = { total: 0 };
     if (prevProps.conversations.conversations) {
-      previousPageInfo = prevProps.conversations.conversations.pageInfo
+      previousPageInfo = prevProps.conversations.conversations.pageInfo;
     }
 
-    let pageInfo = { total: 0 }
+    let pageInfo = { total: 0 };
     if (this.props.conversations.conversations) {
-      pageInfo = this.props.conversations.conversations.pageInfo
+      pageInfo = this.props.conversations.conversations.pageInfo;
     }
 
-    if (previousPageInfo.total !== pageInfo.total || (!previousPageInfo && pageInfo)) {
-      this.props.onConversationCountChanged(pageInfo.total)
+    if (
+      previousPageInfo.total !== pageInfo.total ||
+      (!previousPageInfo && pageInfo)
+    ) {
+      this.props.onConversationCountChanged(pageInfo.total);
     }
-  }
+  };
 
   prepareTableColumns = () => [
     {
-      key: 'campaignTitle',
-      label: 'Campaign',
+      key: "campaignTitle",
+      label: "Campaign",
       style: {
-        textOverflow: 'ellipsis',
-        overflow: 'hidden',
-        whiteSpace: 'pre-line'
+        textOverflow: "ellipsis",
+        overflow: "hidden",
+        whiteSpace: "pre-line"
       }
     },
     {
-      key: 'texter',
-      label: 'Texter',
+      key: "texter",
+      label: "Texter",
       style: {
-        textOverflow: 'ellipsis',
-        overflow: 'scroll',
-        whiteSpace: 'pre-line'
+        textOverflow: "ellipsis",
+        overflow: "scroll",
+        whiteSpace: "pre-line"
       }
     },
     {
-      key: 'to',
-      label: 'To',
+      key: "to",
+      label: "To",
       style: {
-        textOverflow: 'ellipsis',
-        overflow: 'scroll',
-        whiteSpace: 'pre-line'
+        textOverflow: "ellipsis",
+        overflow: "scroll",
+        whiteSpace: "pre-line"
       }
     },
     {
-      key: 'status',
-      label: 'Conversation Status',
+      key: "status",
+      label: "Conversation Status",
       style: {
-        textOverflow: 'ellipsis',
-        overflow: 'scroll',
-        whiteSpace: 'pre-line'
+        textOverflow: "ellipsis",
+        overflow: "scroll",
+        whiteSpace: "pre-line"
       },
       render: (columnKey, row) => MESSAGE_STATUSES[row.status].name
     },
     {
-      key: 'latestMessage',
-      label: 'Latest Message',
+      key: "latestMessage",
+      label: "Latest Message",
       style: {
-        textOverflow: 'ellipsis',
-        overflow: 'scroll',
-        whiteSpace: 'pre-line'
+        textOverflow: "ellipsis",
+        overflow: "scroll",
+        whiteSpace: "pre-line"
       },
       render: (columnKey, row) => {
-        let lastMessage = null
-        let lastMessageEl = <p>No Messages</p>
+        let lastMessage = null;
+        let lastMessageEl = <p>No Messages</p>;
         if (row.messages && row.messages.length > 0) {
-          lastMessage = row.messages[row.messages.length - 1]
+          lastMessage = row.messages[row.messages.length - 1];
           lastMessageEl = (
-            <p style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
-              <span style={{ color: lastMessage.isFromContact ? 'blue' : 'black' }}>
-                <b>{lastMessage.isFromContact ? 'Contact:' : 'Texter:'} </b>
+            <p
+              style={{
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+                whiteSpace: "nowrap"
+              }}
+            >
+              <span
+                style={{ color: lastMessage.isFromContact ? "blue" : "black" }}
+              >
+                <b>{lastMessage.isFromContact ? "Contact:" : "Texter:"} </b>
               </span>
               {lastMessage.text}
             </p>
-          )
+          );
         }
-        return lastMessageEl
+        return lastMessageEl;
       }
     },
     {
-      key: 'viewConversation',
-      label: 'View Conversation',
+      key: "viewConversation",
+      label: "View Conversation",
       style: {
-        textOverflow: 'ellipsis',
-        overflow: 'scroll',
-        whiteSpace: 'pre-line'
+        textOverflow: "ellipsis",
+        overflow: "scroll",
+        whiteSpace: "pre-line"
       },
       render: (columnKey, row) => {
         return (
           <div>
-            {(row.messages && row.messages.length > 0) && (
+            {row.messages && row.messages.length > 0 && (
               <FlatButton
                 onClick={event => {
-                  event.stopPropagation()
-                  this.handleOpenConversation(row)
+                  event.stopPropagation();
+                  this.handleOpenConversation(row);
                 }}
                 icon={<ActionOpenInNew />}
-              />)}
+              />
+            )}
             {this.renderTags(row.tags)}
-          </div>)
+          </div>
+        );
       }
     }
-  ]
+  ];
 
   prepareSelectedIndices = (conversations, rowsSelected) => {
-    let selection = undefined
+    let selection = undefined;
 
-    if (rowsSelected === 'all') {
-      selection = Array.from(Array(conversations.length).keys())
-    } else if (rowsSelected === 'none') {
-      selection = []
+    if (rowsSelected === "all") {
+      selection = Array.from(Array(conversations.length).keys());
+    } else if (rowsSelected === "none") {
+      selection = [];
     } else {
-      selection = rowsSelected
+      selection = rowsSelected;
     }
 
-    return selection
-  }
+    return selection;
+  };
 
-  handlePageChanged = (pageDelta) => {
-    const { limit, offset, total } = this.props.conversations.conversations.pageInfo
-    const currentPage = Math.floor(offset / limit)
-    const maxPage = Math.floor(total / limit)
-    const newPage = Math.min(maxPage, currentPage + pageDelta)
-    this.setState({ selectedIndices: [] })
-    this.props.onConversationSelected([], [])
-    this.props.onPageChanged(newPage)
-  }
+  handlePageChanged = pageDelta => {
+    const {
+      limit,
+      offset,
+      total
+    } = this.props.conversations.conversations.pageInfo;
+    const currentPage = Math.floor(offset / limit);
+    const maxPage = Math.floor(total / limit);
+    const newPage = Math.min(maxPage, currentPage + pageDelta);
+    this.setState({ selectedIndices: [] });
+    this.props.onConversationSelected([], []);
+    this.props.onPageChanged(newPage);
+  };
 
-  handlePageChangeClick = (pageDelta) => {
+  handlePageChangeClick = pageDelta => {
     if (this.state.selectedIndices.length > 0) {
       this.setState({
         confirmPageChange: {
           open: true,
           pageDelta
         }
-      })
-      return
+      });
+      return;
     }
 
     // else
-    this.handlePageChanged(pageDelta)
-  }
+    this.handlePageChanged(pageDelta);
+  };
 
   handleNextPageClick = () => {
-    this.handlePageChangeClick(1)
-  }
+    this.handlePageChangeClick(1);
+  };
 
   handlePreviousPageClick = () => {
-    this.handlePageChangeClick(-1)
-  }
+    this.handlePageChangeClick(-1);
+  };
 
-  handleCloseConfirmChangePageWithConvosSelectedDialog = (changePage) => {
+  handleCloseConfirmChangePageWithConvosSelectedDialog = changePage => {
     if (changePage) {
-      this.handlePageChanged(this.state.confirmPageChange.pageDelta)
+      this.handlePageChanged(this.state.confirmPageChange.pageDelta);
     }
 
     this.setState({
@@ -231,48 +255,57 @@ export class IncomingMessageList extends Component {
         open: false,
         pageDelta: 0
       }
-    })
-  }
+    });
+  };
 
   handleRowSizeChanged = (index, value) => {
-    this.setState({ selectedIndices: [] })
-    this.props.onPageSizeChanged(value)
-  }
+    this.setState({ selectedIndices: [] });
+    this.props.onPageSizeChanged(value);
+  };
 
-  handleRowsSelected = (rowsSelected) => {
-    const conversations = this.props.conversations.conversations.conversations
-    const selectedIndices = this.prepareSelectedIndices(conversations, rowsSelected)
+  handleRowsSelected = rowsSelected => {
+    const conversations = this.props.conversations.conversations.conversations;
+    const selectedIndices = this.prepareSelectedIndices(
+      conversations,
+      rowsSelected
+    );
 
-    const selectedConversations = prepareSelectedRowsData(conversations, selectedIndices)
-    this.props.onConversationSelected(selectedConversations)
+    const selectedConversations = prepareSelectedRowsData(
+      conversations,
+      selectedIndices
+    );
+    this.props.onConversationSelected(selectedConversations);
 
-    this.setState({ selectedIndices })
-  }
+    this.setState({ selectedIndices });
+  };
 
-  handleOpenConversation = (contact) => {
-    this.setState({ activeConversation: contact })
-  }
+  handleOpenConversation = contact => {
+    this.setState({ activeConversation: contact });
+  };
 
   handleCloseConversation = () => {
-    this.setState({ activeConversation: undefined })
-  }
+    this.setState({ activeConversation: undefined });
+  };
 
-  renderTags = (tags) => (
+  renderTags = tags => (
     <div>
-      {tags && tags.filter(tag => !tag.resolvedAt).map(tag => <TagChip text={tag.tag} />)}
+      {tags &&
+        tags
+          .filter(tag => !tag.resolvedAt)
+          .map(tag => <TagChip text={tag.tag} />)}
     </div>
-  )
+  );
 
   render() {
     if (this.props.conversations.loading) {
-      return <LoadingIndicator />
+      return <LoadingIndicator />;
     }
 
-    const { conversations, pageInfo } = this.props.conversations.conversations
-    const { limit, offset, total } = pageInfo
-    const { clearSelectedMessages } = this.props
-    const displayPage = Math.floor(offset / limit) + 1
-    const tableData = prepareDataTableData(conversations)
+    const { conversations, pageInfo } = this.props.conversations.conversations;
+    const { limit, offset, total } = pageInfo;
+    const { clearSelectedMessages } = this.props;
+    const displayPage = Math.floor(offset / limit) + 1;
+    const tableData = prepareDataTableData(conversations);
     return (
       <div className={css(styles.container)}>
         <DualNavDataTables
@@ -290,7 +323,9 @@ export class IncomingMessageList extends Component {
           onRowSizeChange={this.handleRowSizeChanged}
           rowSizeList={this.props.rowSizeList}
           onRowSelection={this.handleRowsSelected}
-          selectedRows={clearSelectedMessages ? null : this.state.selectedIndices}
+          selectedRows={
+            clearSelectedMessages ? null : this.state.selectedIndices
+          }
           showFooterToolbar={false}
           toolbarTop
           toolbarBottom
@@ -298,7 +333,9 @@ export class IncomingMessageList extends Component {
         <ConfirmChangePageWithConvosSelectedDialog
           open={this.state.confirmPageChange.open}
           pageDelta={this.state.confirmPageChange.pageDelta}
-          onRequestClose={this.handleCloseConfirmChangePageWithConvosSelectedDialog}
+          onRequestClose={
+            this.handleCloseConfirmChangePageWithConvosSelectedDialog
+          }
         />
         <ConversationPreviewModal
           organizationId={this.props.organizationId}
@@ -307,7 +344,7 @@ export class IncomingMessageList extends Component {
           onForceRefresh={this.props.onForceRefresh}
         />
       </div>
-    )
+    );
   }
 }
 
@@ -326,73 +363,73 @@ IncomingMessageList.propTypes = {
   clearSelectedMessages: type.bool,
   rowSizeList: type.arrayOf(type.number),
   onForceRefresh: type.func
-}
+};
 
 const mapQueriesToProps = ({ ownProps }) => ({
   conversations: {
     query: gql`
-          query Q(
-            $organizationId: String!
-            $cursor: OffsetLimitCursor!
-            $contactsFilter: ContactsFilter
-            $campaignsFilter: CampaignsFilter
-            $assignmentsFilter: AssignmentsFilter
-            $utc: String
+      query Q(
+        $organizationId: String!
+        $cursor: OffsetLimitCursor!
+        $contactsFilter: ContactsFilter
+        $campaignsFilter: CampaignsFilter
+        $assignmentsFilter: AssignmentsFilter
+        $utc: String
       ) {
-          conversations(
-            cursor: $cursor
-        organizationId: $organizationId
-        campaignsFilter: $campaignsFilter
-        contactsFilter: $contactsFilter
-        assignmentsFilter: $assignmentsFilter
-        utc: $utc
+        conversations(
+          cursor: $cursor
+          organizationId: $organizationId
+          campaignsFilter: $campaignsFilter
+          contactsFilter: $contactsFilter
+          assignmentsFilter: $assignmentsFilter
+          utc: $utc
         ) {
           pageInfo {
-        limit
-        offset
-        total
-      }
+            limit
+            offset
+            total
+          }
           conversations {
-          texter {
-        id
-        displayName
-      }
+            texter {
+              id
+              displayName
+            }
             contact {
-          id
+              id
               assignmentId
-        firstName
-        lastName
-        cell
-        messageStatus
+              firstName
+              lastName
+              cell
+              messageStatus
               messages {
                 id
                 text
                 isFromContact
                 createdAt
-      }
+              }
               optOut {
-          cell
-        }
-        tags {
-          tag
-          createdAt
-          createdBy {
-            displayName
-          }
-          resolvedAt
-          resolvedBy {
-            displayName
-          }
-        }
-        }
+                cell
+              }
+              tags {
+                tag
+                createdAt
+                createdBy {
+                  displayName
+                }
+                resolvedAt
+                resolvedBy {
+                  displayName
+                }
+              }
+            }
             campaign {
-          id
+              id
               title
+            }
+          }
         }
       }
-    }
-  }
-`,
+    `,
     variables: {
       organizationId: ownProps.organizationId,
       cursor: ownProps.cursor,
@@ -403,6 +440,6 @@ const mapQueriesToProps = ({ ownProps }) => ({
     },
     forceFetch: true
   }
-})
+});
 
-export default loadData(withRouter(IncomingMessageList), { mapQueriesToProps })
+export default loadData(withRouter(IncomingMessageList), { mapQueriesToProps });

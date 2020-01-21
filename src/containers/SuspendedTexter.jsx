@@ -1,37 +1,37 @@
-import PropTypes from 'prop-types'
-import React from 'react'
+import PropTypes from "prop-types";
+import React from "react";
 
-import { withRouter } from 'react-router'
+import { withRouter } from "react-router";
 
-import ErrorOutline from 'material-ui/svg-icons/alert/error-outline'
+import ErrorOutline from "material-ui/svg-icons/alert/error-outline";
 
-import Empty from '../components/Empty'
-import loadData from './hoc/load-data'
+import Empty from "../components/Empty";
+import loadData from "./hoc/load-data";
 
-import gql from 'graphql-tag'
+import gql from "graphql-tag";
 
-const SuspendedTexter = (props) => {
+const SuspendedTexter = props => {
   if (!props.currentUser.errors) {
-    console.log(props.currentUser)
-    props.router.push(`/app/${props.organizationId}/todos`)
-    return null
+    console.log(props.currentUser);
+    props.router.push(`/app/${props.organizationId}/todos`);
+    return null;
   }
 
   return (
     <div>
       <Empty
-        title='Your account is suspended. Contact the moderator in Slack.'
+        title="Your account is suspended. Contact the moderator in Slack."
         icon={<ErrorOutline />}
       />
     </div>
-  )
-}
+  );
+};
 
 SuspendedTexter.propTypes = {
   organizationId: PropTypes.string.isRequired,
   currentUser: PropTypes.object,
   router: PropTypes.object
-}
+};
 
 const mapQueriesToProps = ({ ownProps }) => ({
   currentUser: {
@@ -44,10 +44,10 @@ const mapQueriesToProps = ({ ownProps }) => ({
     `,
     variables: {
       organizationId: ownProps.organizationId,
-      role: 'TEXTER'
+      role: "TEXTER"
     },
     forceFetch: true
   }
-})
+});
 
-export default loadData(withRouter(SuspendedTexter), { mapQueriesToProps })
+export default loadData(withRouter(SuspendedTexter), { mapQueriesToProps });

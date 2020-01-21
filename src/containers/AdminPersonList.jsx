@@ -167,8 +167,8 @@ class AdminPersonList extends React.Component {
   };
 
   handleFilterByChanged = (event, index, filterBy) => {
-    this.handleFilterChange({filterBy});
-  }
+    this.handleFilterChange({ filterBy });
+  };
 
   handleSearchRequested = searchString => {
     this.handleFilterChange({ searchString });

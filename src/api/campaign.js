@@ -1,4 +1,4 @@
-import gql from 'graphql-tag'
+import gql from "graphql-tag";
 
 export const schema = gql`
   input CampaignsFilter {
@@ -43,7 +43,7 @@ export const schema = gql`
     hasUnsentInitialMessages: Boolean
     customFields: [String]
     cannedResponses(userId: String): [CannedResponse]
-    stats: CampaignStats,
+    stats: CampaignStats
     pendingJobs: [JobRequest]
     datawarehouseAvailable: Boolean
     useDynamicAssignment: Boolean
@@ -69,4 +69,4 @@ export const schema = gql`
     campaigns: [Campaign]
     pageInfo: PageInfo
   }
-`
+`;

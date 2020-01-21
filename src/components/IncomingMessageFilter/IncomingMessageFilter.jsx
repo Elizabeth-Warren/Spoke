@@ -1,163 +1,175 @@
-import { css, StyleSheet } from 'aphrodite'
-import _ from 'lodash'
-import { Card, CardHeader, CardText } from 'material-ui/Card'
-import Toggle from 'material-ui/Toggle'
-import type from 'prop-types'
-import React, { Component } from 'react'
-import theme from '../../styles/theme'
-import SelectedCampaigns from '../SelectedCampaigns'
-import CampaignFilter, { ALL_CAMPAIGNS } from './Filters/CampaignsFilter'
-import MessageStatusFilter, { MESSAGE_STATUSES } from './Filters/MessageStatusFilter'
-import TexterFilter from './Filters/TexterFilter'
-import TagsSelector from '../TagsSelector'
-
+import { css, StyleSheet } from "aphrodite";
+import _ from "lodash";
+import { Card, CardHeader, CardText } from "material-ui/Card";
+import Toggle from "material-ui/Toggle";
+import type from "prop-types";
+import React, { Component } from "react";
+import theme from "../../styles/theme";
+import SelectedCampaigns from "../SelectedCampaigns";
+import CampaignFilter, { ALL_CAMPAIGNS } from "./Filters/CampaignsFilter";
+import MessageStatusFilter, {
+  MESSAGE_STATUSES
+} from "./Filters/MessageStatusFilter";
+import TexterFilter from "./Filters/TexterFilter";
+import TagsSelector from "../TagsSelector";
 
 const inlineStyles = {
   containerOfContainers: {
-    display: 'flex',
-    flexDirection: 'column',
-    flexWrap: 'nowrap'
+    display: "flex",
+    flexDirection: "column",
+    flexWrap: "nowrap"
   }
-}
+};
 
 const styles = StyleSheet.create({
   containerOfContainers: inlineStyles.containerOfContainers,
   container: {
     ...theme.layouts.multiColumn.container,
-    alignContent: 'flex-start',
-    justifyContent: 'flex-start',
-    flexWrap: 'wrap',
-    alignItems: 'center'
+    alignContent: "flex-start",
+    justifyContent: "flex-start",
+    flexWrap: "wrap",
+    alignItems: "center"
   },
   flexColumn: {
-    width: '30%'
+    width: "30%"
   },
   toggleFlexColumn: {
-    width: '30%'
+    width: "30%"
   },
   spacer: {
-    marginRight: '30px'
+    marginRight: "30px"
   }
-})
+});
 
 class IncomingMessageFilter extends Component {
   constructor(props) {
-    super(props)
+    super(props);
 
     this.state = {
       selectedCampaigns: [],
       messageFilter: [],
-      campaignSearchText: '',
-      texterSearchText: '',
+      campaignSearchText: "",
+      texterSearchText: "",
       tagsFilter: props.defaultTagsFilter
-    }
+    };
   }
-  onTagsFilterChanged = (tagsFilter) => {
-    this.setState({ tagsFilter })
-    this.props.onTagsFilterChanged(tagsFilter)
-  }
+  onTagsFilterChanged = tagsFilter => {
+    this.setState({ tagsFilter });
+    this.props.onTagsFilterChanged(tagsFilter);
+  };
 
   onMessageFilterSelectChanged = (event, index, values) => {
-    this.setState({ messageFilter: values })
-    const messageStatuses = new Set()
+    this.setState({ messageFilter: values });
+    const messageStatuses = new Set();
     values.forEach(value => {
-      const children = MESSAGE_STATUSES[value].children
+      const children = MESSAGE_STATUSES[value].children;
       if (children.length > 0) {
-        children.forEach(child => messageStatuses.add(child))
+        children.forEach(child => messageStatuses.add(child));
       } else {
-        messageStatuses.add(value)
+        messageStatuses.add(value);
       }
-    })
+    });
 
-    const messageStatusesString = Array.from(messageStatuses).join(',')
-    this.props.onMessageFilterChanged(messageStatusesString)
-  }
+    const messageStatusesString = Array.from(messageStatuses).join(",");
+    this.props.onMessageFilterChanged(messageStatusesString);
+  };
 
   onCampaignSelected = (selection, index) => {
-    let campaignId = undefined
+    let campaignId = undefined;
     if (index === -1) {
-      const campaign = this.props.campaigns.find(cmpgn => cmpgn.title === selection)
+      const campaign = this.props.campaigns.find(
+        cmpgn => cmpgn.title === selection
+      );
       if (campaign) {
-        campaignId = campaign.id
+        campaignId = campaign.id;
       }
     } else {
-      campaignId = selection.value.key
+      campaignId = selection.value.key;
     }
     if (campaignId) {
-      const selectedCampaigns = this.makeSelectedCampaignsArray(selection.rawValue, selection.text)
-      this.applySelectedCampaigns(selectedCampaigns)
+      const selectedCampaigns = this.makeSelectedCampaignsArray(
+        selection.rawValue,
+        selection.text
+      );
+      this.applySelectedCampaigns(selectedCampaigns);
     }
-  }
+  };
 
   onTexterSelected = (selection, index) => {
-    let texterUserId = undefined
+    let texterUserId = undefined;
     if (index === -1) {
       const texter = this.props.texters.find(texter => {
-        return texter.displayName === selection
-      })
+        return texter.displayName === selection;
+      });
       if (texter) {
-        texterUserId = texter.id
+        texterUserId = texter.id;
       }
     } else {
-      texterUserId = selection.value.key
+      texterUserId = selection.value.key;
     }
     if (texterUserId) {
-      this.props.onTexterChanged(parseInt(texterUserId, 10))
+      this.props.onTexterChanged(parseInt(texterUserId, 10));
     }
-  }
+  };
 
-  applySelectedCampaigns = (selectedCampaigns) => {
-    this.setState(
-      {
-        selectedCampaigns,
-        campaignSearchText: ''
-      }
-    )
+  applySelectedCampaigns = selectedCampaigns => {
+    this.setState({
+      selectedCampaigns,
+      campaignSearchText: ""
+    });
 
-    this.fireCampaignChanged(selectedCampaigns)
-  }
+    this.fireCampaignChanged(selectedCampaigns);
+  };
 
-  handleCampaignRemoved = (campaignId) => {
-    const selectedCampaigns = this.state.selectedCampaigns.filter(campaign => campaign.key !== campaignId)
-    this.applySelectedCampaigns(selectedCampaigns)
-  }
+  handleCampaignRemoved = campaignId => {
+    const selectedCampaigns = this.state.selectedCampaigns.filter(
+      campaign => campaign.key !== campaignId
+    );
+    this.applySelectedCampaigns(selectedCampaigns);
+  };
 
   handleClearCampaigns = () => {
-    this.applySelectedCampaigns([])
-  }
+    this.applySelectedCampaigns([]);
+  };
 
-  fireCampaignChanged = (selectedCampaigns) => {
-    this.props.onCampaignChanged(this.selectedCampaignIds(selectedCampaigns))
-  }
+  fireCampaignChanged = selectedCampaigns => {
+    this.props.onCampaignChanged(this.selectedCampaignIds(selectedCampaigns));
+  };
 
-  removeAllCampaignsFromCampaignsArray = (campaign) => campaign.key !== ALL_CAMPAIGNS
+  removeAllCampaignsFromCampaignsArray = campaign =>
+    campaign.key !== ALL_CAMPAIGNS;
 
   makeSelectedCampaignsArray = (campaignId, campaignText) => {
-    const selectedCampaign = { key: campaignId, text: campaignText }
+    const selectedCampaign = { key: campaignId, text: campaignText };
     if (campaignId === ALL_CAMPAIGNS) {
-      return []
+      return [];
     }
-    return _.concat(this.state.selectedCampaigns.filter(this.removeAllCampaignsFromCampaignsArray), selectedCampaign)
-  }
+    return _.concat(
+      this.state.selectedCampaigns.filter(
+        this.removeAllCampaignsFromCampaignsArray
+      ),
+      selectedCampaign
+    );
+  };
 
-  selectedCampaignIds = (selectedCampaigns) => selectedCampaigns.map(campaign => parseInt(campaign.key, 10))
+  selectedCampaignIds = selectedCampaigns =>
+    selectedCampaigns.map(campaign => parseInt(campaign.key, 10));
 
-  campaignsNotAlreadySelected = (campaign) => {
-    return !this.selectedCampaignIds(this.state.selectedCampaigns).includes(parseInt(campaign.id, 10))
-  }
+  campaignsNotAlreadySelected = campaign => {
+    return !this.selectedCampaignIds(this.state.selectedCampaigns).includes(
+      parseInt(campaign.id, 10)
+    );
+  };
 
   render() {
     return (
       <Card>
-        <CardHeader title='Message Filter' actAsExpander showExpandableButton />
-        <CardText
-          style={inlineStyles.containerOfContainers}
-          expandable
-        >
+        <CardHeader title="Message Filter" actAsExpander showExpandableButton />
+        <CardText style={inlineStyles.containerOfContainers} expandable>
           <div className={css(styles.container)}>
             <div className={css(styles.toggleFlexColumn)}>
               <Toggle
-                label={'Active Campaigns'}
+                label={"Active Campaigns"}
                 onToggle={this.props.onActiveCampaignsToggled}
                 toggled={
                   this.props.includeActiveCampaigns ||
@@ -166,7 +178,7 @@ class IncomingMessageFilter extends Component {
               />
               <br />
               <Toggle
-                label={'Archived Campaigns'}
+                label={"Archived Campaigns"}
                 onToggle={this.props.onArchivedCampaignsToggled}
                 toggled={this.props.includeArchivedCampaigns}
               />
@@ -174,7 +186,7 @@ class IncomingMessageFilter extends Component {
             <div className={css(styles.spacer)} />
             <div className={css(styles.toggleFlexColumn)}>
               <Toggle
-                label={'Not Opted Out'}
+                label={"Not Opted Out"}
                 onToggle={this.props.onNotOptedOutConversationsToggled}
                 toggled={
                   this.props.includeNotOptedOutConversations ||
@@ -183,7 +195,7 @@ class IncomingMessageFilter extends Component {
               />
               <br />
               <Toggle
-                label={'Opted Out'}
+                label={"Opted Out"}
                 onToggle={this.props.onOptedOutConversationsToggled}
                 toggled={this.props.includeOptedOutConversations}
               />
@@ -202,10 +214,9 @@ class IncomingMessageFilter extends Component {
               <CampaignFilter
                 campaigns={this.props.campaigns}
                 campaignsNotAlreadySelected={this.campaignsNotAlreadySelected}
-                onFocus={() => this.setState({ campaignSearchText: '' })}
-                onSearchTextUpdated={
-                  campaignSearchText =>
-                    this.setState({ campaignSearchText })
+                onFocus={() => this.setState({ campaignSearchText: "" })}
+                onSearchTextUpdated={campaignSearchText =>
+                  this.setState({ campaignSearchText })
                 }
                 campaignSearchText={this.state.campaignSearchText}
                 onCampaignSelected={this.onCampaignSelected}
@@ -215,10 +226,9 @@ class IncomingMessageFilter extends Component {
             <div className={css(styles.flexColumn)}>
               <TexterFilter
                 texters={this.props.texters}
-                onFocus={() => this.setState({ texterSearchText: '' })}
-                onSearchTextUpdated={
-                  texterSearchText =>
-                    this.setState({ texterSearchText })
+                onFocus={() => this.setState({ texterSearchText: "" })}
+                onSearchTextUpdated={texterSearchText =>
+                  this.setState({ texterSearchText })
                 }
                 texterSearchText={this.state.texterSearchText}
                 onTexterSelected={this.onTexterSelected}
@@ -233,7 +243,6 @@ class IncomingMessageFilter extends Component {
             />
           </div>
 
-
           <div className={css(styles.container)}>
             <SelectedCampaigns
               campaigns={this.state.selectedCampaigns}
@@ -242,8 +251,8 @@ class IncomingMessageFilter extends Component {
             />
           </div>
         </CardText>
-      </Card >
-    )
+      </Card>
+    );
   }
 }
 
@@ -266,6 +275,6 @@ IncomingMessageFilter.propTypes = {
     texterId: type.number
   }).isRequired,
   defaultTagsFilter: type.object
-}
+};
 
-export default IncomingMessageFilter
+export default IncomingMessageFilter;

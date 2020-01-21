@@ -1,78 +1,82 @@
-import PropTypes from 'prop-types'
-import React, { Component } from 'react'
-import _ from 'lodash'
+import PropTypes from "prop-types";
+import React, { Component } from "react";
+import _ from "lodash";
 
-import IncomingMessageActions from '../components/IncomingMessageActions'
-import IncomingMessageFilter, { ALL_CAMPAIGNS } from '../components/IncomingMessageFilter'
-import IncomingMessageList from '../components/IncomingMessageList'
-import LoadingIndicator from '../components/LoadingIndicator'
-import PaginatedCampaignsRetriever from './PaginatedCampaignsRetriever'
-import gql from 'graphql-tag'
-import loadData from './hoc/load-data'
-import { withRouter } from 'react-router'
-import wrapMutations from './hoc/wrap-mutations'
-import PaginatedUsersRetriever from './PaginatedUsersRetriever'
-import { ANY_TAG_FILTER } from '../lib/tags'
+import IncomingMessageActions from "../components/IncomingMessageActions";
+import IncomingMessageFilter, {
+  ALL_CAMPAIGNS
+} from "../components/IncomingMessageFilter";
+import IncomingMessageList from "../components/IncomingMessageList";
+import LoadingIndicator from "../components/LoadingIndicator";
+import PaginatedCampaignsRetriever from "./PaginatedCampaignsRetriever";
+import gql from "graphql-tag";
+import loadData from "./hoc/load-data";
+import { withRouter } from "react-router";
+import wrapMutations from "./hoc/wrap-mutations";
+import PaginatedUsersRetriever from "./PaginatedUsersRetriever";
+import { ANY_TAG_FILTER } from "../lib/tags";
 
-const CONVERSATION_LIST_ROW_SIZES = (typeof window !== 'undefined' && window.CONVERSATION_LIST_ROW_SIZES && JSON.parse(window.CONVERSATION_LIST_ROW_SIZES)) || [10, 30, 50, 100]
-const INITIAL_PAGE_SIZE = CONVERSATION_LIST_ROW_SIZES[0]
+const CONVERSATION_LIST_ROW_SIZES = (typeof window !== "undefined" &&
+  window.CONVERSATION_LIST_ROW_SIZES &&
+  JSON.parse(window.CONVERSATION_LIST_ROW_SIZES)) || [10, 30, 50, 100];
+const INITIAL_PAGE_SIZE = CONVERSATION_LIST_ROW_SIZES[0];
 
 function getCampaignsFilterForCampaignArchiveStatus(
   includeActiveCampaigns,
   includeArchivedCampaigns
 ) {
-  let isArchived = undefined
+  let isArchived = undefined;
   if (!includeActiveCampaigns && includeArchivedCampaigns) {
-    isArchived = true
+    isArchived = true;
   } else if (
     (includeActiveCampaigns && !includeArchivedCampaigns) ||
     (!includeActiveCampaigns && !includeArchivedCampaigns)
   ) {
-    isArchived = false
+    isArchived = false;
   }
 
   if (isArchived !== undefined) {
-    return { isArchived }
+    return { isArchived };
   }
 
-  return {}
+  return {};
 }
 
 function getContactsFilterForConversationOptOutStatus(
   includeNotOptedOutConversations,
   includeOptedOutConversations
 ) {
-  let isOptedOut = undefined
+  let isOptedOut = undefined;
   if (!includeNotOptedOutConversations && includeOptedOutConversations) {
-    isOptedOut = true
+    isOptedOut = true;
   } else if (
     (includeNotOptedOutConversations && !includeOptedOutConversations) ||
     (!includeNotOptedOutConversations && !includeOptedOutConversations)
   ) {
-    isOptedOut = false
+    isOptedOut = false;
   }
 
-  return { isOptedOut }
+  return { isOptedOut };
 }
 
 export class AdminIncomingMessageList extends Component {
-  static tagsFilterStateFromTagsFilter = (tagsFilter) => {
-    let newTagsFilter = null
+  static tagsFilterStateFromTagsFilter = tagsFilter => {
+    let newTagsFilter = null;
     if (tagsFilter.anyTag) {
-      newTagsFilter = ['*']
+      newTagsFilter = ["*"];
     } else if (tagsFilter.noTag) {
-      newTagsFilter = []
+      newTagsFilter = [];
     } else if (!tagsFilter.ignoreTags) {
       newTagsFilter = Object.values(tagsFilter.selectedTags).map(
-        (tagFilter) => tagFilter.value
-      )
+        tagFilter => tagFilter.value
+      );
     }
 
-    return newTagsFilter
-  }
+    return newTagsFilter;
+  };
 
   constructor(props) {
-    super(props)
+    super(props);
 
     this.state = {
       page: 0,
@@ -81,7 +85,9 @@ export class AdminIncomingMessageList extends Component {
       contactsFilter: {
         isOptedOut: false,
         includeResolvedTags: true,
-        tags: AdminIncomingMessageList.tagsFilterStateFromTagsFilter(ANY_TAG_FILTER)
+        tags: AdminIncomingMessageList.tagsFilterStateFromTagsFilter(
+          ANY_TAG_FILTER
+        )
       },
       assignmentsFilter: {},
       needsRender: false,
@@ -95,7 +101,7 @@ export class AdminIncomingMessageList extends Component {
       includeNotOptedOutConversations: true,
       includeOptedOutConversations: false,
       clearSelectedMessages: false
-    }
+    };
   }
 
   shouldComponentUpdate = (dummy, nextState) => {
@@ -105,262 +111,264 @@ export class AdminIncomingMessageList extends Component {
       _.isEqual(this.state.campaignsFilter, nextState.campaignsFilter) &&
       _.isEqual(this.state.assignmentsFilter, nextState.assignmentsFilter)
     ) {
-      return false
+      return false;
     }
-    return true
-  }
+    return true;
+  };
 
   componentDidUpdate = () => {
     if (this.state.clearSelectedMessages) {
-      this.setState(
-        {
-          clearSelectedMessages: false,
-          needsRender: true
-        })
+      this.setState({
+        clearSelectedMessages: false,
+        needsRender: true
+      });
     }
-  }
+  };
 
-  handleCampaignChanged = async (campaignIds) => {
+  handleCampaignChanged = async campaignIds => {
     const campaignsFilter = getCampaignsFilterForCampaignArchiveStatus(
       this.state.includeActiveCampaigns,
       this.state.includeArchivedCampaigns
-    )
+    );
     if (!campaignIds.find(campaignId => campaignId === ALL_CAMPAIGNS)) {
-      campaignsFilter.campaignIds = campaignIds
+      campaignsFilter.campaignIds = campaignIds;
     }
 
     await this.setState({
       clearSelectedMessages: true,
       campaignsFilter,
       needsRender: true
-    })
-  }
+    });
+  };
 
-  handleTexterChanged = async (texterId) => {
-    const assignmentsFilter = {}
+  handleTexterChanged = async texterId => {
+    const assignmentsFilter = {};
     if (texterId >= 0) {
-      assignmentsFilter.texterId = texterId
+      assignmentsFilter.texterId = texterId;
     }
     await this.setState({
       clearSelectedMessages: true,
       assignmentsFilter,
       needsRender: true
-    })
-  }
+    });
+  };
 
-  handleMessageFilterChange = async (messagesFilter) => {
+  handleMessageFilterChange = async messagesFilter => {
     const contactsFilter = {
       ...this.state.contactsFilter,
       messageStatus: messagesFilter
-    }
+    };
     await this.setState({
       clearSelectedMessages: true,
       contactsFilter,
       needsRender: true
-    })
-  }
+    });
+  };
 
-  handleTagsFilterChanged = (tagsFilter) => {
-    const newTagsFilter = AdminIncomingMessageList.tagsFilterStateFromTagsFilter(tagsFilter)
+  handleTagsFilterChanged = tagsFilter => {
+    const newTagsFilter = AdminIncomingMessageList.tagsFilterStateFromTagsFilter(
+      tagsFilter
+    );
 
     const contactsFilter = {
       ...this.state.contactsFilter,
       tags: newTagsFilter || undefined
-    }
+    };
 
     this.setState({
       clearSelectedMessages: true,
       contactsFilter,
       tagsFilter,
       needsRender: true
-    })
-  }
+    });
+  };
 
-  handleReassignRequested = async (newTexterUserId) => {
+  handleReassignRequested = async newTexterUserId => {
     await this.props.mutations.reassignCampaignContacts(
       this.props.params.organizationId,
       this.state.campaignIdsContactIds,
       newTexterUserId
-    )
+    );
     this.setState({
       utc: Date.now().toString(),
       clearSelectedMessages: true,
       needsRender: true
-    })
-  }
+    });
+  };
 
-  handleReassignAllMatchingRequested = async (newTexterUserId) => {
+  handleReassignAllMatchingRequested = async newTexterUserId => {
     await this.props.mutations.bulkReassignCampaignContacts(
       this.props.params.organizationId,
       this.state.campaignsFilter || {},
       this.state.assignmentsFilter || {},
       this.state.contactsFilter || {},
       newTexterUserId
-    )
+    );
     this.setState({
       utc: Date.now().toString(),
       clearSelectedMessages: true,
       needsRender: true
-    })
-  }
+    });
+  };
 
-  handlePageChange = async (page) => {
+  handlePageChange = async page => {
     await this.setState({
       page,
       needsRender: true
-    })
-  }
+    });
+  };
 
-  handlePageSizeChange = async (pageSize) => {
-    await this.setState({ needsRender: true, pageSize })
-  }
+  handlePageSizeChange = async pageSize => {
+    await this.setState({ needsRender: true, pageSize });
+  };
 
-  handleRowSelection = async (data) => {
-    console.log(`*** SELECTED CONVERSATIONS *** ${data.length}`)
+  handleRowSelection = async data => {
+    console.log(`*** SELECTED CONVERSATIONS *** ${data.length}`);
     await this.setState({
       campaignIdsContactIds: data,
       needsRender: false
-    })
-  }
+    });
+  };
 
-  handleCampaignsReceived = async (campaigns) => {
-    this.setState({ campaigns, needsRender: true })
-  }
+  handleCampaignsReceived = async campaigns => {
+    this.setState({ campaigns, needsRender: true });
+  };
 
-  handleCampaignTextersReceived = async (campaignTexters) => {
-    this.setState({ campaignTexters, needsRender: true })
-  }
+  handleCampaignTextersReceived = async campaignTexters => {
+    this.setState({ campaignTexters, needsRender: true });
+  };
 
-  handleReassignmentTextersReceived = async (reassignmentTexters) => {
-    this.setState({ reassignmentTexters, needsRender: true })
-  }
+  handleReassignmentTextersReceived = async reassignmentTexters => {
+    this.setState({ reassignmentTexters, needsRender: true });
+  };
 
   handleNotOptedOutConversationsToggled = async () => {
     if (
       this.state.includeNotOptedOutConversations &&
       !this.state.includeOptedOutConversations
     ) {
-      return
+      return;
     }
 
     const contactsFilterUpdate = getContactsFilterForConversationOptOutStatus(
       !this.state.includeNotOptedOutConversations,
       this.state.includeOptedOutConversations
-    )
+    );
 
     const contactsFilter = {
       ...this.state.contactsFilter,
       ...contactsFilterUpdate
-    }
-    
+    };
+
     this.setState({
       clearSelectedMessages: true,
       contactsFilter,
       includeNotOptedOutConversations: !this.state
         .includeNotOptedOutConversations
-    })
-  }
+    });
+  };
 
   handleOptedOutConversationsToggled = async () => {
     const includeNotOptedOutConversations =
       this.state.includeNotOptedOutConversations ||
-      !this.state.includeOptedOutConversations
+      !this.state.includeOptedOutConversations;
 
     const contactsFilterUpdate = getContactsFilterForConversationOptOutStatus(
       includeNotOptedOutConversations,
       !this.state.includeOptedOutConversations
-    )
+    );
 
     const contactsFilter = {
       ...this.state.contactsFilter,
       ...contactsFilterUpdate
-    }
+    };
 
     this.setState({
       clearSelectedMessages: true,
       contactsFilter,
       includeNotOptedOutConversations,
       includeOptedOutConversations: !this.state.includeOptedOutConversations
-    })
-  }
+    });
+  };
 
   handleActiveCampaignsToggled = async () => {
     if (
       this.state.includeActiveCampaigns &&
       !this.state.includeArchivedCampaigns
     ) {
-      return
+      return;
     }
 
     const campaignsFilter = getCampaignsFilterForCampaignArchiveStatus(
       !this.state.includeActiveCampaigns,
       this.state.includeArchivedCampaigns
-    )
+    );
     this.setState({
       clearSelectedMessages: true,
       campaignsFilter,
       includeActiveCampaigns: !this.state.includeActiveCampaigns
-    })
-  }
+    });
+  };
 
   handleArchivedCampaignsToggled = async () => {
     const includeActiveCampaigns =
-      this.state.includeActiveCampaigns || !this.state.includeArchivedCampaigns
+      this.state.includeActiveCampaigns || !this.state.includeArchivedCampaigns;
 
     const campaignsFilter = getCampaignsFilterForCampaignArchiveStatus(
       includeActiveCampaigns,
       !this.state.includeArchivedCampaigns
-    )
+    );
 
     this.setState({
       clearSelectedMessages: true,
       campaignsFilter,
       includeActiveCampaigns,
       includeArchivedCampaigns: !this.state.includeArchivedCampaigns
-    })
-  }
+    });
+  };
 
-  getSelectedCampaignContactIds = () => this.state.campaignIdsContactIds.map(contact => contact.campaignContactId)
+  getSelectedCampaignContactIds = () =>
+    this.state.campaignIdsContactIds.map(contact => contact.campaignContactId);
 
-  handleAssignTags = async (tags) => {
-    const campaignContactIds = this.getSelectedCampaignContactIds()
-    await this.props.mutations.addTags(campaignContactIds, tags, '')
+  handleAssignTags = async tags => {
+    const campaignContactIds = this.getSelectedCampaignContactIds();
+    await this.props.mutations.addTags(campaignContactIds, tags, "");
     this.setState({
       utc: Date.now().toString(),
       needsRender: true,
-      clearSelectedMessages: true,
-    })
-  }
+      clearSelectedMessages: true
+    });
+  };
 
-  handleRemoveTags = async (tags) => {
-    const campaignContactIds = this.getSelectedCampaignContactIds()
-    await this.props.mutations.resolveTags(campaignContactIds, tags)
+  handleRemoveTags = async tags => {
+    const campaignContactIds = this.getSelectedCampaignContactIds();
+    await this.props.mutations.resolveTags(campaignContactIds, tags);
     this.setState({
       utc: Date.now().toString(),
       needsRender: true,
-      clearSelectedMessages: true,
-    })
-  }
+      clearSelectedMessages: true
+    });
+  };
 
   handleForceRefresh = (clearSelectedMessages = false) => {
     this.setState({
       utc: Date.now().toString(),
       needsRender: true,
       clearSelectedMessages
-    })
-  }
+    });
+  };
 
-  conversationCountChanged = (conversationCount) => {
+  conversationCountChanged = conversationCount => {
     this.setState({
       conversationCount
-    })
-  }
+    });
+  };
 
   render() {
     const cursor = {
       offset: this.state.page * this.state.pageSize,
       limit: this.state.pageSize
-    }
+    };
     return (
       <div>
         <h3> Message Review </h3>
@@ -381,7 +389,7 @@ export class AdminIncomingMessageList extends Component {
             />
             <PaginatedCampaignsRetriever
               organizationId={this.props.params.organizationId}
-              campaignsFilter={_.pick(this.state.campaignsFilter, 'isArchived')}
+              campaignsFilter={_.pick(this.state.campaignsFilter, "isArchived")}
               onCampaignsReceived={this.handleCampaignsReceived}
               pageSize={1000}
             />
@@ -415,7 +423,9 @@ export class AdminIncomingMessageList extends Component {
             <IncomingMessageActions
               people={this.state.reassignmentTexters}
               onReassignRequested={this.handleReassignRequested}
-              onReassignAllMatchingRequested={this.handleReassignAllMatchingRequested}
+              onReassignAllMatchingRequested={
+                this.handleReassignAllMatchingRequested
+              }
               conversationCount={this.state.conversationCount}
               tagsFilter={this.state.tagsFilter}
               onAssignTags={this.handleAssignTags}
@@ -440,9 +450,9 @@ export class AdminIncomingMessageList extends Component {
               toolbarBottom
             />
           </div>
-          )}
+        )}
       </div>
-    )
+    );
   }
 }
 
@@ -466,7 +476,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
     },
     forceFetch: true
   }
-})
+});
 
 const mapMutationsToProps = () => ({
   reassignCampaignContacts: (
@@ -500,31 +510,45 @@ const mapMutationsToProps = () => ({
     newTexterUserId
   ) => ({
     mutation: gql`
-        mutation bulkReassignCampaignContacts(
+      mutation bulkReassignCampaignContacts(
         $organizationId: String!
         $contactsFilter: ContactsFilter
         $campaignsFilter: CampaignsFilter
         $assignmentsFilter: AssignmentsFilter
         $newTexterUserId: String!
+      ) {
+        bulkReassignCampaignContacts(
+          organizationId: $organizationId
+          contactsFilter: $contactsFilter
+          campaignsFilter: $campaignsFilter
+          assignmentsFilter: $assignmentsFilter
+          newTexterUserId: $newTexterUserId
         ) {
-            bulkReassignCampaignContacts(
-                organizationId: $organizationId
-                contactsFilter: $contactsFilter,
-                campaignsFilter: $campaignsFilter,
-                assignmentsFilter: $assignmentsFilter,
-                newTexterUserId: $newTexterUserId
-            ) {
-                campaignId
-                assignmentId
-            }
+          campaignId
+          assignmentId
         }
+      }
     `,
-    variables: { organizationId, campaignsFilter, assignmentsFilter, contactsFilter, newTexterUserId }
+    variables: {
+      organizationId,
+      campaignsFilter,
+      assignmentsFilter,
+      contactsFilter,
+      newTexterUserId
+    }
   }),
   addTags: (campaignContactIds, tags, comment) => ({
     mutation: gql`
-      mutation addTags($campaignContactIds: [String]!, $tags: [String]!, $comment: String) {
-        addTagsToCampaignContacts(campaignContactIds: $campaignContactIds, tags: $tags, comment: $comment)
+      mutation addTags(
+        $campaignContactIds: [String]!
+        $tags: [String]!
+        $comment: String
+      ) {
+        addTagsToCampaignContacts(
+          campaignContactIds: $campaignContactIds
+          tags: $tags
+          comment: $comment
+        )
       }
     `,
     variables: {
@@ -544,16 +568,16 @@ const mapMutationsToProps = () => ({
       tags
     }
   })
-})
+});
 
 AdminIncomingMessageList.propTypes = {
   conversations: PropTypes.object,
   mutations: PropTypes.object,
   params: PropTypes.object,
   organization: PropTypes.object
-}
+};
 
 export default loadData(withRouter(wrapMutations(AdminIncomingMessageList)), {
   mapQueriesToProps,
   mapMutationsToProps
-})
+});

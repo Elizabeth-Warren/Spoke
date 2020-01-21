@@ -1,26 +1,26 @@
-import PropTypes from 'prop-types'
-import React from 'react'
-import SearchBar from 'material-ui-search-bar'
+import PropTypes from "prop-types";
+import React from "react";
+import SearchBar from "material-ui-search-bar";
 
 class Search extends React.Component {
   constructor(props) {
-    super(props)
+    super(props);
     this.state = {
       searchString: props.searchString
-    }
+    };
   }
 
-  handleSearchStringChanged = (searchString) => {
-    const trimmedSearchString = searchString.trim()
+  handleSearchStringChanged = searchString => {
+    const trimmedSearchString = searchString.trim();
     if (!!this.state.searchString && !trimmedSearchString) {
-      this.props.onSearchRequested(undefined)
+      this.props.onSearchRequested(undefined);
     }
-    this.setState({ searchString })
-  }
+    this.setState({ searchString });
+  };
 
   handleSearchRequested = () => {
-    this.props.onSearchRequested(this.state.searchString)
-  }
+    this.props.onSearchRequested(this.state.searchString);
+  };
 
   render = () => (
     <SearchBar
@@ -28,16 +28,14 @@ class Search extends React.Component {
       onChange={this.handleSearchStringChanged}
       value={this.props.searchString}
       hintText={this.props.hintText}
-      
     />
-  )
+  );
 }
 
 Search.propTypes = {
   searchString: PropTypes.string,
   onSearchRequested: PropTypes.func.isRequired,
   hintText: PropTypes.string
-}
+};
 
-export default Search
-
+export default Search;

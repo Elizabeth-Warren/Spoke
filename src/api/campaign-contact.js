@@ -1,4 +1,4 @@
-import gql from 'graphql-tag'
+import gql from "graphql-tag";
 
 export const schema = gql`
   input ContactsFilter {
@@ -48,8 +48,7 @@ export const schema = gql`
     interactionSteps: [InteractionStep]
     messageStatus: String
     assignmentId: String
-    tags: [Tag],
+    tags: [Tag]
     hasUnresolvedTags: Boolean
   }
-`
-
+`;

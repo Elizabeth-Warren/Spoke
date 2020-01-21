@@ -1,18 +1,18 @@
-import React from 'react'
-import PropTypes from 'prop-types'
+import React from "react";
+import PropTypes from "prop-types";
 
-import Dialog from 'material-ui/Dialog'
-import ConversationLink from '../components/ConversationLink'
-import FlatButton from 'material-ui/FlatButton'
-import { dataTest } from '../lib/attributes'
+import Dialog from "material-ui/Dialog";
+import ConversationLink from "../components/ConversationLink";
+import FlatButton from "material-ui/FlatButton";
+import { dataTest } from "../lib/attributes";
 
-const ConversationLinkDialoag = (props) => (
+const ConversationLinkDialoag = props => (
   <Dialog
-    title='Link To This Conversation'
+    title="Link To This Conversation"
     actions={[
       <FlatButton
-        {...dataTest('convoLinkOK')}
-        label='OK'
+        {...dataTest("convoLinkOK")}
+        label="OK"
         primary
         onTouchTap={props.requestClose}
       />
@@ -27,7 +27,7 @@ const ConversationLinkDialoag = (props) => (
       text={props.text}
     />
   </Dialog>
-)
+);
 
 ConversationLinkDialoag.propTypes = {
   open: PropTypes.bool,
@@ -35,7 +35,6 @@ ConversationLinkDialoag.propTypes = {
   conversation: PropTypes.object,
   organizationId: PropTypes.string,
   text: PropTypes.text
-}
+};
 
-
-export default ConversationLinkDialoag
+export default ConversationLinkDialoag;

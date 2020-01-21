@@ -2,10 +2,10 @@
 
 ## Testing queries and mutations in graphiql
 
-* Every query and mutation in src/server/schema.js can be tested in the graphiql interface.
-* Open (graphiql)[localhost:3000/graphql] in one browser tab and (Rethink data explorer)[localhost:8080/#dataexplorer] in another. You can use the Data Explorer to verify specific data changes after a query or mutation.
-  * If you're not using RethinkDB, open a query interface for the current database.
-* Enter a valid graphQL query or mutation. Inspect src/server/schema or the tree in the graphiql Docs tab to see available queries and mutations. 
+- Every query and mutation in src/server/schema.js can be tested in the graphiql interface.
+- Open (graphiql)[localhost:3000/graphql] in one browser tab and (Rethink data explorer)[localhost:8080/#dataexplorer] in another. You can use the Data Explorer to verify specific data changes after a query or mutation.
+  - If you're not using RethinkDB, open a query interface for the current database.
+- Enter a valid graphQL query or mutation. Inspect src/server/schema or the tree in the graphiql Docs tab to see available queries and mutations.
 
 ### Example mutation - takes an input object, creates a valid invitation object and requests id of the newly created invitation in response:
 
@@ -139,7 +139,7 @@ mutation createOrganization($name: String!, $userId: String!, $inviteId: String!
 
 ## Logging
 
-* To add graphql stack traces to the console, edit src/server/index.js to add the following option
+- To add graphql stack traces to the console, edit src/server/index.js to add the following option
 
 `formatError: (err) => { console.log(err.stack); return err },`
 
@@ -159,14 +159,8 @@ app.use('/graphql', apolloServer((req) => ({
   tracer,
   printErrors: true,
   allowUndefinedInResolve: false,
-  formatError: (err) => { console.log(err.stack); return err }, 
+  formatError: (err) => { console.log(err.stack); return err },
 })))
 ```
 
-* console.log statements in mutation definitions in src/server/schema.js will show up in the console when the mutations fire 
-
-
-
-
-
-
+- console.log statements in mutation definitions in src/server/schema.js will show up in the console when the mutations fire

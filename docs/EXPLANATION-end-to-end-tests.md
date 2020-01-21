@@ -29,6 +29,7 @@ Reference: [Jest 22.4 docs](http://jestjs.io/docs/en/22.4/getting-started)
 **Jasmine** is the BDD test framework used by many test harnesses including Jest.
 
 Example of a Jasmine block:
+
 ```
 describe('test description', () => {
   it('step description', async () => {
@@ -36,6 +37,7 @@ describe('test description', () => {
   })
 })
 ```
+
 A note on `this`: Arrow functions lexically bind the this keyword. This interferes with how the test runner wants to use the `this` keyword for context. More information is available online.
 
 Reference: [Jasmine 2.0 docs](https://jasmine.github.io/2.0/introduction.html#section-The_%3Ccode%3Ethis%3C/code%3E_keyword)
@@ -50,6 +52,7 @@ expect(url).toContain('www.example.com')
 ## Selectors
 
 Example of an attribute for end to end selectors:
+
 ```
 import { dataTest } from '../lib/attributes'
 <Control
@@ -57,6 +60,7 @@ import { dataTest } from '../lib/attributes'
   ...
 />
 ```
+
 This adds a `data-test` attribute to the **non-production** rendered HTML and indicates to future developers that this control is used in automated tests.
 
 ## Helpers
