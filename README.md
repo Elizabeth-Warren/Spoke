@@ -1,4 +1,9 @@
-[![Build Status](https://travis-ci.org/MoveOnOrg/Spoke.svg?branch=main)](https://travis-ci.org/MoveOnOrg/Spoke)
+# WARREN INTERNAL SPOKE
+
+This is Team Warren's internal fork of Spoke based off of the [staging_20191102](https://github.com/WorkingFamilies/Spoke/tree/staging_20191102)
+branch of the Working Families Party's fork of MoveOn's Spoke.
+
+*Note: We want to contribute our changes upstream. Assume this repo will be made public and commit accordingly."
 
 # Spoke
 
@@ -124,4 +129,3 @@ Cross-browser Testing Platform and Open Source <3 Provided by [Sauce Labs](https
 
 # License
 Spoke is licensed under the MIT license.
-
