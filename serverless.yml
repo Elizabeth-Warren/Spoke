@@ -44,7 +44,10 @@ provider:
     SESSION_SECRET: ${ssm:/${self:custom.stage}/spoke/SESSION_SECRET~true}
     SUPPRESS_SEED_CALLS: 0 # TODO: change to 1, add migration function
     KNEX_MIGRATION_DIR: ./build/server/migrations
-    PASSPORT_STRATEGY: local # TODO: auth0
+    PASSPORT_STRATEGY: auth0
+    AUTH0_CLIENT_ID: ${ssm:/${self:custom.stage}/spoke/auth0/CLIENT_ID~true}
+    AUTH0_CLIENT_SECRET: ${ssm:/${self:custom.stage}/spoke/auth0/CLIENT_SECRET~true}
+    AUTH0_DOMAIN: elizabethwarren.auth0.com
     DST_REFERENCE_TIMEZONE: America/New_York
     DEFAULT_SERVICE: twilio
     DB_HOST: ${ssm:/${self:custom.stage}/spoke/postgres/HOST~true}
