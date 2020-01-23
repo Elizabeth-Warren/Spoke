@@ -39,15 +39,15 @@ provider:
     INFRASTRUCTURE: ${self:custom.infrastructure}
     NODE_ENV: production
     STATIC_BASE_URL: /assets/ # https://s3.amazon.com/ew-spoke-public/static/  # TODO: terraform a bucket per env
-    SUPPRESS_SELF_INVITE: 1 # TODO: switch to 1 after deploy
+    SUPPRESS_SELF_INVITE: 1
     PHONE_NUMBER_COUNTRY: US
     SESSION_SECRET: ${ssm:/${self:custom.stage}/spoke/SESSION_SECRET~true}
-    SUPPRESS_SEED_CALLS: 0 # TODO: change to 1, add migration function
+    SUPPRESS_SEED_CALLS: 1
     KNEX_MIGRATION_DIR: ./build/server/migrations
     PASSPORT_STRATEGY: auth0
     AUTH0_CLIENT_ID: ${ssm:/${self:custom.stage}/spoke/auth0/CLIENT_ID~true}
     AUTH0_CLIENT_SECRET: ${ssm:/${self:custom.stage}/spoke/auth0/CLIENT_SECRET~true}
-    AUTH0_DOMAIN: elizabethwarren.auth0.com
+    AUTH0_DOMAIN: ${ssm:/${self:custom.stage}/spoke/auth0/DOMAIN}
     DST_REFERENCE_TIMEZONE: America/New_York
     DEFAULT_SERVICE: twilio
     DB_HOST: ${ssm:/${self:custom.stage}/spoke/postgres/HOST~true}
