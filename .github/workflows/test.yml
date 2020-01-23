@@ -8,13 +8,26 @@ jobs:
   deploy:
     name: Deploy Spoke
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:10
+        env:
+          POSTGRES_USER: spoke_test
+          POSTGRES_PASSWORD: spoke_test
+          POSTGRES_DB: spoke_test
+        ports:
+          - 5432:5432
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+      redis:
+        image: redis:alpine
+        ports:
+          - 6379:6379
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-1
       STAGE: dev
       INFRASTRUCTURE: dev
-      NODE_ENV: production
       OUTPUT_DIR: ./build
       ASSETS_DIR: ./build/client/assets
       ASSETS_MAP_FILE: assets.json
@@ -28,9 +41,5 @@ jobs:
           node-version: 10.18.x
       - name: Install Dependencies
         run: make install-deps
-      - name: Build
-        run: make build-app
-        env:
-          NODE_ENV: production
       - name: Test
         run: yarn test
