@@ -69,9 +69,9 @@ function createTablesIfNecessary() {
   return thinky.k.schema.hasTable("organization").then(tableExists => {
     if (!tableExists) {
       console.log("CREATING DATABASE SCHEMA");
-      createTables();
-      return true;
+      return createTables();
     }
+    return null;
   });
 }
 

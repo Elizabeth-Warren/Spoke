@@ -10,10 +10,17 @@ ENV NODE_ENV=production \
     ASSETS_MAP_FILE=assets.json \
     PHONE_NUMBER_COUNTRY=${PHONE_NUMBER_COUNTRY}
 
-COPY . /spoke
+ADD package.json /spoke/package.json
+ADD yarn.lock /spoke/yarn.lock
+ADD webpack /spoke/webpack
+
 WORKDIR /spoke
-RUN yarn install --ignore-scripts --non-interactive --frozen-lockfile && \
-    yarn run prod-build && \
+
+RUN yarn install --ignore-scripts --non-interactive --frozen-lockfile
+
+ADD . /spoke
+
+RUN yarn run prod-build && \
     rm -rf node_modules && \
     yarn install --production --ignore-scripts
 

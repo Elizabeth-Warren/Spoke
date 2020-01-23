@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+set -uo pipefail
+
+build-image()
+{
+  docker build -t spoke:build .
+}
+
+install-deps()
+{
+   yarn install --ignore-scripts --non-interactive --frozen-lockfile
+}
+
+build-app()
+{
+  yarn run prod-build
+}
+
+extract-artifacts()
+{
+  rm -rf ../spoke-dependencies-layer
+  local CONTAINER_ID=$(docker run -d spoke:build false)
+  docker cp $CONTAINER_ID:/spoke ../spoke-dependencies-layer
+  docker rm $CONTAINER_ID
+}
+
+preflight()
+{
+  sls invoke -f preflight
+}
+
+deploy()
+{
+  sls create_domain
+  sls deploy
+}
+
+case "$1" in
+  build-image)
+    build-image "${@:2}"
+    ;;
+  install-deps)
+    install-deps "${@:2}"
+    ;;
+  build-app)
+    build-app "${@:2}"
+    ;;
+  extract-artifacts)
+    extract-artifacts "${@:2}"
+    ;;
+  preflight)
+    preflight "${@:2}"
+    ;;
+  deploy)
+    deploy "${@:2}"
+    ;;
+  *)
+    exec "$@"
+    ;;
+esac

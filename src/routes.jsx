@@ -22,7 +22,7 @@ import JoinTeam from "./containers/JoinTeam";
 import Home from "./containers/Home";
 import Settings from "./containers/Settings";
 import UserEdit from "./containers/UserEdit";
-import TexterFaqs from "./components/TexterFrequentlyAskedQuestions.jsx";
+import TexterFaqs from "./components/TexterFrequentlyAskedQuestions";
 import FAQs from "./lib/faqs";
 
 export default function makeRoutes(requireAuth = () => {}) {

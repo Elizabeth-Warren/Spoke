@@ -1,0 +1,102 @@
+service: internal-spoke
+
+frameworkVersion: ">=1.0.0 <2.0.0"
+
+custom:
+  stage: ${opt:stage, 'dev'}
+  infrastructure: ${opt:infrastructure, env:INFRASTRUCTURE, "dev"}
+  baseUrl: https://${self:custom.customDomain.domainName}
+  nodeEnv:
+    dev: dev
+    prod: production
+  deploy:
+    bucket_name: ${ssm:/${self:custom.infrastructure}/s3/deploy-artifacts/bucket/name~true}
+    bucket_arn: ${ssm:/${self:custom.infrastructure}/s3/deploy-artifacts/bucket/arn~true}
+  vpcConfig:
+    subnetIds:
+      - "${ssm:/tf/${self:custom.infrastructure}/vpc/subnets/private/id/0~true}"
+      - "${ssm:/tf/${self:custom.infrastructure}/vpc/subnets/private/id/1~true}"
+      - "${ssm:/tf/${self:custom.infrastructure}/vpc/subnets/private/id/2~true}"
+    securityGroupIds:
+      - "${ssm:/tf/${self:custom.infrastructure}/vpc/security-group/default/id~true}"
+  associateWaf:
+    name: ${self:custom.infrastructure}-waf-global
+  customDomain:
+    domainName: "${self:custom.stage}-spoke.elizabethwarren.codes"
+    stage: ${self:custom.stage}
+    certificateName: "*.elizabethwarren.codes"
+    createRoute53Record: true
+    securityPolicy: tls_1_2
+
+# layers:
+#   dependencies:
+#     path: ../spoke-dependencies-layer
+#     package:
+#       include:
+#         - build/**
+#         - node_modules/**
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  deploymentBucket:
+    name: ${self:custom.deploy.bucket_name}
+    blockPublicAccess: true
+  environment:
+    STAGE: ${self:custom.stage}
+    INFRASTRUCTURE: ${self:custom.infrastructure}
+    NODE_ENV: production
+    STATIC_BASE_URL: /assets/ # https://s3.amazon.com/ew-spoke-public/static/  # TODO: terraform a bucket per env
+    SUPPRESS_SELF_INVITE: 1 # TODO: switch to 1 after deploy
+    PHONE_NUMBER_COUNTRY: US
+    SESSION_SECRET: ${ssm:/${self:custom.stage}/spoke/SESSION_SECRET~true}
+    SUPPRESS_SEED_CALLS: 0 # TODO: change to 1, add migration function
+    KNEX_MIGRATION_DIR: ./build/server/migrations
+    PASSPORT_STRATEGY: local # TODO: auth0
+    DST_REFERENCE_TIMEZONE: America/New_York
+    DEFAULT_SERVICE: twilio
+    DB_HOST: ${ssm:/${self:custom.stage}/spoke/postgres/HOST~true}
+    DB_NAME: postgres
+    DB_PORT: 5432
+    DB_TYPE: pg
+    DB_USER: postgres # TODO: new user
+    DB_PASSWORD: ${ssm:/dev/spoke/postgres/MASTER_PASSWORD~true}
+    TWILIO_API_KEY: ${ssm:/${self:custom.stage}/spoke/TWILIO_API_KEY~true}
+    TWILIO_APPLICATION_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_MESSAGE_SERVICE_SID~true} # same as the message service sid
+    TWILIO_AUTH_TOKEN: ${ssm:/${self:custom.stage}/spoke/TWILIO_AUTH_TOKEN~true}
+    TWILIO_MESSAGE_SERVICE_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_MESSAGE_SERVICE_SID~true}
+    TWILIO_STATUS_CALLBACK_URL: ${self:custom.baseUrl}/twilio-message-report
+    JOBS_SAME_PROCESS: 1 # TODO: move jobs to sqs
+    ASSETS_DIR: ./build/client/assets
+    ASSETS_MAP_FILE: assets.json
+    BASE_URL: ${self:custom.baseUrl}
+functions:
+  api:
+    handler: lambda.handler
+    vpc: ${self:custom.vpcConfig}
+    timeout: 30
+    events:
+      - http: ANY /
+      - http: ANY {proxy+}
+  preflight:
+    handler: preflight.handler
+    vpc: ${self:custom.vpcConfig}
+    timeout: 600
+
+#    layers:
+#      - {Ref: DependenciesLambdaLayer}
+
+plugins:
+  - serverless-domain-manager
+  - serverless-associate-waf
+
+package:
+  excludeDevDependencies: true
+#  individually: true
+#  exclude:
+#    - layer/**
+#    - node_modules/**
+#    - build/**
+#    - dependencies-layer/**
+#  include:
+#    - lambda.js

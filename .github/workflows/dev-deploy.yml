@@ -1,0 +1,39 @@
+name: '[DEV] Deploy'
+
+# ALWAYS USE SINGLE QUOTES HERE
+
+on: push
+
+jobs:
+  deploy:
+    name: Deploy Spoke
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: us-east-1
+      STAGE: dev
+      INFRASTRUCTURE: dev
+      OUTPUT_DIR: ./build
+      ASSETS_DIR: ./build/client/assets
+      ASSETS_MAP_FILE: assets.json
+      PHONE_NUMBER_COUNTRY: US
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+          node-version: 10.18.x
+      - name: Install Serverless
+        run: npm install -g serverless
+      - name: Install Dependencies
+        run: make install-deps
+      - name: Build
+        run: make build-app
+        env:
+          NODE_ENV: production
+      - name: Deploy
+        run: make deploy-build
+      - name: Preflight
+        run: make preflight

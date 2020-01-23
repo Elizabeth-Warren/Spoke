@@ -1,7 +1,7 @@
 import React from "react";
 
 import { shallow } from "enzyme";
-import TexterFaqs from "../../src/components/TexterFrequentlyAskedQuestions";
+import TexterFrequentlyAskedQuestions from "../../src/components/TexterFrequentlyAskedQuestions";
 
 describe("FAQs component", () => {
   // given
@@ -11,7 +11,7 @@ describe("FAQs component", () => {
       answer: "a2"
     }
   ];
-  const wrapper = shallow(<TexterFaqs faqs={faq} />);
+  const wrapper = shallow(<TexterFrequentlyAskedQuestions faqs={faq} />);
 
   // when
   test("Renders question and answer", () => {

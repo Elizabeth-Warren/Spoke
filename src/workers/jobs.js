@@ -17,7 +17,9 @@ import {
   getLastMessage,
   saveNewIncomingMessage
 } from "../server/api/lib/message-sending";
-import importScriptFromDocument from "../server/api/lib/import-script.";
+// TODO: We've removed googleapis for the time being to reduce the application
+// TOOD: artifact size. Might need to bring it back in the future.
+// import importScriptFromDocument from "../server/api/lib/import-script.";
 
 import AWS from "aws-sdk";
 import Papa from "papaparse";
@@ -1064,6 +1066,12 @@ export async function exportCampaign(job) {
 
   await defensivelyDeleteJob(job);
 }
+
+/*
+
+TODO: We do not expose this function because the underlying importScriptFromDocument
+TODO: is not imported above.
+
 export async function importScript(job) {
   const payload = await unzipPayload(job);
   try {
@@ -1078,6 +1086,7 @@ export async function importScript(job) {
   }
   defensivelyDeleteJob(job);
 }
+*/
 
 // add an in-memory guard that the same messages are being sent again and again
 // not related to stale filter
@@ -1200,9 +1209,14 @@ export async function handleIncomingMessageParts() {
           messagesToSave.push(await convertMessageParts([part]));
           messagePartsToDelete.push(part);
         } else {
+          /*
+
+          TODO: Remove all references to nexmo
+
           if (part.service !== "nexmo") {
             throw new Error("should not have a parent ID for twilio");
           }
+          */
           const groupKey = [parentId, part.contact_number, part.user_number];
           const serviceMessage = JSON.parse(part.service_message);
           if (!concatMessageParts.hasOwnProperty(groupKey)) {

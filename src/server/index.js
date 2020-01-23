@@ -5,7 +5,7 @@ import appRenderer from "./middleware/app-renderer";
 import { graphqlExpress, graphiqlExpress } from "apollo-server-express";
 import { makeExecutableSchema, addMockFunctionsToSchema } from "graphql-tools";
 // ORDERING: ./models import must be imported above ./api to help circular imports
-import { createLoaders, createTablesIfNecessary } from "./models";
+import { createLoaders } from "./models";
 import { resolvers } from "./api/schema";
 import { schema } from "../api/schema";
 import mocks from "./api/mocks";
@@ -14,10 +14,8 @@ import cookieSession from "cookie-session";
 import passportSetup from "./auth-passport";
 import wrap from "./wrap";
 import { log } from "../lib";
-import nexmo from "./api/lib/nexmo";
+// import nexmo from "./api/lib/nexmo";
 import twilio from "./api/lib/twilio";
-import { seedZipCodes } from "./seeds/seed-zip-codes";
-import { runMigrations } from "../migrations";
 import { setupUserNotificationObservers } from "./notifications";
 import { TwimlResponse } from "twilio";
 import { existsSync } from "fs";
@@ -31,24 +29,6 @@ const DEBUG = process.env.NODE_ENV === "development";
 const loginCallbacks = passportSetup[
   process.env.PASSPORT_STRATEGY || global.PASSPORT_STRATEGY || "auth0"
 ]();
-
-if (!process.env.SUPPRESS_SEED_CALLS) {
-  seedZipCodes();
-}
-
-if (!process.env.SUPPRESS_DATABASE_AUTOCREATE) {
-  createTablesIfNecessary().then(didCreate => {
-    // seed above won't have succeeded if we needed to create first
-    if (didCreate && !process.env.SUPPRESS_SEED_CALLS) {
-      seedZipCodes();
-    }
-    if (!didCreate && !process.env.SUPPRESS_MIGRATIONS) {
-      runMigrations();
-    }
-  });
-} else if (!process.env.SUPPRESS_MIGRATIONS) {
-  runMigrations();
-}
 
 setupUserNotificationObservers();
 const app = express();
@@ -94,6 +74,10 @@ app.use((req, res, next) => {
   next();
 });
 
+/*
+
+TODO: Delete. We are not using nexmo
+
 app.post(
   "/nexmo",
   wrap(async (req, res) => {
@@ -106,6 +90,25 @@ app.post(
     }
   })
 );
+*/
+
+/*
+
+TODO: Delete. We are not using nexmo
+
+app.post(
+  "/nexmo-message-report",
+  wrap(async (req, res) => {
+    try {
+      const body = req.body;
+      await nexmo.handleDeliveryReport(body);
+    } catch (ex) {
+      log.error(ex);
+    }
+    res.send("done");
+  })
+);
+*/
 
 app.post(
   "/twilio",
@@ -120,19 +123,6 @@ app.post(
     const resp = new TwimlResponse();
     res.writeHead(200, { "Content-Type": "text/xml" });
     res.end(resp.toString());
-  })
-);
-
-app.post(
-  "/nexmo-message-report",
-  wrap(async (req, res) => {
-    try {
-      const body = req.body;
-      await nexmo.handleDeliveryReport(body);
-    } catch (ex) {
-      log.error(ex);
-    }
-    res.send("done");
   })
 );
 
