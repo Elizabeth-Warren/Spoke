@@ -4,7 +4,13 @@
 import React from "react";
 import { mount } from "enzyme";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
-import { CampaignList } from "../src/containers/CampaignList";
+import { CampaignList } from "../../src/containers/CampaignsList";
+import { StyleSheetTestUtils } from "aphrodite";
+
+const mutations = {
+  archiveCampaign: async _ => {},
+  unarchiveCampaign: async _ => {}
+};
 
 describe("Campaign list for campaign with null creator", () => {
   // given
@@ -17,6 +23,7 @@ describe("Campaign list for campaign with null creator", () => {
   const data = {
     organization: {
       campaigns: {
+        pageInfo: { offset: 0, limit: 50, total: 1 },
         campaigns: [campaignWithoutCreator]
       }
     }
@@ -24,9 +31,10 @@ describe("Campaign list for campaign with null creator", () => {
 
   // when
   test("Renders for campaign with null creator, doesn't include created by", () => {
+    StyleSheetTestUtils.suppressStyleInjection();
     const wrapper = mount(
       <MuiThemeProvider>
-        <CampaignList data={data} />
+        <CampaignList data={data} mutations={mutations} />
       </MuiThemeProvider>
     );
     expect(wrapper.text().includes("Created by")).toBeFalsy();
@@ -45,6 +53,7 @@ describe("Campaign list for campaign with creator", () => {
   const data = {
     organization: {
       campaigns: {
+        pageInfo: { offset: 0, limit: 50, total: 1 },
         campaigns: [campaignWithCreator]
       }
     }
@@ -52,9 +61,10 @@ describe("Campaign list for campaign with creator", () => {
 
   // when
   test("Renders for campaign with creator, includes created by", () => {
+    StyleSheetTestUtils.suppressStyleInjection();
     const wrapper = mount(
       <MuiThemeProvider>
-        <CampaignList data={data} />
+        <CampaignList data={data} mutations={mutations} />
       </MuiThemeProvider>
     );
     expect(
