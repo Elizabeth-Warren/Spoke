@@ -23,3 +23,4 @@ coverage/
 package-lock.json
 schema.graphql
 .serverless/
+webpack/bundle.js

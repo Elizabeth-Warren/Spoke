@@ -4,14 +4,14 @@ const runMigrations = require("./build/server/migrations").runMigrations;
 const createTablesIfNecessary = require("./build/server/server/models")
   .createTablesIfNecessary;
 
-module.exports.handler = function(event, context, callback) {
-  createTablesIfNecessary().then(function(tables) {
-    if (!tables) return callback(); // Early Return
+module.exports.handler = async function(event, context) {
+  console.log("Beginning preflight...");
 
-    tables
-      .then(runMigrations)
-      .then(seedZipCodes)
-      .then(callback)
-      .catch(err => console.error(err));
-  });
+  await createTablesIfNecessary();
+  await runMigrations();
+  await seedZipCodes();
+
+  console.log("All done...");
+
+  return Promise.resolve();
 };

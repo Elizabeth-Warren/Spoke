@@ -28,14 +28,6 @@ custom:
     createRoute53Record: true
     securityPolicy: tls_1_2
 
-# layers:
-#   dependencies:
-#     path: ../spoke-dependencies-layer
-#     package:
-#       include:
-#         - build/**
-#         - node_modules/**
-
 provider:
   name: aws
   runtime: nodejs10.x
@@ -81,10 +73,7 @@ functions:
   preflight:
     handler: preflight.handler
     vpc: ${self:custom.vpcConfig}
-    timeout: 600
-
-#    layers:
-#      - {Ref: DependenciesLambdaLayer}
+    timeout: 60
 
 plugins:
   - serverless-domain-manager
@@ -92,11 +81,3 @@ plugins:
 
 package:
   excludeDevDependencies: true
-#  individually: true
-#  exclude:
-#    - layer/**
-#    - node_modules/**
-#    - build/**
-#    - dependencies-layer/**
-#  include:
-#    - lambda.js

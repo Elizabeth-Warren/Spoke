@@ -17,7 +17,6 @@ jobs:
       AWS_DEFAULT_REGION: us-east-1
       STAGE: prod
       INFRASTRUCTURE: prod
-      NODE_ENV: production
       OUTPUT_DIR: ./build
       ASSETS_DIR: ./build/client/assets
       ASSETS_MAP_FILE: assets.json
