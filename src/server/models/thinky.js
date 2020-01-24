@@ -35,7 +35,10 @@ if (process.env.DB_JSON || global.DB_JSON) {
     },
     pool: {
       min: parseInt(process.env.DB_MIN_POOL || 2, 10),
-      max: parseInt(process.env.DB_MAX_POOL || 10)
+      max: parseInt(process.env.DB_MAX_POOL || 10),
+      // TODO[matteosb]: figure out preflight failures, this fixes
+      //  them but isn't recommended.
+      propagateCreateError: !process.env.SUPPRESS_DB_PROPAGATE_ERROR
     }
   };
 } else if (process.env.DATABASE_URL) {

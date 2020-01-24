@@ -2,7 +2,10 @@ name: '[DEV] Deploy'
 
 # ALWAYS USE SINGLE QUOTES HERE
 
-on: push
+on:
+  push:
+    branches:
+      - master
 
 jobs:
   deploy:

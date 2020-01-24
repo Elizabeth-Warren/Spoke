@@ -27,13 +27,13 @@ extract-artifacts()
 
 preflight()
 {
-  sls invoke -f preflight
+  sls invoke -f preflight -s $STAGE
 }
 
 deploy()
 {
-  sls create_domain
-  sls deploy
+  sls create_domain -s $STAGE
+  sls deploy -s $STAGE
 }
 
 case "$1" in

@@ -4,8 +4,8 @@ name: '[PROD] Deploy'
 
 on:
   push:
-    branches:
-      - master
+    tags:
+      - 'release-*'
 
 jobs:
   deploy:
