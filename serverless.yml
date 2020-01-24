@@ -38,7 +38,7 @@ provider:
     STAGE: ${self:custom.stage}
     INFRASTRUCTURE: ${self:custom.infrastructure}
     NODE_ENV: production
-    STATIC_BASE_URL: /assets/ # https://s3.amazon.com/ew-spoke-public/static/  # TODO: terraform a bucket per env
+    STATIC_BASE_URL: /assets/
     SUPPRESS_SELF_INVITE: 1
     PHONE_NUMBER_COUNTRY: US
     SESSION_SECRET: ${ssm:/${self:custom.stage}/spoke/SESSION_SECRET~true}
@@ -51,11 +51,11 @@ provider:
     DST_REFERENCE_TIMEZONE: America/New_York
     DEFAULT_SERVICE: twilio
     DB_HOST: ${ssm:/${self:custom.stage}/spoke/postgres/HOST~true}
-    DB_NAME: postgres
+    DB_NAME: ${ssm:/${self:custom.stage}/spoke/postgres/DATABASE~true}
     DB_PORT: 5432
     DB_TYPE: pg
-    DB_USER: postgres # TODO: new user
-    DB_PASSWORD: ${ssm:/dev/spoke/postgres/MASTER_PASSWORD~true}
+    DB_USER: ${ssm:/${self:custom.stage}/spoke/postgres/USER~true}
+    DB_PASSWORD: ${ssm:/${self:custom.stage}/spoke/postgres/PASSWORD~true}
     TWILIO_API_KEY: ${ssm:/${self:custom.stage}/spoke/TWILIO_API_KEY~true}
     TWILIO_APPLICATION_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_MESSAGE_SERVICE_SID~true} # same as the message service sid
     TWILIO_AUTH_TOKEN: ${ssm:/${self:custom.stage}/spoke/TWILIO_AUTH_TOKEN~true}
