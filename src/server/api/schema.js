@@ -240,11 +240,13 @@ async function updateInteractionSteps(
   origCampaignRecord,
   idMap = {}
 ) {
-  await interactionSteps.forEach(async is => {
+  for (let i = 0; i < interactionSteps.length; i++) {
+    const is = interactionSteps[i];
     // map the interaction step ids for new ones
     if (idMap[is.parentInteractionId]) {
       is.parentInteractionId = idMap[is.parentInteractionId];
     }
+
     if (is.id.indexOf("new") !== -1) {
       const newIstep = await InteractionStep.save({
         parent_interaction_id: is.parentInteractionId || null,
@@ -275,13 +277,16 @@ async function updateInteractionSteps(
           });
       }
     }
-    await updateInteractionSteps(
-      campaignId,
-      is.interactionSteps,
-      origCampaignRecord,
-      idMap
-    );
-  });
+
+    if (Array.isArray(is.interactionSteps) && is.interactionSteps.length) {
+      await updateInteractionSteps(
+        campaignId,
+        is.interactionSteps,
+        origCampaignRecord,
+        idMap
+      );
+    }
+  }
 }
 
 const includeTags = info => {
@@ -721,16 +726,14 @@ const rootMutations = {
         }
       });
 
-      let createSteps = updateInteractionSteps(
+      await updateInteractionSteps(
         newCampaignId,
         [makeTree(interactionsArr, (id = null))],
         campaign,
         {}
       );
 
-      await createSteps;
-
-      let createCannedResponses = r
+      await r
         .knex("canned_response")
         .where({ campaign_id: oldCampaignId })
         .then(function(res) {
@@ -742,8 +745,6 @@ const rootMutations = {
             }).save();
           });
         });
-
-      await createCannedResponses;
 
       return newCampaign;
     },

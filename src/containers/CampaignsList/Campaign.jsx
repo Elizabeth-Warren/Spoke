@@ -31,7 +31,7 @@ const renderRightIcon = (campaign, archiveCampaign, unarchiveCampaign) => {
     return (
       <IconButton
         tooltip="Unarchive"
-        onTouchTap={async () => unarchiveCampaign(campaign.id)}
+        onTouchTap={async () => await unarchiveCampaign(campaign.id)}
       >
         <UnarchiveIcon />
       </IconButton>
@@ -40,7 +40,7 @@ const renderRightIcon = (campaign, archiveCampaign, unarchiveCampaign) => {
   return (
     <IconButton
       tooltip="Archive"
-      onTouchTap={async () => archiveCampaign(campaign.id)}
+      onTouchTap={async () => await archiveCampaign(campaign.id)}
     >
       <ArchiveIcon />
     </IconButton>
