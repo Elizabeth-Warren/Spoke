@@ -169,6 +169,7 @@ app.use(
   "/graphql",
   graphqlExpress(request => ({
     schema: executableSchema,
+    debug: !!process.env.DEBUG_APOLLO,
     context: {
       loaders: createLoaders(),
       user: request.user,

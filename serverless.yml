@@ -6,6 +6,9 @@ custom:
   stage: ${opt:stage, 'dev'}
   infrastructure: ${opt:infrastructure, env:INFRASTRUCTURE, "dev"}
   baseUrl: https://${self:custom.customDomain.domainName}
+  debugApollo:
+    dev: 1
+    prod: 0
   deploy:
     bucket_name: ${ssm:/${self:custom.infrastructure}/s3/deploy-artifacts/bucket/name~true}
     bucket_arn: ${ssm:/${self:custom.infrastructure}/s3/deploy-artifacts/bucket/arn~true}
@@ -42,6 +45,7 @@ provider:
     SUPPRESS_SEED_CALLS: 1
     KNEX_MIGRATION_DIR: ./build/server/migrations
     PASSPORT_STRATEGY: auth0
+    DEBUG_APOLLO: ${self:custom.debugApollo.${self:custom.stage}}
     AUTH0_CLIENT_ID: ${ssm:/${self:custom.stage}/spoke/auth0/CLIENT_ID~true}
     AUTH0_CLIENT_SECRET: ${ssm:/${self:custom.stage}/spoke/auth0/CLIENT_SECRET~true}
     AUTH0_DOMAIN: ${ssm:/${self:custom.stage}/spoke/auth0/DOMAIN}
