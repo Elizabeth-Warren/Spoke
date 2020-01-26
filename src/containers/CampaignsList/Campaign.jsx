@@ -26,12 +26,21 @@ const inlineStyles = {
   }
 };
 
-const renderRightIcon = (campaign, archiveCampaign, unarchiveCampaign) => {
+const renderRightIcon = (
+  campaign,
+  archiveCampaign,
+  unarchiveCampaign,
+  refetch
+) => {
   if (campaign.isArchived) {
     return (
       <IconButton
         tooltip="Unarchive"
-        onTouchTap={async () => await unarchiveCampaign(campaign.id)}
+        onTouchTap={async e => {
+          e.stopPropagation();
+          await unarchiveCampaign(campaign.id);
+          await refetch();
+        }}
       >
         <UnarchiveIcon />
       </IconButton>
@@ -40,7 +49,11 @@ const renderRightIcon = (campaign, archiveCampaign, unarchiveCampaign) => {
   return (
     <IconButton
       tooltip="Archive"
-      onTouchTap={async () => await archiveCampaign(campaign.id)}
+      onTouchTap={async e => {
+        e.stopPropagation();
+        await archiveCampaign(campaign.id);
+        await refetch();
+      }}
     >
       <ArchiveIcon />
     </IconButton>
@@ -53,7 +66,8 @@ const Campaign = props => {
     adminPerms,
     selectMultiple,
     archiveCampaign,
-    unarchiveCampaign
+    unarchiveCampaign,
+    refetch
   } = props;
 
   const {
@@ -140,7 +154,12 @@ const Campaign = props => {
       leftIcon={!selectMultiple ? leftIcon : null}
       rightIconButton={
         !selectMultiple && adminPerms
-          ? renderRightIcon(campaign, archiveCampaign, unarchiveCampaign)
+          ? renderRightIcon(
+              campaign,
+              archiveCampaign,
+              unarchiveCampaign,
+              refetch
+            )
           : null
       }
       leftCheckbox={selectMultiple ? <Checkbox /> : null}

@@ -102,6 +102,7 @@ export class CampaignList extends React.Component {
       organizationId={this.props.organizationId}
       archiveCampaign={this.props.mutations.archiveCampaign}
       unarchiveCampaign={this.props.mutations.unarchiveCampaign}
+      refetch={this.props.data.refetch}
     />
   );
 
