@@ -3,6 +3,8 @@ const runMigrations = require("../src/migrations").runMigrations;
 const createTablesIfNecessary = require("../src/server/models")
   .createTablesIfNecessary;
 
+process.env.RETHINK_KNEX_FORCE_INDEXCREATION = "1";
+
 async function migrate() {
   console.log("Beginning migrations...");
 
