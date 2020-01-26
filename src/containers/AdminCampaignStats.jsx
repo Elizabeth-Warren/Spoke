@@ -135,17 +135,6 @@ class AdminCampaignStats extends React.Component {
     });
   }
 
-  renderCopyButton() {
-    return (
-      <RaisedButton
-        label="Copy Campaign"
-        onTouchTap={async () =>
-          await this.props.mutations.copyCampaign(this.props.params.campaignId)
-        }
-      />
-    );
-  }
-
   render() {
     const { data, params } = this.props;
     const { organizationId, campaignId } = params;
@@ -241,11 +230,14 @@ class AdminCampaignStats extends React.Component {
                         <RaisedButton
                           {...dataTest("copyCampaign")}
                           label="Copy Campaign"
-                          onTouchTap={async () =>
+                          onTouchTap={async () => {
                             await this.props.mutations.copyCampaign(
                               this.props.params.campaignId
-                            )
-                          }
+                            );
+                            this.props.router.push(
+                              `/admin/${organizationId}/campaigns/`
+                            );
+                          }}
                         />
                       ]
                     : null}
