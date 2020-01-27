@@ -61,53 +61,6 @@ async function convertMessagePartsToMessage(messageParts) {
   });
 }
 
-async function findNewCell() {
-  if (!twilio) {
-    return { availablePhoneNumbers: [{ phone_number: "+15005550006" }] };
-  }
-  return new Promise((resolve, reject) => {
-    twilio.availablePhoneNumbers("US").local.list({}, (err, data) => {
-      if (err) {
-        reject(new Error(err));
-      } else {
-        resolve(data);
-      }
-    });
-  });
-}
-
-async function rentNewCell() {
-  if (!twilio) {
-    return getFormattedPhoneNumber("555-555-5555");
-  }
-  const newCell = await findNewCell();
-
-  if (
-    newCell &&
-    newCell.availablePhoneNumbers &&
-    newCell.availablePhoneNumbers[0] &&
-    newCell.availablePhoneNumbers[0].phone_number
-  ) {
-    return new Promise((resolve, reject) => {
-      twilio.incomingPhoneNumbers.create(
-        {
-          phoneNumber: newCell.availablePhoneNumbers[0].phone_number,
-          smsApplicationSid: process.env.TWILIO_APPLICATION_SID
-        },
-        (err, purchasedNumber) => {
-          if (err) {
-            reject(err);
-          } else {
-            resolve(purchasedNumber.phone_number);
-          }
-        }
-      );
-    });
-  }
-
-  throw new Error("Did not find any cell");
-}
-
 const mediaExtractor = new RegExp(/\[\s*(http[^\]\s]*)\s*\]/);
 
 function parseMessageText(message) {
@@ -318,8 +271,6 @@ export default {
   syncMessagePartProcessing: !!process.env.JOBS_SAME_PROCESS,
   webhook,
   convertMessagePartsToMessage,
-  findNewCell,
-  rentNewCell,
   sendMessage,
   handleDeliveryReport,
   handleIncomingMessage,

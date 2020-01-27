@@ -60,7 +60,6 @@ provider:
     REDIS_URL: redis://${ssm:/${self:custom.stage}/redis_cache/PRIMARY_ENDPOINT~true}:6379/2
     CACHE_PREFIX: spoke
     TWILIO_API_KEY: ${ssm:/${self:custom.stage}/spoke/TWILIO_API_KEY~true}
-    TWILIO_APPLICATION_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_MESSAGE_SERVICE_SID~true} # same as the message service sid
     TWILIO_AUTH_TOKEN: ${ssm:/${self:custom.stage}/spoke/TWILIO_AUTH_TOKEN~true}
     TWILIO_MESSAGE_SERVICE_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_MESSAGE_SERVICE_SID~true}
     TWILIO_STATUS_CALLBACK_URL: ${self:custom.baseUrl}/twilio-message-report

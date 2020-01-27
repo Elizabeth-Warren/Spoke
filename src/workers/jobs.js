@@ -68,23 +68,6 @@ function getOptOutSubQuery(orgId) {
     : optOutsByOrgId(orgId);
 }
 
-function optOutsByOrgId(orgId) {
-  return r.knex
-    .select("cell")
-    .from("opt_out")
-    .where("organization_id", orgId);
-}
-
-function optOutsByInstance() {
-  return r.knex.select("cell").from("opt_out");
-}
-
-function getOptOutSubQuery(orgId) {
-  return !!process.env.OPTOUTS_SHARE_ALL_ORGS
-    ? optOutsByInstance()
-    : optOutsByOrgId(orgId);
-}
-
 export async function getTimezoneByZip(zip) {
   if (zip in zipMemoization) {
     return zipMemoization[zip];
