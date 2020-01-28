@@ -142,6 +142,7 @@ async function sendMessage(message, contact, trx) {
       messageParams.validityPeriod = twilioValidityPeriod;
     }
 
+    // TODO[matteo]: switch to promises now that the twilio sdk supports them
     twilio.messages.create(messageParams, (err, response) => {
       const messageToSave = {
         ...message

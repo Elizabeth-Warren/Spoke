@@ -17,7 +17,7 @@ import { log } from "../lib";
 // import nexmo from "./api/lib/nexmo";
 import twilio from "./api/lib/twilio";
 import { setupUserNotificationObservers } from "./notifications";
-import { TwimlResponse } from "twilio";
+import { twiml } from "twilio";
 import { existsSync } from "fs";
 
 process.on("uncaughtException", ex => {
@@ -120,7 +120,7 @@ app.post(
       log.error(ex);
     }
 
-    const resp = new TwimlResponse();
+    const resp = new twiml.MessagingResponse();
     res.writeHead(200, { "Content-Type": "text/xml" });
     res.end(resp.toString());
   })
@@ -135,15 +135,11 @@ app.post(
     } catch (ex) {
       log.error(ex);
     }
-    const resp = new TwimlResponse();
+    const resp = new twiml.MessagingResponse();
     res.writeHead(200, { "Content-Type": "text/xml" });
     res.end(resp.toString());
   })
 );
-
-// const accountSid = process.env.TWILIO_API_KEY
-// const authToken = process.env.TWILIO_AUTH_TOKEN
-// const client = require('twilio')(accountSid, authToken)
 
 app.get("/logout-callback", (req, res) => {
   req.logOut();

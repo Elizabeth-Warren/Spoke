@@ -2,6 +2,7 @@ import { log } from "../lib";
 import nodemailer from "nodemailer";
 import mailgunConstructor from "mailgun-js";
 
+// TODO: remove both mailgun and nodemailer and use the sns with the aws sdk
 const mailgun =
   process.env.MAILGUN_API_KEY &&
   process.env.MAILGUN_DOMAIN &&
