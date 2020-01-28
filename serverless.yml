@@ -34,6 +34,14 @@ provider:
   deploymentBucket:
     name: ${self:custom.deploy.bucket_name}
     blockPublicAccess: true
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "ses:CreateTemplate"
+        - "ses:SendEmail"
+        - "ses:SendTemplatedEmail"
+        - "ses:UpdateTemplate"
+      Resource: "*"
   environment:
     STAGE: ${self:custom.stage}
     INFRASTRUCTURE: ${self:custom.infrastructure}
