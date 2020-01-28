@@ -2,16 +2,10 @@ There are current two ways to run tests, using either PostgreSQL or SQLite.
 
 ## PostgreSQL Testing (default, closer to most prod environments)
 
-1. Install PostgreSQL
-2. In PostgreSQL, create a database and user named "spoke_test":
-
-```
-CREATE DATABASE spoke_test;
-CREATE USER spoke_test WITH PASSWORD 'spoke_test';
-GRANT ALL PRIVILEGES ON DATABASE spoke_test TO spoke_test;
-```
-
-3. Run `npm test`
+1. Install docker and docker compose
+2. Run `docker-compose up -d` to start your development environment
+3. Create the test database by running `./create_test_database.sh`
+4. Run `yarn test`
 
 ## SQLite Testing (simpler)
 
