@@ -409,20 +409,21 @@ class AdminCampaignEdit extends React.Component {
         blocksStarting: false,
         expandAfterCampaignStarts: true,
         expandableBySuperVolunteers: false
-      },
-      {
-        title: "Script Import",
-        content: AdminScriptImport,
-        keys: [],
-        checkCompleted: () => true,
-        blocksStarting: false,
-        expandAfterCampaignStarts: false,
-        expandableBySuperVolunteers: false,
-        extraProps: {
-          campaignData: this.props.campaignData
-        },
-        doNotSaveAfterSubmit: true
       }
+      // Temporarily disabled, might be removed completely
+      // {
+      //   title: "Script Import",
+      //   content: AdminScriptImport,
+      //   keys: [],
+      //   checkCompleted: () => true,
+      //   blocksStarting: false,
+      //   expandAfterCampaignStarts: false,
+      //   expandableBySuperVolunteers: false,
+      //   extraProps: {
+      //     campaignData: this.props.campaignData
+      //   },
+      //   doNotSaveAfterSubmit: true
+      // }
     ];
   }
 

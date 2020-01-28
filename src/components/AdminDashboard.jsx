@@ -83,11 +83,13 @@ class AdminDashboard extends React.Component {
         path: "optouts",
         role: "ADMIN"
       },
-      {
-        name: "Message Review",
-        path: "incoming",
-        role: "SUPERVOLUNTEER"
-      },
+      // Temporarily disabled because it isn't working
+      // See: https://github.com/Elizabeth-Warren/internal-spoke/issues/25
+      // {
+      //   name: "Message Review",
+      //   path: "incoming",
+      //   role: "SUPERVOLUNTEER"
+      // },
       {
         name: "Settings",
         path: "settings",
