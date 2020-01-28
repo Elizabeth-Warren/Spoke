@@ -3,7 +3,14 @@
 This is Team Warren's internal fork of Spoke based off of the [staging_20191102](https://github.com/WorkingFamilies/Spoke/tree/staging_20191102)
 branch of the Working Families Party's fork of MoveOn's Spoke.
 
-\*Note: We want to contribute our changes upstream. Assume this repo will be made public and commit accordingly."
+_Note: We want to contribute our changes upstream. Assume this repo will be made public and commit accordingly._
+
+Notable changes from upstream:
+
+- Removed support for Nexmo
+- Removed support for Mailgun and custom SMTP servers in favor of SES
+
+/ begin original README
 
 # Spoke
 

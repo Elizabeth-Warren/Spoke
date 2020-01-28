@@ -1,59 +1,42 @@
 import { log } from "../lib";
-import nodemailer from "nodemailer";
-import mailgunConstructor from "mailgun-js";
+import aws from "aws-sdk";
 
-// TODO: remove both mailgun and nodemailer and use the sns with the aws sdk
-const mailgun =
-  process.env.MAILGUN_API_KEY &&
-  process.env.MAILGUN_DOMAIN &&
-  mailgunConstructor({
-    apiKey: process.env.MAILGUN_API_KEY,
-    domain: process.env.MAILGUN_DOMAIN
-  });
+let ses;
+if (process.env.EMAIL_ENABLED) {
+  if (!process.env.EMAIL_FROM) {
+    log.warn(
+      "Found env var EMAIL_ENABLED without EMAIL_FROM, email will be disabled."
+    );
+  } else if (!process.env.AWS_REGION) {
+    log.warn(
+      "Found env var EMAIL_ENABLED without AWS_REGION, email will be disabled."
+    );
+  } else {
+    ses = new aws.SES({ region: process.env.AWS_REGION });
+  }
+}
 
-const sender =
-  process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN
-    ? {
-        sendMail: ({ from, to, subject, replyTo, text }) =>
-          mailgun.messages().send({
-            from,
-            "h:Reply-To": replyTo,
-            to,
-            subject,
-            text
-          })
-      }
-    : nodemailer.createTransport({
-        host: process.env.EMAIL_HOST,
-        port: process.env.EMAIL_HOST_PORT,
-        secure:
-          typeof process.env.EMAIL_HOST_SECURE !== "undefined"
-            ? process.env.EMAIL_HOST_SECURE
-            : true,
-        auth: {
-          user: process.env.EMAIL_HOST_USER,
-          pass: process.env.EMAIL_HOST_PASSWORD
-        }
-      });
-
-export const sendEmail = async ({ to, subject, text, replyTo }) => {
+export const sendEmail = ({ to, subject, text, replyTo }) => {
   log.info(`Sending e-mail to ${to} with subject ${subject}.`);
-
-  if (process.env.NODE_ENV === "development") {
+  if (!ses) {
     log.debug(`Would send e-mail with subject ${subject} and text ${text}.`);
     return null;
   }
 
   const params = {
-    from: process.env.EMAIL_FROM,
-    to,
-    subject,
-    text
+    Destination: {
+      ToAddresses: [to]
+    },
+    Message: {
+      Body: { Text: { Data: text } },
+      Subject: { Data: subject }
+    },
+    Source: process.env.EMAIL_FROM
   };
 
   if (replyTo) {
-    params["replyTo"] = replyTo;
+    params.ReplyToAddresses = [replyTo];
   }
 
-  return sender.sendMail(params);
+  return ses.sendEmail(params).promise();
 };

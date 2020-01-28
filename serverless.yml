@@ -37,6 +37,7 @@ provider:
   environment:
     STAGE: ${self:custom.stage}
     INFRASTRUCTURE: ${self:custom.infrastructure}
+    AWS_REGION: us-east-1
     NODE_ENV: production
     STATIC_BASE_URL: /assets/
     SUPPRESS_SELF_INVITE: 1
