@@ -37,7 +37,6 @@ provider:
   environment:
     STAGE: ${self:custom.stage}
     INFRASTRUCTURE: ${self:custom.infrastructure}
-    AWS_REGION: us-east-1
     NODE_ENV: production
     STATIC_BASE_URL: /assets/
     SUPPRESS_SELF_INVITE: 1
@@ -58,6 +57,9 @@ provider:
     DB_TYPE: pg
     DB_USER: ${ssm:/${self:custom.stage}/spoke/postgres/USER~true}
     DB_PASSWORD: ${ssm:/${self:custom.stage}/spoke/postgres/PASSWORD~true}
+    EMAIL_ENABLED: 1
+    EMAIL_FROM: ${ssm:/${self:custom.stage}/spoke/EMAIL_FROM~true}
+    SES_REGION: us-east-1
     REDIS_URL: redis://${ssm:/${self:custom.stage}/redis_cache/PRIMARY_ENDPOINT~true}:6379/2
     CACHE_PREFIX: spoke
     TWILIO_API_KEY: ${ssm:/${self:custom.stage}/spoke/TWILIO_API_KEY~true}

@@ -7,12 +7,12 @@ if (process.env.EMAIL_ENABLED) {
     log.warn(
       "Found env var EMAIL_ENABLED without EMAIL_FROM, email will be disabled."
     );
-  } else if (!process.env.AWS_REGION) {
+  } else if (!process.env.SES_REGION) {
     log.warn(
-      "Found env var EMAIL_ENABLED without AWS_REGION, email will be disabled."
+      "Found env var EMAIL_ENABLED without SES_REGION, email will be disabled."
     );
   } else {
-    ses = new aws.SES({ region: process.env.AWS_REGION });
+    ses = new aws.SES({ region: process.env.SES_REGION });
   }
 }
 
