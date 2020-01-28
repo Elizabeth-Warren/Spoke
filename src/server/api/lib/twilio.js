@@ -104,8 +104,7 @@ async function sendMessage(message, contact, trx) {
       {
         to: message.contact_number,
         body: message.text,
-        messagingServiceSid: process.env.TWILIO_MESSAGE_SERVICE_SID,
-        statusCallback: process.env.TWILIO_STATUS_CALLBACK_URL
+        messagingServiceSid: process.env.TWILIO_MESSAGE_SERVICE_SID
       },
       parseMessageText(message)
     );
