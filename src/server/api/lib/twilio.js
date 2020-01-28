@@ -9,9 +9,12 @@ const MAX_SEND_ATTEMPTS = 5;
 const MESSAGE_VALIDITY_PADDING_SECONDS = 30;
 const MAX_TWILIO_MESSAGE_VALIDITY = 14400;
 
-if (process.env.TWILIO_API_KEY && process.env.TWILIO_AUTH_TOKEN) {
+if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
   // eslint-disable-next-line new-cap
-  twilio = Twilio(process.env.TWILIO_API_KEY, process.env.TWILIO_AUTH_TOKEN);
+  twilio = Twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
+  );
 } else {
   log.warn("NO TWILIO CONNECTION");
 }

@@ -9,6 +9,7 @@ Notable changes from upstream:
 
 - Removed support for Nexmo
 - Removed support for Mailgun and custom SMTP servers in favor of SES
+- Removed and renamed some env vars, notable TWILIO_API_KEY -> TWILIO_ACCOUNT_SID
 
 / begin original README
 

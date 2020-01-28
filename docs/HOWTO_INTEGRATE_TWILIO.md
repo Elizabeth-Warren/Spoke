@@ -34,7 +34,7 @@ If you are using these instructions for an Heroku instance or AWS Lambda instanc
 9. Visit the [dashboard](https://www.twilio.com/console)
 10. Under `Account Summary`
 
-- `TWILIO_API_KEY` in your .env file (or Heroku config variable) is `ACCOUNT SID` in your Twilio console
+- `TWILIO_ACCOUNT_SID` in your .env file (or Heroku config variable) is `ACCOUNT SID` in your Twilio console
 - `TWILIO_AUTH_TOKEN` in your .env file (or Heroku config variable) is `AUTH TOKEN` in your Twilio console
 
 11. If you want to send live text messages as part of your testing, you must buy a phone number and attach it to your project.
