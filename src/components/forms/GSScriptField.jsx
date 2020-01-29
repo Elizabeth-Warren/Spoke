@@ -1,4 +1,5 @@
 import React from "react";
+import pick from "lodash/pick";
 import GSFormField from "./GSFormField";
 import { allScriptFields } from "../../lib/scripts";
 import ScriptEditor from "../ScriptEditor";
@@ -85,9 +86,22 @@ export default class GSScriptField extends GSFormField {
   }
 
   render() {
+    const passThroughProps = pick(this.props, [
+      "className",
+      "fullWidth",
+      "hintText",
+      "label",
+      "multiLine",
+      "name",
+      "value",
+      "data-test",
+      "onBlur"
+    ]);
+
     return (
       <div>
         <TextField
+          onChange={null}
           multiLine
           onTouchTap={event => {
             this.handleOpenDialog(event);
@@ -96,7 +110,8 @@ export default class GSScriptField extends GSFormField {
           floatingLabelStyle={{
             zIndex: 0
           }}
-          {...this.props}
+          defaultValue={""}
+          {...passThroughProps}
         />
         {this.renderDialog()}
       </div>
