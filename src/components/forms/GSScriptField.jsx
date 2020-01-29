@@ -103,6 +103,7 @@ export default class GSScriptField extends GSFormField {
         <TextField
           onChange={null}
           multiLine
+          onFocus={event => this.handleOpenDialog(event)}
           onTouchTap={event => {
             this.handleOpenDialog(event);
           }}
