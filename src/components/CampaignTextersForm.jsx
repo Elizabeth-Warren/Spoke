@@ -466,8 +466,8 @@ export default class CampaignTextersForm extends React.Component {
 
     const headerColor =
       assignedContacts === this.formValues().contactsCount
-        ? theme.colors.green
-        : theme.colors.orange;
+        ? theme.colors.EWnavy
+        : theme.colors.EWred;
     return (
       <div>
         <CampaignFormSectionHeading

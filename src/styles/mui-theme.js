@@ -7,11 +7,11 @@ const muiTheme = getMuiTheme(
   {
     fontFamily: "Poppins",
     palette: {
-      primary1Color: theme.colors.green,
+      primary1Color: theme.colors.EWnavy,
       textColor: theme.text.body.color,
-      primary2Color: theme.colors.orange,
+      primary2Color: theme.colors.EWred,
       primary3Color: grey400,
-      accent1Color: theme.colors.orange,
+      accent1Color: theme.colors.EWred,
       accent2Color: theme.colors.lightGray,
       accent3Color: grey500,
       alternateTextColor: theme.colors.white,

@@ -496,7 +496,7 @@ class AdminCampaignEdit extends React.Component {
       <div
         {...dataTest("campaignIsStarted")}
         style={{
-          color: theme.colors.green,
+          color: theme.colors.EWnavy,
           fontWeight: 800
         }}
       >
@@ -649,27 +649,27 @@ class AdminCampaignEdit extends React.Component {
             cardHeaderStyle.background = theme.colors.lightGray;
             cardHeaderStyle.width = `${savePercent}%`;
           } else if (sectionIsExpanded && sectionCanExpandOrCollapse) {
-            cardHeaderStyle.backgroundColor = theme.colors.lightYellow;
+            cardHeaderStyle.backgroundColor = theme.colors.EWlightLibertyGreen;
           } else if (!sectionCanExpandOrCollapse) {
             cardHeaderStyle.backgroundColor = theme.colors.lightGray;
           } else if (sectionIsDone) {
             avatar = (
               <Avatar
-                icon={<DoneIcon style={{ fill: theme.colors.darkGreen }} />}
+                icon={<DoneIcon style={{ fill: theme.colors.EWnavy }} />}
                 style={avatarStyle}
                 size={25}
               />
             );
-            cardHeaderStyle.backgroundColor = theme.colors.green;
+            cardHeaderStyle.backgroundColor = theme.colors.EWlibertyGreen;
           } else if (!sectionIsDone) {
             avatar = (
               <Avatar
-                icon={<WarningIcon style={{ fill: theme.colors.orange }} />}
+                icon={<WarningIcon style={{ fill: theme.colors.EWred }} />}
                 style={avatarStyle}
                 size={25}
               />
             );
-            cardHeaderStyle.backgroundColor = theme.colors.yellow;
+            cardHeaderStyle.backgroundColor = theme.colors.EWlibertyGreen;
           }
           return (
             <Card

@@ -9,7 +9,7 @@ import { log } from "../../lib";
 
 const styles = StyleSheet.create({
   errorMessage: {
-    color: theme.colors.red,
+    color: theme.colors.EWred,
     marginRight: "auto",
     marginLeft: "auto",
     textAlign: "center"

@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
   button: {
     border: "none",
     background: theme.colors.lightGray,
-    color: theme.colors.darkGreen,
+    color: theme.colors.EWnavy,
     padding: "16px 16px",
     "font-size": "14px",
     "text-transform": "uppercase",
@@ -35,12 +35,12 @@ const styles = StyleSheet.create({
     ":disabled": {
       background: theme.colors.white,
       cursor: "default",
-      color: theme.colors.green
+      color: theme.colors.EWnavy
     }
   },
   header: {
     ...theme.text.header,
-    color: theme.colors.green,
+    color: theme.colors.EWnavy,
     "text-align": "center",
     "margin-bottom": 0
   }

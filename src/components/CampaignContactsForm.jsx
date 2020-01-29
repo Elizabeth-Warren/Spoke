@@ -16,9 +16,9 @@ import { StyleSheet, css } from "aphrodite";
 import yup from "yup";
 import { dataTest } from "../lib/attributes";
 
-const checkIcon = <CheckIcon color={theme.colors.green} />;
-const warningIcon = <WarningIcon color={theme.colors.orange} />;
-const errorIcon = <ErrorIcon color={theme.colors.red} />;
+const checkIcon = <CheckIcon color={theme.colors.EWnavy} />;
+const warningIcon = <WarningIcon color={theme.colors.EWred} />;
+const errorIcon = <ErrorIcon color={theme.colors.EWred} />;
 
 const innerStyles = {
   button: {

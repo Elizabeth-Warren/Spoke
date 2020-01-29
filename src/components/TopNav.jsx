@@ -10,7 +10,7 @@ import { StyleSheet, css } from "aphrodite";
 const styles = StyleSheet.create({
   container: {
     ...theme.layouts.multiColumn.container,
-    backgroundColor: theme.colors.green,
+    backgroundColor: theme.colors.EWnavy,
     color: theme.colors.white,
     height: 65,
     verticalAlign: "middle",

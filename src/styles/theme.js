@@ -1,41 +1,39 @@
 const colors = {
-  orange: "rgb(255, 102, 0)",
   lightGreen: "rgb(245, 255, 247)",
-  blue: "rgb(20, 127, 215)",
-  purple: "#5f2787",
-  lightBlue: "rgb(196, 223, 245)",
-  darkBlue: "rgb(13, 81, 139)",
   red: "rgb(245, 91, 91)",
-  lightRed: "rgb(255, 141, 141)",
-  darkRed: "rgb(237, 60, 57)",
-  green: "rgb(183,228,207)", // liberty green, original: "rgb(83, 180, 119)",
+  green: "rgb(83, 180, 119)",
   darkGreen: "rgb(24, 154, 52)",
   darkGray: "rgb(54, 67, 80)",
   gray: "rgb(153, 155, 158)",
   veryLightGray: "rgb(240, 242, 240)",
   lightGray: "rgb(225, 228, 224)",
   white: "rgb(255,255,255)",
-  yellow: "rgb(250,190,40)",
-  lightYellow: "rgb(252, 214, 120)"
+  lightYellow: "rgb(252, 214, 120)",
+  //remove unused colors and remove EW from color names
+  EWlibertyGreen: "rgb(183,228,207)",
+  EWlightLibertyGreen: "rgb(227,244,236)",
+  EWnavy: "rgb(35,36,68)",
+  EWlightGrey: "rgb(247,247,247)",
+  EWred: "rgb(182,27,40)"
 };
 
 const defaultFont = "Poppins";
 
 const text = {
   body: {
-    color: colors.darkGray,
+    color: colors.EWnavy,
     fontSize: 14,
     fontFamily: defaultFont
   },
   link_light_bg: {
     fontWeight: 400,
-    color: colors.green,
+    color: colors.EWnavy,
     textDecoration: "none",
-    borderBottom: `1px solid ${colors.green}`,
+    borderBottom: `1px solid ${colors.EWnavy}`,
     cursor: "pointer",
     ":hover": {
       borderBottom: 0,
-      color: colors.orange
+      color: colors.EWred
     },
     "a:visited": {
       fontWeight: 400,
@@ -52,7 +50,7 @@ const text = {
     cursor: "pointer",
     ":hover": {
       borderBottom: 0,
-      color: colors.orange
+      color: colors.EWred
     },
     "a:visited": {
       fontWeight: 400,
@@ -95,7 +93,7 @@ const layouts = {
     marginLeft: "auto",
     marginRight: "auto",
     textAlign: "center",
-    backgroundColor: colors.green,
+    backgroundColor: colors.EWnavy,
     color: colors.white
   }
 };
