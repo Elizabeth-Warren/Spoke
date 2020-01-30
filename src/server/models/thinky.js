@@ -75,14 +75,9 @@ thinkyConn.r.getCount = async query => {
   return Number((await query.count("* as count").first()).count);
 };
 
-if (process.env.REDIS_URL) {
-  thinkyConn.r.redis = redis.createClient({ url: process.env.REDIS_URL });
-} else if (process.env.REDIS_FAKE) {
-  const fakeredis = require("fakeredis");
-  bluebird.promisifyAll(fakeredis.RedisClient.prototype);
-  bluebird.promisifyAll(fakeredis.Multi.prototype);
-
-  thinkyConn.r.redis = fakeredis.createClient();
+const REDIS_URL = process.env.REDIS_URL || global.REDIS_URL;
+if (REDIS_URL) {
+  thinkyConn.r.redis = redis.createClient({ url: REDIS_URL });
 }
 
 export default thinkyConn;
