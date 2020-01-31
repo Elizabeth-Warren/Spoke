@@ -1163,6 +1163,7 @@ const rootMutations = {
       const optOut = await r
         .table("opt_out")
         .getAll(contact.cell, { index: "cell" })
+        // TODO[matteo]: cross-organization opt outs not respected here!
         .filter({ organization_id: organization.id })
         .limit(1)(0)
         .default(null);

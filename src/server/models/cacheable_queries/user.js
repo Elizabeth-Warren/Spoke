@@ -1,6 +1,7 @@
 import DataLoader from "dataloader";
 import { r } from "../../models";
 import { ROLE_HIERARCHY, isRoleGreater } from "../../../lib/permissions";
+import config from "../../config";
 
 /*
 KEY: texterauth-${authId}
@@ -26,10 +27,8 @@ currentEditors(campaign, user) -> string
 userOrgsWithRole(role, user.id) -> organization list
 */
 
-const userRoleKey = userId =>
-  `${process.env.CACHE_PREFIX || ""}texterroles-${userId}`;
-const userAuthKey = authId =>
-  `${process.env.CACHE_PREFIX || ""}texterauth-${authId}`;
+const userRoleKey = userId => `${config.CACHE_PREFIX}texterroles-${userId}`;
+const userAuthKey = authId => `${config.CACHE_PREFIX}texterauth-${authId}`;
 
 const getHighestRolesPerOrg = userOrgs => {
   const highestRolesPerOrg = {};

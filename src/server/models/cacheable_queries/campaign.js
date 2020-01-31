@@ -1,5 +1,6 @@
 import { r, Campaign } from "../../models";
 import { organizationCache } from "./organization";
+import config from "../../config";
 
 // This should be cached data for a campaign that will not change
 // based on assignments or texter actions
@@ -18,7 +19,7 @@ import { organizationCache } from "./organization";
 // * organization metadata (saved in organization.js instead)
 // * campaignCannedResponses (saved in canned-responses.js instead)
 
-const cacheKey = id => `${process.env.CACHE_PREFIX | ""}campaign-${id}`;
+const cacheKey = id => `${config.CACHE_PREFIX}campaign-${id}`;
 
 const dbCustomFields = async id => {
   const campaignContacts = await r
@@ -62,7 +63,7 @@ const loadDeep = async id => {
     await r.redis
       .multi()
       .set(cacheKey(id), JSON.stringify(campaign))
-      .expire(cacheKey(id), 86400)
+      .expire(cacheKey(id), config.DEFAULT_CACHE_TTL)
       .execAsync();
   }
   return null;

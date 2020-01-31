@@ -1,5 +1,6 @@
 import { r, CampaignContact } from "../../models";
 import { optOutCache } from "./opt-out";
+import config from "../../config";
 
 // <campaignContactId>
 //   - assignmentId
@@ -43,7 +44,7 @@ const getMessageServiceSid = organization => {
   return orgSid;
 };
 
-const cacheKey = async id => `${process.env.CACHE_PREFIX | ""}contact-${id}`;
+const cacheKey = async id => `${config.CACHE_PREFIX}contact-${id}`;
 
 const saveCacheRecord = async (dbRecord, organization, messageServiceSid) => {
   if (r.redis) {

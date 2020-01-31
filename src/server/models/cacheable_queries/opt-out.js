@@ -1,12 +1,13 @@
 import { r, OptOut } from "../../models";
+import config from "../../config";
 
 // STRUCTURE
 // maybe HASH by organization, so optout-<organization_id> has a <cell> key
 
 const orgCacheKey = orgId =>
   !!process.env.OPTOUTS_SHARE_ALL_ORGS
-    ? `${process.env.CACHE_PREFIX | ""}optouts`
-    : `${process.env.CACHE_PREFIX | ""}optouts-${orgId}`;
+    ? `${config.CACHE_PREFIX}optouts`
+    : `${config.CACHE_PREFIX}optouts-${orgId}`;
 
 const sharingOptOuts = !!process.env.OPTOUTS_SHARE_ALL_ORGS;
 
@@ -30,7 +31,8 @@ const loadMany = async organizationId => {
         cellOptOuts.slice(100 * i100, 100 * i100 + 100)
       );
     }
-    await r.redis.expire(hashKey, 86400);
+    // TODO[matteo]: what should this be?
+    await r.redis.expire(hashKey, 43200); // 12 hours
     console.log(`CACHE: Loaded optouts for ${organizationId}`);
   }
 };
@@ -51,7 +53,7 @@ export const optOutCache = {
     // return optout result by db or by cache.
     // for a particular organization, if the org Id is NOT cached
     // then cache the WHOLE set of opt-outs for organizationId at once
-    // and expire them in a day.
+    // and expire them after 12 hours.
     const accountingForOrgSharing = !sharingOptOuts
       ? { organization_id: organizationId, cell }
       : { cell };

@@ -1,4 +1,5 @@
 import { r } from "../../models";
+import config from "../../config";
 
 // Datastructure:
 // * regular GET/SET with JSON ordered list of the objects {id,title,text}
@@ -8,7 +9,7 @@ import { r } from "../../models";
 // * needs to get by campaignId-userId pairs
 
 const cacheKey = (campaignId, userId) =>
-  `${process.env.CACHE_PREFIX | ""}canned-${campaignId}-${userId | ""}`;
+  `${config.CACHE_PREFIX}canned-${campaignId}-${userId || ""}`;
 
 export const cannedResponseCache = {
   clearQuery: async ({ campaignId, userId }) => {
@@ -26,6 +27,7 @@ export const cannedResponseCache = {
     const dbResult = await r
       .table("canned_response")
       .getAll(campaignId, { index: "campaign_id" })
+      // TODO[matteo]: is this correct when userId is undefined?
       .filter({ user_id: userId || "" })
       .orderBy("title");
     if (r.redis) {
@@ -38,7 +40,7 @@ export const cannedResponseCache = {
       await r.redis
         .multi()
         .set(cacheKey(campaignId, userId), JSON.stringify(cacheData))
-        .expire(cacheKey(campaignId, userId), 86400)
+        .expire(cacheKey(campaignId, userId), config.DEFAULT_CACHE_TTL)
         .execAsync();
     }
     return dbResult;

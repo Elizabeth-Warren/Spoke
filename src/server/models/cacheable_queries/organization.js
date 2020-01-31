@@ -1,6 +1,7 @@
 import { r } from "../../models";
+import config from "../../config";
 
-const cacheKey = orgId => `${process.env.CACHE_PREFIX | ""}org-${orgId}`;
+const cacheKey = orgId => `${config.CACHE_PREFIX}org-${orgId}`;
 
 export const organizationCache = {
   clear: async id => {
@@ -30,7 +31,7 @@ export const organizationCache = {
         await r.redis
           .multi()
           .set(cacheKey(id), JSON.stringify(dbResult))
-          .expire(cacheKey(id), 86400)
+          .expire(cacheKey(id), config.DEFAULT_CACHE_TTL)
           .execAsync();
       }
       return dbResult;
