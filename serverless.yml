@@ -68,8 +68,8 @@ provider:
     EMAIL_ENABLED: 1
     EMAIL_FROM: ${ssm:/${self:custom.stage}/spoke/EMAIL_FROM~true}
     SES_REGION: us-east-1
-    REDIS_URL: redis://${ssm:/${self:custom.stage}/redis_cache/PRIMARY_ENDPOINT~true}:6379/2
-    CACHE_PREFIX: spoke
+    REDIS_URL: redis://${ssm:/${self:custom.stage}/redis_cache/PRIMARY_ENDPOINT~true}:6379/3
+    CACHE_PREFIX: spoke-
     TWILIO_ACCOUNT_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_ACCOUNT_SID~true}
     TWILIO_AUTH_TOKEN: ${ssm:/${self:custom.stage}/spoke/TWILIO_AUTH_TOKEN~true}
     TWILIO_MESSAGE_SERVICE_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_MESSAGE_SERVICE_SID~true}
@@ -82,7 +82,7 @@ functions:
   api:
     handler: lambda.handler
     vpc: ${self:custom.vpcConfig}
-    timeout: 30
+    timeout: 90
     events:
       - http: ANY /
       - http: ANY {proxy+}
