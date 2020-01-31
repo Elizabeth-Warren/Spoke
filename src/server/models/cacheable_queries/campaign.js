@@ -72,15 +72,11 @@ const loadDeep = async id => {
 const currentEditors = async (campaign, user) => {
   // Add user ID in case of duplicate admin names
   const displayName = `${user.id}~${user.first_name} ${user.last_name}`;
+  const key = `${config.CACHE_PREFIX}campaign_editors_${campaign.id}`;
+  await r.redis.hsetAsync(key, displayName, new Date());
+  await r.redis.expire(key, 120);
 
-  await r.redis.hsetAsync(
-    `campaign_editors_${campaign.id}`,
-    displayName,
-    new Date()
-  );
-  await r.redis.expire(`campaign_editors_${campaign.id}`, 120);
-
-  let editors = await r.redis.hgetallAsync(`campaign_editors_${campaign.id}`);
+  let editors = await r.redis.hgetallAsync(key);
 
   // Only get editors that were active in the last 2 mins, and exclude the
   // current user
