@@ -129,7 +129,7 @@ class AssignmentTexterSurveys extends Component {
       <Card style={styles.card} onExpandChange={this.handleExpandChange}>
         <CardHeader
           style={styles.cardHeader}
-          title={showAllQuestions ? "All questions" : "Current question"}
+          title={showAllQuestions ? "All questions" : ""}
           showExpandableButton={interactionSteps.length > 1}
         />
         <CardText style={styles.cardText}>
