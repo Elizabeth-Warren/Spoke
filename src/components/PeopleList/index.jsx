@@ -63,7 +63,7 @@ export class PeopleList extends Component {
       label: "Email",
       style: {
         textOverflow: "ellipsis",
-        overflow: "scroll",
+        overflow: "hidden",
         whiteSpace: "pre-line"
       }
     },
@@ -72,7 +72,7 @@ export class PeopleList extends Component {
       label: "Role",
       style: {
         textOverflow: "ellipsis",
-        overflow: "scroll",
+        overflow: "hidden",
         whiteSpace: "pre-line"
       },
       render: this.renderRolesDropdown
@@ -82,7 +82,7 @@ export class PeopleList extends Component {
       label: "",
       style: {
         textOverflow: "ellipsis",
-        overflow: "scroll",
+        overflow: "hidden",
         whiteSpace: "pre-line"
       },
       render: this.renderEditButton
@@ -92,7 +92,7 @@ export class PeopleList extends Component {
       label: "",
       style: {
         textOverflow: "ellipsis",
-        overflow: "scroll",
+        overflow: "hidden",
         whiteSpace: "pre-line"
       },
       render: this.renderChangePasswordButton

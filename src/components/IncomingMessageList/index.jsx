@@ -111,7 +111,7 @@ export class IncomingMessageList extends Component {
       label: "Texter",
       style: {
         textOverflow: "ellipsis",
-        overflow: "scroll",
+        overflow: "hidden",
         whiteSpace: "pre-line"
       }
     },
@@ -120,7 +120,7 @@ export class IncomingMessageList extends Component {
       label: "To",
       style: {
         textOverflow: "ellipsis",
-        overflow: "scroll",
+        overflow: "hidden",
         whiteSpace: "pre-line"
       }
     },
@@ -129,7 +129,7 @@ export class IncomingMessageList extends Component {
       label: "Conversation Status",
       style: {
         textOverflow: "ellipsis",
-        overflow: "scroll",
+        overflow: "hidden",
         whiteSpace: "pre-line"
       },
       render: (columnKey, row) => MESSAGE_STATUSES[row.status].name
@@ -139,7 +139,7 @@ export class IncomingMessageList extends Component {
       label: "Latest Message",
       style: {
         textOverflow: "ellipsis",
-        overflow: "scroll",
+        overflow: "hidden",
         whiteSpace: "pre-line"
       },
       render: (columnKey, row) => {
@@ -168,12 +168,23 @@ export class IncomingMessageList extends Component {
       }
     },
     {
-      key: "viewConversation",
-      label: "View Conversation",
+      key: "tags",
+      label: "Tags",
       style: {
         textOverflow: "ellipsis",
-        overflow: "scroll",
+        overflow: "hidden",
         whiteSpace: "pre-line"
+      },
+      render: (columnKey, row) => this.renderTags(row.tags)
+    },
+    {
+      key: "viewConversation",
+      label: "",
+      style: {
+        textOverflow: "ellipsis",
+        overflow: "hidden",
+        whiteSpace: "pre-line",
+        alignContent: "center"
       },
       render: (columnKey, row) => {
         return (
@@ -187,7 +198,6 @@ export class IncomingMessageList extends Component {
                 icon={<ActionOpenInNew />}
               />
             )}
-            {this.renderTags(row.tags)}
           </div>
         );
       }
