@@ -48,7 +48,8 @@ const Message = thinky.createModel(
       queued_at: timestamp(),
       sent_at: timestamp(),
       service_response_at: timestamp(),
-      send_before: optionalTimestamp()
+      send_before: optionalTimestamp(),
+      messaging_service_sid: type.string().allowNull(true)
     })
     .allowExtra(false),
   { noAutoCreation: true, dependencies: [User, Assignment] }
@@ -60,5 +61,6 @@ Message.ensureIndex("send_status");
 Message.ensureIndex("user_number");
 Message.ensureIndex("contact_number");
 Message.ensureIndex("service_id");
+Message.ensureIndex("messaging_service_sid");
 
 export default Message;

@@ -664,6 +664,8 @@ const rootMutations = {
         "ADMIN",
         /* allowSuperadmin=*/ true
       );
+      const organization = await Organization.get(campaign.organizationId);
+      const orgFeatures = JSON.parse(organization.features || "{}");
       const campaignInstance = new Campaign({
         organization_id: campaign.organizationId,
         creator_id: user.id,
@@ -671,7 +673,10 @@ const rootMutations = {
         description: campaign.description,
         due_by: campaign.dueBy,
         is_started: false,
-        is_archived: false
+        is_archived: false,
+        messaging_service_sid:
+          orgFeatures.messaging_service_sid ||
+          process.env.TWILIO_MESSAGE_SERVICE_SID
       });
       const newCampaign = await campaignInstance.save();
       return editCampaign(newCampaign.id, campaign, loaders, user);
@@ -1249,12 +1254,13 @@ const rootMutations = {
       });
 
       await messageInstance.save();
-      const service =
-        serviceMap[
-          messageInstance.service ||
-            process.env.DEFAULT_SERVICE ||
-            global.DEFAULT_SERVICE
-        ];
+
+      const sendingServiceName =
+        messageInstance.service ||
+        process.env.DEFAULT_SERVICE ||
+        global.DEFAULT_SERVICE;
+
+      const service = serviceMap[sendingServiceName];
 
       contact.updated_at = "now()";
 
@@ -1268,12 +1274,20 @@ const rootMutations = {
       }
 
       await contact.save();
-
       log.info(
-        `Sending (${service}): ${messageInstance.user_number} -> ${messageInstance.contact_number}\nMessage: ${messageInstance.text}`
+        `Sending (${sendingServiceName}): ${messageInstance.user_number} -> ${messageInstance.contact_number}\nMessage: ${messageInstance.text}`
       );
 
-      service.sendMessage(messageInstance, contact);
+      try {
+        await service.sendMessage(messageInstance, contact);
+      } catch (e) {
+        // TODO[matteo]: investigate how to get apollo to log stacktraces, at least in dev
+        console.error(
+          `Exception when sending message ${messageInstance.id}`,
+          e
+        );
+        throw e;
+      }
       return contact;
     },
     deleteQuestionResponses: async (

@@ -53,7 +53,8 @@ const Campaign = thinky.createModel(
       timezone: type
         .string()
         .required()
-        .default("US/Eastern")
+        .default("US/Eastern"),
+      messaging_service_sid: type.string().allowNull(true)
     })
     .allowExtra(false),
   { noAutoCreation: true }

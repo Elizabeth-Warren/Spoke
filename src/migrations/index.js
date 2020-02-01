@@ -305,6 +305,27 @@ const migrations = [
       });
       console.log("added has_unresolved_messages to campaign_contact");
     }
+  },
+  {
+    auto: true,
+    date: "2020-01-30",
+    migrate: async () => {
+      await r.knex.schema.alterTable("campaign", table => {
+        table.string("messaging_service_sid").nullable();
+      });
+    }
+  },
+  {
+    auto: true,
+    date: "2020-01-31",
+    migrate: async () => {
+      await r.knex.schema.alterTable("message", table => {
+        table
+          .string("messaging_service_sid")
+          .nullable()
+          .index();
+      });
+    }
   }
 
   /* migration template
@@ -323,10 +344,17 @@ const migrations = [
    */
 ];
 
+// TODO[matteo]: The whole knex/thinky integration assumes that the models and the
+//   migrations are exactly in-sync. It would be better to have one source
+//   of truth, and that should be knex.
+//   This hand-rolled migration runner isn't great either. It looks like
+//   other forks have migrated to using Knex migrations: http://knexjs.org/#Migrations
 export async function runMigrations(migrationIndex) {
   const exists = await Migrations.getAll()
     .limit(1)(0)
     .default(null);
+
+  // NOTE: Doesn't run _any_ migrations on a fresh db, it just creates the thinky models
   if (!exists) {
     // set the record for what is the current status-quo upon original installation
     const migrationRecord = await Migrations.save({

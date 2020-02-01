@@ -8,7 +8,7 @@ import {
   loadContactsFromDataWarehouseFragment,
   assignTexters,
   sendMessages,
-  handleIncomingMessageParts,
+  // handleIncomingMessageParts,
   fixOrgless,
   clearOldJobs,
   importScript
@@ -142,44 +142,45 @@ export const failedDayMessageSender = messageSenderCreator(function(mQuery) {
   return mQuery.where("created_at", ">", oneDayAgo);
 }, "SENDING");
 
-export async function handleIncomingMessages() {
-  setupUserNotificationObservers();
-  if (process.env.DEBUG_INCOMING_MESSAGES) {
-    console.log("Running handleIncomingMessages");
-  }
-  // eslint-disable-next-line no-constant-condition
-  let i = 0;
-  while (true) {
-    try {
-      if (process.env.DEBUG_SCALING) {
-        console.log("entering handleIncomingMessages. round: ", ++i);
-      }
-      const countPendingMessagePart = await r
-        .knex("pending_message_part")
-        .count("id AS total")
-        .then(total => {
-          let totalCount = 0;
-          totalCount = total[0].total;
-          return totalCount;
-        });
-      if (process.env.DEBUG_SCALING) {
-        console.log(
-          "counting handleIncomingMessages. count: ",
-          countPendingMessagePart
-        );
-      }
-      await sleep(500);
-      if (countPendingMessagePart > 0) {
-        if (process.env.DEBUG_SCALING) {
-          console.log("running handleIncomingMessages");
-        }
-        await handleIncomingMessageParts();
-      }
-    } catch (ex) {
-      log.error("error at handleIncomingMessages", ex);
-    }
-  }
-}
+// Not supported in Warren fork, see comment handleIncomingMessages
+// export async function handleIncomingMessages() {
+//   setupUserNotificationObservers();
+//   if (process.env.DEBUG_INCOMING_MESSAGES) {
+//     console.log("Running handleIncomingMessages");
+//   }
+//   // eslint-disable-next-line no-constant-condition
+//   let i = 0;
+//   while (true) {
+//     try {
+//       if (process.env.DEBUG_SCALING) {
+//         console.log("entering handleIncomingMessages. round: ", ++i);
+//       }
+//       const countPendingMessagePart = await r
+//         .knex("pending_message_part")
+//         .count("id AS total")
+//         .then(total => {
+//           let totalCount = 0;
+//           totalCount = total[0].total;
+//           return totalCount;
+//         });
+//       if (process.env.DEBUG_SCALING) {
+//         console.log(
+//           "counting handleIncomingMessages. count: ",
+//           countPendingMessagePart
+//         );
+//       }
+//       await sleep(500);
+//       if (countPendingMessagePart > 0) {
+//         if (process.env.DEBUG_SCALING) {
+//           console.log("running handleIncomingMessages");
+//         }
+//         await handleIncomingMessageParts();
+//       }
+//     } catch (ex) {
+//       log.error("error at handleIncomingMessages", ex);
+//     }
+//   }
+// }
 
 export async function runDatabaseMigrations(event, dispatcher, eventCallback) {
   console.log("inside runDatabaseMigrations1");
@@ -219,7 +220,7 @@ const processMap = {
   messageSender234,
   messageSender56,
   messageSender789,
-  handleIncomingMessages,
+  // handleIncomingMessages,
   fixOrgless
 };
 
@@ -227,7 +228,7 @@ const processMap = {
 // the others and messageSender should just pick up the stragglers
 const syncProcessMap = {
   // 'failedMessageSender': failedMessageSender, //see method for danger
-  handleIncomingMessages,
+  // handleIncomingMessages,
   checkMessageQueue,
   fixOrgless,
   clearOldJobs
@@ -264,6 +265,6 @@ export default {
   messageSender01,
   messageSender234,
   messageSender56,
-  messageSender789,
-  handleIncomingMessages
+  messageSender789
+  //  handleIncomingMessages
 };

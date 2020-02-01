@@ -1,6 +1,13 @@
 import Twilio from "twilio";
 import { getFormattedPhoneNumber } from "../../../lib/phone-format";
-import { Log, Message, PendingMessagePart, r } from "../../models";
+import {
+  Log,
+  Message,
+  PendingMessagePart,
+  Campaign,
+  Organization,
+  r
+} from "../../models";
 import { log } from "../../../lib";
 import { getLastMessage, saveNewIncomingMessage } from "./message-sending";
 
@@ -37,7 +44,11 @@ function webhook() {
   }
 }
 
-async function convertMessagePartsToMessage(messageParts) {
+async function convertMessagePartsToMessage(
+  messageParts,
+  messageSid,
+  messagingServiceSid
+) {
   const firstPart = messageParts[0];
   const userNumber = firstPart.user_number;
   const contactNumber = firstPart.contact_number;
@@ -49,7 +60,9 @@ async function convertMessagePartsToMessage(messageParts) {
     .join("");
 
   const lastMessage = await getLastMessage({
-    contactNumber
+    contactNumber,
+    messagingServiceSid,
+    service: "twilio"
   });
   return new Message({
     contact_number: contactNumber,
@@ -57,7 +70,8 @@ async function convertMessagePartsToMessage(messageParts) {
     is_from_contact: true,
     text,
     service_response: JSON.stringify(serviceMessages),
-    service_id: serviceMessages[0].MessagingServiceSid,
+    service_id: messageSid,
+    messaging_service_sid: messagingServiceSid,
     assignment_id: lastMessage.assignment_id,
     service: "twilio",
     send_status: "DELIVERED"
@@ -79,6 +93,16 @@ function parseMessageText(message) {
   return params;
 }
 
+async function messagingServiceForContact(contact) {
+  const campaign = await Campaign.get(contact.campaign_id);
+  const service = campaign.messaging_service_sid;
+  if (service) {
+    return service;
+  }
+  console.warn("Using default messaging service for campaign", campaign.id);
+  return process.env.TWILIO_MESSAGE_SERVICE_SID;
+}
+
 async function sendMessage(message, contact, trx) {
   if (!twilio) {
     log.warn(
@@ -95,6 +119,8 @@ async function sendMessage(message, contact, trx) {
     return "test_message_uuid";
   }
 
+  const messagingServiceSid = await messagingServiceForContact(contact);
+
   return new Promise((resolve, reject) => {
     if (message.service !== "twilio") {
       log.warn("Message not marked as a twilio message", message.id);
@@ -104,7 +130,7 @@ async function sendMessage(message, contact, trx) {
       {
         to: message.contact_number,
         body: message.text,
-        messagingServiceSid: process.env.TWILIO_MESSAGE_SERVICE_SID
+        messagingServiceSid
       },
       parseMessageText(message)
     );
@@ -147,13 +173,13 @@ async function sendMessage(message, contact, trx) {
     // TODO[matteo]: switch to promises now that the twilio sdk supports them
     twilio.messages.create(messageParams, (err, response) => {
       const messageToSave = {
-        ...message
+        ...message,
+        messaging_service_sid: messagingServiceSid
       };
-      log.info("messageToSave", messageToSave);
+      log.debug("messageToSave", messageToSave);
       let hasError = false;
       if (err) {
         hasError = true;
-        log.error("Error sending message", err);
         console.log("Error sending message", err);
         messageToSave.service_response += JSON.stringify(err);
       }
@@ -242,12 +268,17 @@ async function handleIncomingMessage(message) {
     !message.hasOwnProperty("MessageSid")
   ) {
     log.error(`This is not an incoming message: ${JSON.stringify(message)}`);
+    // TODO[matteo]: early return here?
   }
 
-  const { From, To, MessageSid } = message;
+  const { From, To, MessageSid, MessagingServiceSid } = message;
   const contactNumber = getFormattedPhoneNumber(From);
   const userNumber = To ? getFormattedPhoneNumber(To) : "";
 
+  // TODO[matteo]: PendingMessagePart isn't need, but keep this for now
+  // because i don't know what will break if we remove it.
+  // It appears this is only needed for async processing, which we do not
+  // intend to do.
   const pendingMessagePart = new PendingMessagePart({
     service: "twilio",
     service_id: MessageSid,
@@ -259,14 +290,21 @@ async function handleIncomingMessage(message) {
 
   const part = await pendingMessagePart.save();
   const partId = part.id;
-  if (process.env.JOBS_SAME_PROCESS) {
-    const finalMessage = await convertMessagePartsToMessage([part]);
-    await saveNewIncomingMessage(finalMessage);
-    await r
-      .knex("pending_message_part")
-      .where("id", partId)
-      .delete();
-  }
+
+  // NOTE: there used to be an async option but we've removed it. If you need
+  // to bring it back the following block was wrapped with:
+  // if (process.env.JOBS_SAME_PROCESS) {
+  const finalMessage = await convertMessagePartsToMessage(
+    [part],
+    MessageSid,
+    MessagingServiceSid
+  );
+  await saveNewIncomingMessage(finalMessage);
+  await r
+    .knex("pending_message_part")
+    .where("id", partId)
+    .delete();
+  // } end NOTE
   return partId;
 }
 
