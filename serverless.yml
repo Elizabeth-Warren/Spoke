@@ -78,6 +78,7 @@ provider:
     ASSETS_DIR: ./build/client/assets
     ASSETS_MAP_FILE: assets.json
     BASE_URL: ${self:custom.baseUrl}
+    OPTOUTS_SHARE_ALL_ORGS: 1
 functions:
   api:
     handler: lambda.handler
