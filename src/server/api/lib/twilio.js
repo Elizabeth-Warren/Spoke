@@ -44,40 +44,6 @@ function webhook() {
   }
 }
 
-async function convertMessagePartsToMessage(
-  messageParts,
-  messageSid,
-  messagingServiceSid
-) {
-  const firstPart = messageParts[0];
-  const userNumber = firstPart.user_number;
-  const contactNumber = firstPart.contact_number;
-  const serviceMessages = messageParts.map(part =>
-    JSON.parse(part.service_message)
-  );
-  const text = serviceMessages
-    .map(serviceMessage => serviceMessage.Body)
-    .join("");
-
-  const lastMessage = await getLastMessage({
-    contactNumber,
-    messagingServiceSid,
-    service: "twilio"
-  });
-  return new Message({
-    contact_number: contactNumber,
-    user_number: userNumber,
-    is_from_contact: true,
-    text,
-    service_response: JSON.stringify(serviceMessages),
-    service_id: messageSid,
-    messaging_service_sid: messagingServiceSid,
-    assignment_id: lastMessage.assignment_id,
-    service: "twilio",
-    send_status: "DELIVERED"
-  });
-}
-
 const mediaExtractor = new RegExp(/\[\s*(http[^\]\s]*)\s*\]/);
 
 function parseMessageText(message) {
@@ -232,6 +198,11 @@ async function sendMessage(message, contact, trx) {
   });
 }
 
+// TODO[matteo]: optimize this! The Twilio report endpoint is the most frequently
+//   called endpoint in the entire application, or at least it was at Hustle.
+//   This gets called even more when Twilio starts queuing, e.g. during GOTV, because
+//   we'll receive "queued" events. These should be safe to skip. We also might
+//   want to eliminate the Log.save().
 async function handleDeliveryReport(report) {
   const messageSid = report.MessageSid;
   if (messageSid) {
@@ -260,58 +231,150 @@ async function handleDeliveryReport(report) {
   }
 }
 
-async function handleIncomingMessage(message) {
+/**
+ * Warren version of the incoming message handler that doesn't write
+ * PendingMessageParts and therefore can't be used with the async worker code.
+ *
+ * @return void, this response was ignored by the twilio handler anyway and was
+ * the id of an already-deleted message part when doing synchronous processing.
+ */
+async function handleIncomingMessage(twilioMessage) {
   if (
-    !message.hasOwnProperty("From") ||
-    !message.hasOwnProperty("To") ||
-    !message.hasOwnProperty("Body") ||
-    !message.hasOwnProperty("MessageSid")
+    !twilioMessage.hasOwnProperty("From") ||
+    !twilioMessage.hasOwnProperty("To") ||
+    !twilioMessage.hasOwnProperty("Body") ||
+    !twilioMessage.hasOwnProperty("MessageSid")
   ) {
-    log.error(`This is not an incoming message: ${JSON.stringify(message)}`);
-    // TODO[matteo]: early return here?
+    log.error(
+      `This is not an incoming message: ${JSON.stringify(twilioMessage)}`
+    );
+    return;
   }
 
-  const { From, To, MessageSid, MessagingServiceSid } = message;
+  const { From, To, MessageSid, MessagingServiceSid } = twilioMessage;
   const contactNumber = getFormattedPhoneNumber(From);
   const userNumber = To ? getFormattedPhoneNumber(To) : "";
 
-  // TODO[matteo]: PendingMessagePart isn't need, but keep this for now
-  // because i don't know what will break if we remove it.
-  // It appears this is only needed for async processing, which we do not
-  // intend to do.
-  const pendingMessagePart = new PendingMessagePart({
-    service: "twilio",
-    service_id: MessageSid,
-    parent_id: null,
-    service_message: JSON.stringify(message),
-    user_number: userNumber,
-    contact_number: contactNumber
+  const lastOutbound = await getLastMessage({
+    contactNumber,
+    messagingServiceSid: MessagingServiceSid,
+    service: "twilio"
   });
 
-  const part = await pendingMessagePart.save();
-  const partId = part.id;
+  // NOTE: we intentionally drop inbound messages that don't have a matching
+  // outbound because they currently wouldn't go anywhere and are probably spam.
+  if (!lastOutbound) {
+    log.error(
+      `Couldn't find a matching outbound message for: ${JSON.stringify(
+        twilioMessage
+      )}`
+    );
+    return;
+  }
 
-  // NOTE: there used to be an async option but we've removed it. If you need
-  // to bring it back the following block was wrapped with:
-  // if (process.env.JOBS_SAME_PROCESS) {
-  const finalMessage = await convertMessagePartsToMessage(
-    [part],
-    MessageSid,
-    MessagingServiceSid
-  );
-  await saveNewIncomingMessage(finalMessage);
-  await r
-    .knex("pending_message_part")
-    .where("id", partId)
-    .delete();
-  // } end NOTE
-  return partId;
+  const messageModel = new Message({
+    contact_number: contactNumber,
+    user_number: userNumber,
+    is_from_contact: true,
+    text: twilioMessage.Body,
+    service_response: JSON.stringify(twilioMessage),
+    service_id: MessageSid,
+    messaging_service_sid: MessagingServiceSid,
+    assignment_id: lastOutbound.assignment_id,
+    service: "twilio",
+    send_status: "DELIVERED" // TODO[matteo]: this doesn't look right!
+  });
+
+  await saveNewIncomingMessage(messageModel);
 }
 
+// // NOTE: the commented section below is a lightly modified handleIncomingMessage
+// //  that works with the Warren fork's handling of multiple messaging service.
+// //  this should be usable for an async job with a few modifications (primarily adding
+// //  messaging_service_sid to PendingMessagePart), but it was not tested!
+// async function convertMessagePartsToMessage(
+//   messageParts,
+//   messageSid,
+//   messagingServiceSid
+// ) {
+//   const firstPart = messageParts[0];
+//   const userNumber = firstPart.user_number;
+//   const contactNumber = firstPart.contact_number;
+//   const serviceMessages = messageParts.map(part =>
+//     JSON.parse(part.service_message)
+//   );
+//   const text = serviceMessages
+//     .map(serviceMessage => serviceMessage.Body)
+//     .join("");
+//
+//   const lastMessage = await getLastMessage({
+//     contactNumber,
+//     messagingServiceSid,
+//     service: "twilio"
+//   });
+//
+//   return new Message({
+//     contact_number: contactNumber,
+//     user_number: userNumber,
+//     is_from_contact: true,
+//     text,
+//     service_response: JSON.stringify(serviceMessages),
+//     service_id: messageSid,
+//     messaging_service_sid: messagingServiceSid,
+//     assignment_id: lastMessage.assignment_id,
+//     service: "twilio",
+//     send_status: "DELIVERED"
+//   });
+// }
+//
+// async function handleIncomingMessage(message) {
+//   if (
+//     !message.hasOwnProperty("From") ||
+//     !message.hasOwnProperty("To") ||
+//     !message.hasOwnProperty("Body") ||
+//     !message.hasOwnProperty("MessageSid")
+//   ) {
+//     log.error(`This is not an incoming message: ${JSON.stringify(message)}`);
+//     // Note: Warren version has an early return here
+//   }
+//
+//   const { From, To, MessageSid, MessagingServiceSid } = message;
+//   const contactNumber = getFormattedPhoneNumber(From);
+//   const userNumber = To ? getFormattedPhoneNumber(To) : "";
+//
+//   const pendingMessagePart = new PendingMessagePart({
+//     service: "twilio",
+//     service_id: MessageSid,
+//     parent_id: null,
+//     service_message: JSON.stringify(message),
+//     user_number: userNumber,
+//     contact_number: contactNumber
+//   });
+//
+//   const part = await pendingMessagePart.save();
+//   const partId = part.id;
+//
+//   if (process.env.JOBS_SAME_PROCESS) {
+//     const finalMessage = await convertMessagePartsToMessage(
+//       [part],
+//       MessageSid,
+//       MessagingServiceSid
+//     );
+//     await saveNewIncomingMessage(finalMessage);
+//     await r
+//       .knex("pending_message_part")
+//       .where("id", partId)
+//       .delete();
+//   }
+//   return partId;
+// }
+
 export default {
-  syncMessagePartProcessing: !!process.env.JOBS_SAME_PROCESS,
+  syncMessagePartProcessing: true,
+  // Warren fork, async message processing not supported:
+  // syncMessagePartProcessing: !!process.env.JOBS_SAME_PROCESS,
+  // convertMessagePartsToMessage,
   webhook,
-  convertMessagePartsToMessage,
   sendMessage,
   handleDeliveryReport,
   handleIncomingMessage,

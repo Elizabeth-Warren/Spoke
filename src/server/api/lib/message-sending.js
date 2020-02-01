@@ -5,8 +5,7 @@ export async function getLastMessage({
   messagingServiceSid,
   service
 }) {
-  // TODO: switch to knex
-  const lastMessage = await r
+  return await r
     .table("message")
     .getAll(contactNumber, { index: "contact_number" })
     .filter({
@@ -18,26 +17,28 @@ export async function getLastMessage({
     .limit(1)
     .pluck("assignment_id")(0)
     .default(null);
-
-  return lastMessage;
 }
 
 export async function saveNewIncomingMessage(messageInstance) {
-  // TODO: this has terrible performance, either remove it completely or optimize
+  // TODO[matteo]: this should probably all happen in a transaction but I haven't
+  //  investigated if it's possible to pass one to thinky.
   if (messageInstance.service_id) {
-    const countResult = await r.getCount(
-      r.knex("message").where("service_id", messageInstance.service_id)
-    );
-    if (countResult) {
+    const existingMessage = await r
+      .knex("message")
+      .where("service_id", messageInstance.service_id)
+      .first();
+    if (existingMessage) {
       console.error(
-        "DUPLICATE MESSAGE SAVED",
-        countResult.count,
-        messageInstance
+        "Skipping duplicate message:",
+        messageInstance,
+        "found:",
+        existingMessage
       );
+      return;
     }
   }
-  await messageInstance.save();
 
+  await messageInstance.save();
   await r
     .table("campaign_contact")
     .getAll(messageInstance.assignment_id, { index: "assignment_id" })
