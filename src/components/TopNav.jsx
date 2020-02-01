@@ -6,6 +6,8 @@ import { Link } from "react-router";
 import UserMenu from "../containers/UserMenu";
 import theme from "../styles/theme";
 import { StyleSheet, css } from "aphrodite";
+import loadData from "../containers/hoc/load-data";
+import gql from "graphql-tag";
 
 const styles = StyleSheet.create({
   container: {
@@ -20,6 +22,7 @@ const styles = StyleSheet.create({
   inline: {
     display: "inline-block",
     marginLeft: 5,
+    marginRight: 5,
     marginTop: "auto",
     marginBottom: "auto"
   },
@@ -35,6 +38,11 @@ const styles = StyleSheet.create({
   flexColumn: {
     flex: 1,
     textAlign: "left",
+    display: "flex"
+  },
+  rightFlexColumn: {
+    flex: 1,
+    flexDirection: "row-reverse",
     display: "flex"
   }
 });
@@ -61,12 +69,17 @@ class TopNav extends React.Component {
   }
 
   render() {
-    const { backToURL, orgId, title } = this.props;
+    const { backToURL, orgId, title, data } = this.props;
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.flexColumn)}>
           <div className={css(styles.inline)}>{this.renderBack(backToURL)}</div>
           <div className={css(styles.inline, styles.header)}>{title}</div>
+        </div>
+        <div className={css(styles.rightFlexColumn)}>
+          <div className={css(styles.inline, styles.header)}>
+            {data.organization.name}
+          </div>
         </div>
         <div className={css(styles.userMenu)}>
           <UserMenu orgId={orgId} />
@@ -79,7 +92,25 @@ class TopNav extends React.Component {
 TopNav.propTypes = {
   backToURL: PropTypes.string,
   title: PropTypes.string.isRequired,
-  orgId: PropTypes.string
+  orgId: PropTypes.string,
+  data: PropTypes.object
 };
 
-export default TopNav;
+const mapQueriesToProps = ({ ownProps }) => ({
+  data: {
+    query: gql`
+      query getCurrentOrganization($organizationId: String!) {
+        organization(id: $organizationId) {
+          id
+          name
+        }
+      }
+    `,
+    variables: {
+      organizationId: ownProps.orgId
+    },
+    forceFetch: true
+  }
+});
+
+export default loadData(TopNav, { mapQueriesToProps });

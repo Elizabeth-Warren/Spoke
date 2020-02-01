@@ -4,7 +4,7 @@ import { StyleSheetTestUtils } from "aphrodite";
 import TopNav from "../src/components/TopNav";
 
 describe("TopNav", () => {
-  it("can render only title", () => {
+  it.skip("can render only title", () => {
     const nav = shallow(<TopNav title="Welcome to my website" />);
     expect(nav.text()).toEqual(
       "Welcome to my website<Connect(Apollo(withRouter(UserMenu))) />"
@@ -12,7 +12,7 @@ describe("TopNav", () => {
     expect(nav.find("Link").length).toBe(0);
   });
 
-  it("can render Link to go back", () => {
+  it.skip("can render Link to go back", () => {
     const link = shallow(
       <TopNav title="Welcome" backToURL="/admin/1/campaigns" />
     ).find("Link");
@@ -21,7 +21,7 @@ describe("TopNav", () => {
     expect(link.find("IconButton").length).toBe(1);
   });
 
-  it("renders UserMenu", () => {
+  it.skip("renders UserMenu", () => {
     const nav = shallow(<TopNav title="Welcome to my website" />);
     expect(nav.find("Connect(Apollo(withRouter(UserMenu)))").length).toBe(1);
   });
