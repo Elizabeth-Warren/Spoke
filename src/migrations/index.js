@@ -326,6 +326,31 @@ const migrations = [
           .index();
       });
     }
+  },
+  {
+    auto: true,
+    date: "2020-02-01",
+    migrate: async () => {
+      // This column was defined correctly in the migration above but was incorrect
+      // in the thinky model. Because we only run thinky migrations on database
+      // creation, this migration is required to fix existing dbs.
+      await r.knex.schema.alterTable("tag", table => {
+        table
+          .integer("created_by")
+          .alter()
+          .unsigned()
+          .references("id")
+          .inTable("user");
+        table
+          .integer("resolved_by")
+          .alter()
+          .unsigned()
+          .nullable()
+          .default(null)
+          .references("id")
+          .inTable("user");
+      });
+    }
   }
 
   /* migration template

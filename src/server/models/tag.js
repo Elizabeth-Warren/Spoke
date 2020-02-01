@@ -17,9 +17,9 @@ const Tag = thinky.createModel(
       campaign_contact_id: requiredString(),
       tag: requiredString(),
       created_at: timestamp(),
-      created_by: requiredString(),
+      created_by: type.integer().required(),
       resolved_at: optionalTimestamp(),
-      resolved_by: optionalString()
+      resolved_by: type.integer()
     })
     .allowExtra(true),
   { noAutoCreation: true }

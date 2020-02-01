@@ -7,11 +7,14 @@ process.env.RETHINK_KNEX_FORCE_INDEXCREATION = "1";
 
 async function migrate() {
   console.log("Beginning migrations...");
-
-  await createTablesIfNecessary();
-  await runMigrations();
-  await seedZipCodes();
-  console.log("All done!");
+  try {
+    await createTablesIfNecessary();
+    await runMigrations();
+    await seedZipCodes();
+    console.log("All done!");
+  } catch (e) {
+    console.log("Error running migrations", e);
+  }
 }
 
 migrate().then(() => process.exit());
