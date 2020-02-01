@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import React from "react";
+import _ from "lodash";
 
 import WarningIcon from "material-ui/svg-icons/alert/warning";
 import DoneIcon from "material-ui/svg-icons/action/done";
@@ -181,6 +182,7 @@ class AdminCampaignEdit extends React.Component {
     if (!this.state.expandedSection.doNotSaveAfterSubmit) {
       await this.handleSave();
     }
+
     this.setState({
       expandedSection:
         this.state.expandedSection >= this.sections().length - 1 ||
@@ -247,6 +249,11 @@ class AdminCampaignEdit extends React.Component {
         newCampaign.interactionSteps = Object.assign(
           {},
           newCampaign.interactionSteps
+        );
+      }
+      if (newCampaign.hasOwnProperty("cannedResponses")) {
+        newCampaign.cannedResponses = newCampaign.cannedResponses.map(cr =>
+          _.omit(cr, "isNew")
         );
       }
       await this.props.mutations.editCampaign(
@@ -387,7 +394,12 @@ class AdminCampaignEdit extends React.Component {
         title: "Canned Responses",
         content: CampaignCannedResponsesForm,
         keys: ["cannedResponses"],
-        checkCompleted: () => true,
+        checkCompleted: () => {
+          return !_.some(
+            this.state.campaignFormValues.cannedResponses,
+            cr => cr.isNew
+          );
+        },
         blocksStarting: true,
         expandAfterCampaignStarts: true,
         expandableBySuperVolunteers: true,

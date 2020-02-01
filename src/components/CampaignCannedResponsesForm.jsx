@@ -55,7 +55,8 @@ export default class CampaignCannedResponsesForm extends React.Component {
               onSaveCannedResponse={ele => {
                 const newVals = this.props.formValues.cannedResponses.slice(0);
                 const newEle = {
-                  ...ele
+                  ...ele,
+                  isNew: true
                 };
                 newEle.id = Math.random()
                   .toString(36)
