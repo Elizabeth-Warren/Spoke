@@ -58,7 +58,7 @@ export class AssignmentTexter extends React.Component {
     // we send or change the status in some way.
     // Below, we update our index with the contact that matches our current index.
 
-    if (nextState.currentContactIndex != this.state.currentContactIndex) {
+    if (nextState.currentContactIndex !== this.state.currentContactIndex) {
       console.log(
         "updateindex <cur> <next>",
         this.state.currentContactIndex,

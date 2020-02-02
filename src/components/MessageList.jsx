@@ -5,6 +5,7 @@ import moment from "moment";
 import ProhibitedIcon from "material-ui/svg-icons/av/not-interested";
 import Divider from "material-ui/Divider";
 import { red300 } from "material-ui/styles/colors";
+import Message from "./Message";
 
 const styles = {
   optOut: {
@@ -25,7 +26,7 @@ const styles = {
 const MessageList = function MessageList(props) {
   const { contact } = props;
   const { optOut, messages } = contact;
-
+  // TODO[matteo]: see what this looks like
   const optOutItem = optOut ? (
     <div>
       <Divider />
@@ -43,14 +44,8 @@ const MessageList = function MessageList(props) {
 
   return (
     <List>
-      {messages.map(message => (
-        <ListItem
-          disabled
-          style={message.isFromContact ? styles.received : styles.sent}
-          key={message.id}
-          primaryText={message.text}
-          secondaryText={moment(message.createdAt).fromNow()}
-        />
+      {messages.map((message, index) => (
+        <Message key={index} message={message} />
       ))}
       {optOutItem}
     </List>

@@ -5,7 +5,7 @@ import { StyleSheet, css } from "aphrodite";
 
 import moment from "moment";
 
-import theme from "../../../styles/theme";
+import theme from "../styles/theme";
 const styles = StyleSheet.create({
   conversationRow: {
     color: "white",
@@ -14,14 +14,16 @@ const styles = StyleSheet.create({
     fontWeight: "normal"
   },
   fromContact: {
-    marginLeft: undefined,
-    marginRight: "60px",
-    backgroundColor: "#AAAAAA"
+    marginLeft: "10px",
+    marginRight: "60%",
+    backgroundColor: theme.colors.gray
   },
   fromTexter: {
-    marginLeft: "60px",
-    marginRight: undefined,
-    backgroundColor: "rgb(33, 150, 243)"
+    marginLeft: "60%",
+    marginRight: "10px",
+    color: theme.colors.EWnavy,
+    textAlign: "right",
+    backgroundColor: theme.colors.EWlibertyGreen
   },
   when: {
     fontSize: theme.text.body.fontSize - 2
