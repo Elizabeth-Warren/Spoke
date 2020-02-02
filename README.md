@@ -10,6 +10,9 @@ Notable changes from upstream:
 - Removed support for Nexmo
 - Removed support for Mailgun and custom SMTP servers in favor of SES
 - Removed and renamed some env vars, notable TWILIO_API_KEY -> TWILIO_ACCOUNT_SID
+- Removed asynchronous processing of Twilio responses
+- Removed opt-out caching, which was incomplete in this fork
+- Added support for using a different Twilio Messaging Service for each campaign
 
 / begin original README
 

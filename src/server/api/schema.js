@@ -4,7 +4,7 @@ import GraphQLJSON from "graphql-type-json";
 import { GraphQLError } from "graphql/error";
 import isUrl from "is-url";
 import { organizationCache } from "../models/cacheable_queries/organization";
-
+import db from "../db";
 import { gzip, log, makeTree } from "../../lib";
 import { applyScript } from "../../lib/scripts";
 import {
@@ -1070,11 +1070,11 @@ const rootMutations = {
         const campaign = await loaders.campaign.load(contact.campaign_id);
         organizationId = campaign.organization_id;
       }
-      await cacheableData.optOut.save({
+      await db.OptOut.create({
         cell,
-        reason,
-        assignmentId,
-        organizationId
+        reason_code: reason,
+        assignment_id: assignmentId,
+        organization_id: organizationId
       });
 
       return {
@@ -1166,14 +1166,12 @@ const rootMutations = {
 
       const orgFeatures = JSON.parse(organization.features || "{}");
 
-      const optOut = await r
-        .table("opt_out")
-        .getAll(contact.cell, { index: "cell" })
-        // TODO[matteo]: cross-organization opt outs not respected here!
-        .filter({ organization_id: organization.id })
-        .limit(1)(0)
-        .default(null);
-      if (optOut) {
+      const optedOut = await db.OptOut.isOptedOut({
+        cell: contact.cell,
+        organization_id: organization.id
+      });
+
+      if (optedOut) {
         throw new GraphQLError({
           status: 400,
           message: "Skipped sending because this contact was already opted out"

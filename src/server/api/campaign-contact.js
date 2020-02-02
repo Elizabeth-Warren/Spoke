@@ -1,6 +1,7 @@
 import { CampaignContact, r, cacheableData } from "../models";
 import { mapFieldsToModel } from "./lib/utils";
 import { log, getTopMostParent, zipToTimeZone } from "../../lib";
+import db from "../db";
 
 export const resolvers = {
   Location: {
@@ -166,6 +167,9 @@ export const resolvers = {
 
       return messages;
     },
+    // TODO[matteo]: remove this resolver by changing the GQL schema to return
+    //  isOptedOut, which can be read directly off of the campaignContact
+    //  object.
     optOut: async (campaignContact, _, { loaders }) => {
       if ("opt_out_cell" in campaignContact) {
         return {
@@ -184,9 +188,9 @@ export const resolvers = {
             organizationId = campaign.organization_id;
           }
 
-          const isOptedOut = await cacheableData.optOut.query({
+          isOptedOut = await db.OptOut.isOptedOut({
             cell: campaignContact.cell,
-            organizationId
+            organization_id: organizationId
           });
         }
         // fake ID so we don't need to look up existance
