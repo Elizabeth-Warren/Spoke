@@ -134,6 +134,7 @@ export {
   UserCell,
   UserOrganization,
   User,
-  ZipCode,
-  Log
+  ZipCode
+  // Note: not used in the Warren fork
+  // Log
 };

@@ -1,13 +1,6 @@
 import Twilio from "twilio";
 import { getFormattedPhoneNumber } from "../../../lib/phone-format";
-import {
-  Log,
-  Message,
-  PendingMessagePart,
-  Campaign,
-  Organization,
-  r
-} from "../../models";
+import { Message, Campaign, r } from "../../models";
 import { log } from "../../../lib";
 import { getLastMessage, saveNewIncomingMessage } from "./message-sending";
 
@@ -33,12 +26,11 @@ if (!process.env.TWILIO_MESSAGE_SERVICE_SID) {
 }
 
 function webhook() {
-  log.warn("twilio webhook call"); // sky: doesn't run this
   if (twilio) {
     return Twilio.webhook();
   } else {
     log.warn("NO TWILIO WEB VALIDATION");
-    return function(req, res, next) {
+    return function noopTwilioWebhookValidator(req, res, next) {
       next();
     };
   }
@@ -198,36 +190,34 @@ async function sendMessage(message, contact, trx) {
   });
 }
 
-// TODO[matteo]: optimize this! The Twilio report endpoint is the most frequently
-//   called endpoint in the entire application, or at least it was at Hustle.
-//   This gets called even more when Twilio starts queuing, e.g. during GOTV, because
-//   we'll receive "queued" events. These should be safe to skip. We also might
-//   want to eliminate the Log.save().
 async function handleDeliveryReport(report) {
-  const messageSid = report.MessageSid;
-  if (messageSid) {
-    await Log.save({
-      message_sid: report.MessageSid,
-      body: JSON.stringify(report)
-    });
-    const messageStatus = report.MessageStatus;
-    const message = await r
-      .table("message")
-      .getAll(messageSid, { index: "service_id" })
-      .limit(1)(0)
-      .default(null);
-    if (message) {
-      message.service_response_at = new Date();
-      if (messageStatus === "delivered") {
-        message.send_status = "DELIVERED";
-      } else if (
-        messageStatus === "failed" ||
-        messageStatus === "undelivered"
-      ) {
-        message.send_status = "ERROR";
-      }
-      Message.save(message, { conflict: "update" });
+  const { MessageSid: messageSid, MessageStatus: messageStatus } = report;
+  if (!messageSid) {
+    return;
+  }
+
+  // Scalability: we don't care about "queued" and "sent" status updates so
+  // we skip writing to the database.
+  // Log just in case we need to debug something. Detailed logs can be viewed here:
+  // https://www.twilio.com/console/sms/logs/<SID>
+  console.log(`Message status ${messageSid}: ${messageStatus}`);
+  if (messageStatus === "queued" || messageStatus === "sent") {
+    return;
+  }
+
+  const message = await r
+    .table("message")
+    .getAll(messageSid, { index: "service_id" })
+    .limit(1)(0)
+    .default(null);
+  if (message) {
+    message.service_response_at = new Date();
+    if (messageStatus === "delivered") {
+      message.send_status = "DELIVERED";
+    } else if (messageStatus === "failed" || messageStatus === "undelivered") {
+      message.send_status = "ERROR";
     }
+    Message.save(message, { conflict: "update" });
   }
 }
 
