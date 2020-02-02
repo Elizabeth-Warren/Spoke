@@ -1150,6 +1150,7 @@ const rootMutations = {
         contact.assignment_id !== parseInt(message.assignmentId, 10) ||
         campaign.is_archived
       ) {
+        // TODO[matteo]: figure out why this returns "TypeError: Cannot convert object to primitive value"
         throw new GraphQLError({
           status: 400,
           message: "Your assignment has changed"
