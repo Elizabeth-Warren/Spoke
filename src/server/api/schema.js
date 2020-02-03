@@ -75,6 +75,16 @@ const JOBS_SAME_PROCESS = !!(
 );
 const JOBS_SYNC = !!(process.env.JOBS_SYNC || global.JOBS_SYNC);
 
+async function startJobIfNeeded(jobFn, ...args) {
+  if (JOBS_SAME_PROCESS) {
+    if (JOBS_SYNC) {
+      await jobFn.call(this, ...args);
+    } else {
+      jobFn.call(this, ...args);
+    }
+  }
+}
+
 async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
   const {
     title,
@@ -156,12 +166,7 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
       campaign_id: id,
       payload
     });
-    if (JOBS_SAME_PROCESS) {
-      // TODO[matteo]: I believe the missing await is intended here, however, we should
-      // make sure this works correctly on Lambda. It would be better to write the
-      // express response and continue processing.
-      uploadContacts(job, contactsToSave);
-    }
+    await startJobIfNeeded(uploadContacts, job, contactsToSave);
   }
   if (
     campaign.hasOwnProperty("contactSql") &&
@@ -177,9 +182,7 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
       campaign_id: id,
       payload: campaign.contactSql
     });
-    if (JOBS_SAME_PROCESS) {
-      loadContactsFromDataWarehouse(job);
-    }
+    await startJobIfNeeded(loadContactsFromDataWarehouse, job);
   }
   if (campaign.hasOwnProperty("texters")) {
     let job = await JobRequest.save({
@@ -193,14 +196,7 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
         texters: campaign.texters
       })
     });
-
-    if (JOBS_SAME_PROCESS) {
-      if (JOBS_SYNC) {
-        await assignTexters(job);
-      } else {
-        assignTexters(job);
-      }
-    }
+    await startJobIfNeeded(assignTexters, job);
   }
 
   if (campaign.hasOwnProperty("interactionSteps")) {
@@ -381,9 +377,7 @@ const rootMutations = {
           requester: user.id
         })
       });
-      if (JOBS_SAME_PROCESS) {
-        exportCampaign(newJob);
-      }
+      await startJobIfNeeded(exportCampaign, newJob);
       return newJob;
     },
     editOrganizationRoles: async (
@@ -1441,39 +1435,40 @@ const rootMutations = {
         campaignIdMessagesIdsMap,
         newTexterUserId
       );
-    },
-    importCampaignScript: async (_, { campaignId, url }, { loaders }) => {
-      const campaign = await loaders.campaign.load(campaignId);
-      if (campaign.is_started || campaign.is_archived) {
-        throw new GraphQLError(
-          "Cannot import a campaign script for a campaign that is started or archived"
-        );
-      }
-
-      const compressedString = await gzip(
-        JSON.stringify({
-          campaignId,
-          url
-        })
-      );
-      const job = await JobRequest.save({
-        queue_name: `${campaignId}:import_script`,
-        job_type: "import_script",
-        locks_queue: true,
-        assigned: JOBS_SAME_PROCESS, // can get called immediately, below
-        campaign_id: campaignId,
-        // NOTE: stringifying because compressedString is a binary buffer
-        payload: compressedString.toString("base64")
-      });
-
-      const jobId = job.id;
-
-      if (JOBS_SAME_PROCESS) {
-        importScript(job);
-      }
-
-      return jobId;
     }
+    //  // Not enabled in the Warren fork:
+    //   importCampaignScript: async (_, { campaignId, url }, { loaders }) => {
+    //     const campaign = await loaders.campaign.load(campaignId);
+    //     if (campaign.is_started || campaign.is_archived) {
+    //       throw new GraphQLError(
+    //         "Cannot import a campaign script for a campaign that is started or archived"
+    //       );
+    //     }
+    //
+    //     const compressedString = await gzip(
+    //       JSON.stringify({
+    //         campaignId,
+    //         url
+    //       })
+    //     );
+    //     const job = await JobRequest.save({
+    //       queue_name: `${campaignId}:import_script`,
+    //       job_type: "import_script",
+    //       locks_queue: true,
+    //       assigned: JOBS_SAME_PROCESS, // can get called immediately, below
+    //       campaign_id: campaignId,
+    //       // NOTE: stringifying because compressedString is a binary buffer
+    //       payload: compressedString.toString("base64")
+    //     });
+    //
+    //     const jobId = job.id;
+    //
+    //     if (JOBS_SAME_PROCESS) {
+    //       importScript(job);
+    //     }
+    //
+    //     return jobId;
+    //   }
   }
 };
 

@@ -75,6 +75,7 @@ provider:
     TWILIO_MESSAGE_SERVICE_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_MESSAGE_SERVICE_SID~true}
     TWILIO_STATUS_CALLBACK_URL: ${self:custom.baseUrl}/twilio-message-report
     JOBS_SAME_PROCESS: 1
+    JOBS_SYNC: 1
     ASSETS_DIR: ./build/client/assets
     ASSETS_MAP_FILE: assets.json
     BASE_URL: ${self:custom.baseUrl}

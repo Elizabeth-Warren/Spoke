@@ -235,6 +235,11 @@ export async function uploadContacts(job, uncompressedPayload = undefined) {
       (index + 1) * chunkSize
     );
     await CampaignContact.save(savePortion);
+    log.info(
+      `Campaign ${campaignId}: processed ${(index + 1) * chunkSize} of ${
+        contacts.length
+      } contacts`
+    );
   }
 
   const optOutCellCount = await r
