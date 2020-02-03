@@ -13,6 +13,8 @@ Notable changes from upstream:
 - Removed asynchronous processing of Twilio responses
 - Removed opt-out caching, which was incomplete in this fork
 - Added support for using a different Twilio Messaging Service for each campaign
+- Added external_id_type and state_code as top-level fields to campaign_contact
+- Removed support for `zip` on campaign_contact, which was incomplete in WFP fork anyway
 
 / begin original README
 

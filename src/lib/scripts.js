@@ -12,9 +12,12 @@ export const delimit = text => {
 const TOP_LEVEL_UPLOAD_FIELDS = [
   "firstName",
   "lastName",
-  "cell",
-  "zip",
-  "external_id"
+  "cell"
+  // DON'T Include these fields in the script editor:
+  // "zip",
+  // "external_id",
+  // "external_id_type",
+  // "state_code"
 ];
 const TEXTER_SCRIPT_FIELDS = ["texterFirstName", "texterLastName"];
 
@@ -26,7 +29,6 @@ const CAPITALIZE_FIELDS = [
   "texterLastName"
 ];
 
-// TODO: This will include zipCode even if you ddin't upload it
 export const allScriptFields = customFields =>
   TOP_LEVEL_UPLOAD_FIELDS.concat(TEXTER_SCRIPT_FIELDS).concat(customFields);
 

@@ -12,7 +12,6 @@ const contactDataFragment = `
         firstName
         lastName
         cell
-        zip
         customFields
         hasUnresolvedTags
         optOut {

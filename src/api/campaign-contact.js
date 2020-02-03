@@ -36,8 +36,9 @@ export const schema = gql`
     firstName: String
     lastName: String
     cell: Phone
-    zip: String
     external_id: String
+    external_id_type: String
+    state_code: String
     customFields: JSON
     messages: [Message]
     location: Location

@@ -20,11 +20,14 @@ export const resolvers = {
         "firstName",
         "lastName",
         "cell",
-        "zip",
+        // "zip",
         "customFields",
         "messageStatus",
         "assignmentId",
+        // TODO[matteo]: only allow admins to view these?
         "external_id",
+        "external_id_type",
+        "state_code",
         "hasUnresolvedTags"
       ],
       CampaignContact

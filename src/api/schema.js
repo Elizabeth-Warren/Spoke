@@ -19,8 +19,9 @@ const rootSchema = gql`
     firstName: String!
     lastName: String!
     cell: String!
-    zip: String
     external_id: String
+    external_id_type: String
+    state_code: String
     customFields: String
   }
 

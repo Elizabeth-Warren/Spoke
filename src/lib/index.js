@@ -40,8 +40,10 @@ const topLevelUploadFields = [
   "firstName",
   "lastName",
   "cell",
-  "zip",
-  "external_id"
+  // "zip",
+  "external_id",
+  "external_id_type",
+  "state_code"
 ];
 
 export {
@@ -83,12 +85,13 @@ const getValidatedData = (data, optOuts) => {
   validatedData = result[0];
   const optOutRows = result[1];
 
-  validatedData = _.map(validatedData, row =>
-    _.extend(row, {
-      zip: row.zip ? getFormattedZip(row.zip) : null
-    })
-  );
-  const zipCount = validatedData.filter(row => !!row.zip).length;
+  // WARREN fork: no support for zips
+  // validatedData = _.map(validatedData, row =>
+  //   _.extend(row, {
+  //     zip: row.zip ? getFormattedZip(row.zip) : null
+  //   })
+  // );
+  // const zipCount = validatedData.filter(row => !!row.zip).length;
 
   return {
     validatedData,
@@ -96,8 +99,8 @@ const getValidatedData = (data, optOuts) => {
       dupeCount,
       optOutCount: optOutRows.length,
       invalidCellCount: invalidCellRows.length,
-      missingCellCount: missingCellRows.length,
-      zipCount
+      missingCellCount: missingCellRows.length
+      // zipCount
     }
   };
 };

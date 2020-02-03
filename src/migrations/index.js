@@ -351,6 +351,22 @@ const migrations = [
           .inTable("user");
       });
     }
+  },
+  {
+    auto: true,
+    date: "2020-02-02",
+    migrate: async () => {
+      await r.knex.schema.alterTable("campaign_contact", table => {
+        table
+          .string("external_id_type")
+          .nullable()
+          .default(null);
+        table
+          .string("state_code")
+          .nullable()
+          .default(null);
+      });
+    }
   }
 
   /* migration template

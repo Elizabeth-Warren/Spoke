@@ -22,7 +22,7 @@ import CampaignCannedResponsesForm from "../components/CampaignCannedResponsesFo
 import { dataTest, camelCase } from "../lib/attributes";
 import CampaignTextingHoursForm from "../components/CampaignTextingHoursForm";
 
-import AdminScriptImport from "../containers/AdminScriptImport";
+// import AdminScriptImport from "../containers/AdminScriptImport";
 import { pendingJobsGql } from "../lib/pendingJobsUtils";
 
 const campaignInfoFragment = `
@@ -221,8 +221,10 @@ class AdminCampaignEdit extends React.Component {
             cell: contact.cell,
             firstName: contact.firstName,
             lastName: contact.lastName,
-            zip: contact.zip || "",
-            external_id: contact.external_id || ""
+            // zip: contact.zip || "",
+            external_id: contact.external_id,
+            external_id_type: contact.external_id_type,
+            state_code: contact.state_code
           };
           Object.keys(contact).forEach(key => {
             if (!contactInput.hasOwnProperty(key)) {

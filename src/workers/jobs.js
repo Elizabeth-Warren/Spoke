@@ -188,7 +188,7 @@ export async function processSqsMessages() {
 const unzipPayload = async job =>
   JSON.parse(await gunzip(Buffer.from(job.payload, "base64")));
 
-export async function uploadContacts(job) {
+export async function uploadContacts(job, uncompressedPayload = undefined) {
   const campaignId = job.campaign_id;
   // We do this deletion in schema.js but we do it again here just in case the the queue broke and we had a backlog of contact uploads for one campaign
   const campaign = await Campaign.get(campaignId);
@@ -202,7 +202,8 @@ export async function uploadContacts(job) {
     .getAll(campaignId, { index: "campaign_id" })
     .delete();
   const maxPercentage = 100;
-  let contacts = await unzipPayload(job);
+
+  let contacts = uncompressedPayload || (await unzipPayload(job));
   const chunkSize = 1000;
 
   const maxContacts = parseInt(

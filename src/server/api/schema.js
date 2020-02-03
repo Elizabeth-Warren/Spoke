@@ -10,7 +10,7 @@ import { applyScript } from "../../lib/scripts";
 import {
   assignTexters,
   exportCampaign,
-  importScript,
+  // importScript,
   loadContactsFromDataWarehouse,
   uploadContacts
 } from "../../workers/jobs";
@@ -131,24 +131,36 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
         last_name: datum.lastName,
         cell: datum.cell,
         external_id: datum.external_id,
-        custom_fields: datum.customFields,
-        zip: datum.zip
+        external_id_type: datum.external_id_type,
+        state_code: datum.state_code,
+        custom_fields: datum.customFields
       };
       modelData.campaign_id = id;
       return modelData;
     });
-    const compressedString = await gzip(JSON.stringify(contactsToSave));
-    let job = await JobRequest.save({
+    // avoid unnecessary gzip + base64 roundtrip and save less data to the db
+    let payload;
+    if (!JOBS_SAME_PROCESS) {
+      const compressedString = await gzip(JSON.stringify(contactsToSave));
+      // NOTE: stringifying because compressedString is a binary buffer
+      payload = compressedString.toString("base64");
+    } else {
+      payload = "PLACEHOLDER_JOB_SAME_PROCESS";
+    }
+
+    const job = await JobRequest.save({
       queue_name: `${id}:edit_campaign`,
       job_type: "upload_contacts",
       locks_queue: true,
       assigned: JOBS_SAME_PROCESS, // can get called immediately, below
       campaign_id: id,
-      // NOTE: stringifying because compressedString is a binary buffer
-      payload: compressedString.toString("base64")
+      payload
     });
     if (JOBS_SAME_PROCESS) {
-      uploadContacts(job);
+      // TODO[matteo]: I believe the missing await is intended here, however, we should
+      // make sure this works correctly on Lambda. It would be better to write the
+      // express response and continue processing.
+      uploadContacts(job, contactsToSave);
     }
   }
   if (
@@ -230,7 +242,7 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
   }
 
   const newCampaign = await Campaign.get(id).update(campaignUpdates);
-  cacheableData.campaign.reload(id);
+  await cacheableData.campaign.reload(id);
   return newCampaign || loaders.campaign.load(id);
 }
 
