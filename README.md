@@ -16,6 +16,23 @@ Notable changes from upstream:
 - Added external_id_type and state_code as top-level fields to campaign_contact
 - Removed support for `zip` on campaign_contact, which was incomplete in WFP fork anyway
 
+## Running for the first time
+
+Run `docker-compose up` to start the db.
+
+Then, run `yarn run dev-migrate` and  `yarn run create-test-db`
+
+`./dev-tools/manage-messaging-services.js --command create --friendlyName <your test messaging service name> " --baseUrl <your ngrok url>`
+
+`./dev-tools/buy-numbers.js --areaCode <any area code> --messagingServiceSid <your TWILIO_MESSAGE_SERVICE_SID> --limit 1`
+
+### Running Locally
+
+Open two terminal windows:
+
+1. `docker-compose up`
+2. `yarn run dev`
+
 / begin original README
 
 # Spoke
