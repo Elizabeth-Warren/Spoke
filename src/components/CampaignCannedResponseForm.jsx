@@ -57,7 +57,7 @@ class CannedResponseForm extends React.Component {
             />
             <FlatButton
               label="Cancel"
-              onTouchTap={() => this.setState({ showForm: false })}
+              onTouchTap={this.props.closeForm}
               style={{
                 marginLeft: 5,
                 display: "inline-block"
@@ -72,7 +72,8 @@ class CannedResponseForm extends React.Component {
 
 CannedResponseForm.propTypes = {
   onSaveCannedResponse: type.func,
-  customFields: type.array
+  customFields: type.array,
+  closeForm: type.func
 };
 
 export default CannedResponseForm;

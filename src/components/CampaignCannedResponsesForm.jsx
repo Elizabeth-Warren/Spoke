@@ -33,9 +33,20 @@ const styles = StyleSheet.create({
 });
 
 export default class CampaignCannedResponsesForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.closeForm = this.closeForm.bind(this);
+  }
+
   state = {
     showForm: false
   };
+
+  closeForm() {
+    this.setState({
+      showForm: false
+    });
+  }
 
   formSchema = yup.object({
     cannedResponses: yup.array().of(
@@ -65,9 +76,10 @@ export default class CampaignCannedResponsesForm extends React.Component {
                 this.props.onChange({
                   cannedResponses: newVals
                 });
-                this.setState({ showForm: false });
+                this.closeForm();
               }}
               customFields={this.props.customFields}
+              closeForm={this.closeForm}
             />
           </div>
         </div>
