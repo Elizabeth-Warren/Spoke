@@ -1,6 +1,7 @@
 import request from "request";
 import { r } from "../models";
 import crypto from "crypto";
+import { log } from "../../lib";
 
 export const displayName = () => "ActionKit Event RSVP";
 
@@ -29,7 +30,7 @@ export async function available(organizationId) {
     needed.push("AK_SECRET");
   }
   if (needed.length) {
-    console.error(
+    log.error(
       "actionkit-rsvp unavailable because " +
         needed.join(", ") +
         " must be set (either in environment variables or json value for organization)"
@@ -101,7 +102,7 @@ export async function processAction(
           async function(err, httpResponse, body) {
             // TODO: should we save the action id somewhere?
             if (err || (body && body.error)) {
-              console.error(
+              log.error(
                 "error: actionkit event sign up failed",
                 err,
                 userData,
@@ -121,7 +122,7 @@ export async function processAction(
                     .update("custom_fields", JSON.stringify(customFields));
                 }
               }
-              console.info(
+              log.info(
                 "actionkit event sign up SUCCESS!",
                 userData,
                 httpResponse,
@@ -132,7 +133,7 @@ export async function processAction(
         );
       }
     } catch (err) {
-      console.error(
+      log.error(
         "Processing Actionkit RSVP action failed on custom field parsing",
         campaignContactId,
         err

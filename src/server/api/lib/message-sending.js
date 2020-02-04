@@ -1,4 +1,5 @@
 import { r } from "../../models";
+import { log } from "../../../lib";
 
 export async function getLastMessage({
   contactNumber,
@@ -28,7 +29,7 @@ export async function saveNewIncomingMessage(messageInstance) {
       .where("service_id", messageInstance.service_id)
       .first();
     if (existingMessage) {
-      console.error(
+      log.error(
         "Skipping duplicate message:",
         messageInstance,
         "found:",

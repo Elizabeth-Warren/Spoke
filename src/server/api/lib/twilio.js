@@ -57,7 +57,7 @@ async function messagingServiceForContact(contact) {
   if (service) {
     return service;
   }
-  console.warn("Using default messaging service for campaign", campaign.id);
+  log.warn("Using default messaging service for campaign", campaign.id);
   return process.env.TWILIO_MESSAGE_SERVICE_SID;
 }
 
@@ -138,7 +138,7 @@ async function sendMessage(message, contact, trx) {
       let hasError = false;
       if (err) {
         hasError = true;
-        console.log("Error sending message", err);
+        log.info("Error sending message", err);
         messageToSave.service_response += JSON.stringify(err);
       }
       if (response) {
@@ -199,8 +199,8 @@ async function handleDeliveryReport(report) {
   // Scalability: we don't care about "queued" and "sent" status updates so
   // we skip writing to the database.
   // Log just in case we need to debug something. Detailed logs can be viewed here:
-  // https://www.twilio.com/console/sms/logs/<SID>
-  console.log(`Message status ${messageSid}: ${messageStatus}`);
+  // https://www.twilio.com/log/sms/logs/<SID>
+  log.info(`Message status ${messageSid}: ${messageStatus}`);
   if (messageStatus === "queued" || messageStatus === "sent") {
     return;
   }

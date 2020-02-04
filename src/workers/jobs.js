@@ -26,7 +26,6 @@ import Papa from "papaparse";
 import moment from "moment";
 import { sendEmail } from "../server/mail";
 import { Notifications, sendUserNotification } from "../server/notifications";
-import { unzip } from "zlib";
 
 const defensivelyDeleteJob = async job => {
   if (job.id) {
@@ -89,20 +88,20 @@ export async function getTimezoneByZip(zip) {
 export async function sendJobToAWSLambda(job) {
   // job needs to be json-serializable
   // requires a 'command' key which should map to a function in job-processes.js
-  console.log(
+  log.info(
     "LAMBDA INVOCATION STARTING",
     job,
     process.env.AWS_LAMBDA_FUNCTION_NAME
   );
 
   if (!job.command) {
-    console.log("LAMBDA INVOCATION FAILED: JOB NOT INVOKABLE", job);
+    log.info("LAMBDA INVOCATION FAILED: JOB NOT INVOKABLE", job);
     return Promise.reject("Job type not available in job-processes");
   }
   const lambda = new AWS.Lambda();
   const lambdaPayload = JSON.stringify(job);
   if (lambdaPayload.length > 128000) {
-    console.log("LAMBDA INVOCATION FAILED PAYLOAD TOO LARGE");
+    log.info("LAMBDA INVOCATION FAILED PAYLOAD TOO LARGE");
     return Promise.reject("Payload too large");
   }
 
@@ -115,14 +114,14 @@ export async function sendJobToAWSLambda(job) {
       },
       (err, data) => {
         if (err) {
-          console.log("LAMBDA INVOCATION FAILED", err, job);
+          log.info("LAMBDA INVOCATION FAILED", err, job);
           reject(err);
         } else {
           resolve(data);
         }
       }
     );
-    console.log("LAMBDA INVOCATION RESULT", result);
+    log.info("LAMBDA INVOCATION RESULT", result);
   });
   return p;
 }
@@ -152,14 +151,14 @@ export async function processSqsMessages() {
   const p = new Promise((resolve, reject) => {
     sqs.receiveMessage(params, async (err, data) => {
       if (err) {
-        console.log(err, err.stack);
+        log.info(err, err.stack);
         reject(err);
       } else if (data.Messages) {
-        console.log(data);
+        log.info(data);
         for (let i = 0; i < data.Messages.length; i++) {
           const message = data.Messages[i];
           const body = message.Body;
-          console.log("processing sqs queue:", body);
+          log.info("processing sqs queue:", body);
           const twilioMessage = JSON.parse(body);
 
           await serviceMap.twilio.handleIncomingMessage(twilioMessage);
@@ -171,9 +170,9 @@ export async function processSqsMessages() {
             },
             (delMessageErr, delMessageData) => {
               if (delMessageErr) {
-                console.log(delMessageErr, delMessageErr.stack); // an error occurred
+                log.info(delMessageErr, delMessageErr.stack); // an error occurred
               } else {
-                console.log(delMessageData); // successful response
+                log.info(delMessageData); // successful response
               }
             }
           );
@@ -256,7 +255,7 @@ export async function uploadContacts(job, uncompressedPayload = undefined) {
     .where("campaign_id", campaignId)
     .delete()
     .then(result => {
-      console.log("deleted result: " + result);
+      log.info("deleted result: " + result);
     });
 
   if (deleteOptOutCells) {
@@ -282,7 +281,7 @@ export async function uploadContacts(job, uncompressedPayload = undefined) {
 }
 
 export async function loadContactsFromDataWarehouseFragment(jobEvent) {
-  console.log(
+  log.info(
     "starting loadContactsFromDataWarehouseFragment",
     jobEvent.campaignId,
     jobEvent.limit,
@@ -298,7 +297,7 @@ export async function loadContactsFromDataWarehouseFragment(jobEvent) {
     .select("status")
     .first();
   if (!jobCompleted) {
-    console.log(
+    log.info(
       "loadContactsFromDataWarehouseFragment job no longer exists",
       jobEvent.campaignId,
       jobCompleted,
@@ -317,7 +316,7 @@ export async function loadContactsFromDataWarehouseFragment(jobEvent) {
   let knexResult;
   try {
     warehouseConnection = warehouseConnection || datawarehouse();
-    console.log(
+    log.info(
       "loadContactsFromDataWarehouseFragment RUNNING WAREHOUSE query",
       sqlQuery
     );
@@ -400,14 +399,14 @@ export async function loadContactsFromDataWarehouseFragment(jobEvent) {
     .where("id", jobEvent.jobId)
     .select("status")
     .first();
-  console.log(
+  log.info(
     "loadContactsFromDataWarehouseFragment toward end",
     completed,
     jobEvent
   );
 
   if (!completed) {
-    console.log(
+    log.info(
       "loadContactsFromDataWarehouseFragment job has been deleted",
       completed,
       jobEvent.campaignId
@@ -424,7 +423,7 @@ export async function loadContactsFromDataWarehouseFragment(jobEvent) {
         .where("campaign_id", jobEvent.campaignId)
         .delete()
         .then(result => {
-          console.log(
+          log.info(
             `loadContactsFromDataWarehouseFragment # of contacts opted out removed from DW query (${jobEvent.campaignId}): ${result}`
           );
           validationStats.optOutCount = result;
@@ -437,7 +436,7 @@ export async function loadContactsFromDataWarehouseFragment(jobEvent) {
         .andWhere("campaign_id", jobEvent.campaignId)
         .delete()
         .then(result => {
-          console.log(
+          log.info(
             `loadContactsFromDataWarehouseFragment # of contacts with invalid cells removed from DW query (${jobEvent.campaignId}): ${result}`
           );
           validationStats.invalidCellCount = result;
@@ -461,7 +460,7 @@ export async function loadContactsFromDataWarehouseFragment(jobEvent) {
         )
         .delete()
         .then(result => {
-          console.log(
+          log.info(
             `loadContactsFromDataWarehouseFragment # of contacts with duplicate cells removed from DW query (${jobEvent.campaignId}): ${result}`
           );
           validationStats.duplicateCellCount = result;
@@ -483,7 +482,7 @@ export async function loadContactsFromDataWarehouseFragment(jobEvent) {
       command: "loadContactsFromDataWarehouseFragmentJob"
     };
     if (process.env.WAREHOUSE_DB_LAMBDA_ITERATION) {
-      console.log(
+      log.info(
         "SENDING TO LAMBDA loadContactsFromDataWarehouseFragment",
         newJob
       );
@@ -496,7 +495,7 @@ export async function loadContactsFromDataWarehouseFragment(jobEvent) {
 }
 
 export async function loadContactsFromDataWarehouse(job) {
-  console.log("STARTING loadContactsFromDataWarehouse", job.payload);
+  log.info("STARTING loadContactsFromDataWarehouse", job.payload);
   const jobMessages = [];
   const sqlQuery = job.payload;
 
@@ -1070,7 +1069,7 @@ export async function importScript(job) {
       .knex("job_request")
       .where("id", job.id)
       .update({ result_message: exception.message });
-    console.log(exception.message);
+    log.info(exception.message);
     return;
   }
   defensivelyDeleteJob(job);
@@ -1126,14 +1125,14 @@ export async function sendMessages(queryFunc, defaultStatus) {
 
         trx.commit();
       } catch (err) {
-        console.log("error sending messages:");
-        console.error(err);
+        log.info("error sending messages:");
+        log.error(err);
         trx.rollback();
       }
     });
   } catch (err) {
-    console.log("sendMessages transaction errored:");
-    console.error(err);
+    log.info("sendMessages transaction errored:");
+    log.error(err);
   }
 }
 
@@ -1275,9 +1274,9 @@ export async function fixOrgless() {
         role: "TEXTER"
       }).error(function(error) {
         // Unexpected errors
-        console.log("error on userOrganization save in orgless", error);
+        log.info("error on userOrganization save in orgless", error);
       });
-      console.log(
+      log.info(
         "added orgless user " +
           user.id +
           " to organization " +

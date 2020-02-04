@@ -523,7 +523,7 @@ const rootMutations = {
       await request.post(options, (error, response, body) => {
         const successful = !error && response.statusCode === 200;
         if (!successful) {
-          console.log(response.body);
+          log.info(response.body);
         }
       });
       return true;
@@ -547,12 +547,12 @@ const rootMutations = {
             role: "TEXTER"
           }).error(function(error) {
             // Unexpected errors
-            console.log("error on userOrganization save", error);
+            log.info("error on userOrganization save", error);
           });
           await cacheableData.user.clearUser(user.id);
         } else {
           // userOrg exists
-          console.log(
+          log.info(
             "existing userOrg " +
               userOrg.id +
               " user " +
@@ -563,7 +563,7 @@ const rootMutations = {
         }
       } else {
         // no organization
-        console.log(
+        log.info(
           "no organization with id " + organizationUuid + " for user " + user.id
         );
       }
@@ -1287,10 +1287,7 @@ const rootMutations = {
         await service.sendMessage(messageInstance, contact);
       } catch (e) {
         // TODO[matteo]: investigate how to get apollo to log stacktraces, at least in dev
-        console.error(
-          `Exception when sending message ${messageInstance.id}`,
-          e
-        );
+        log.error(`Exception when sending message ${messageInstance.id}`, e);
         throw e;
       }
       return contact;
@@ -1356,7 +1353,7 @@ const rootMutations = {
               campaignContactId
             );
           } catch (err) {
-            console.error(
+            log.error(
               "Handler for InteractionStep",
               interactionStepId,
               "Does Not Exist:",

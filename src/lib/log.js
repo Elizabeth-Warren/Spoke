@@ -1,29 +1,15 @@
-import minilog from "minilog";
-import { isClient } from "./is-client";
+import pino from "pino";
 
-let logInstance;
+const config = { base: null };
 
-if (isClient()) {
-  minilog.enable();
-  logInstance = minilog("client");
-} else {
-  minilog.suggest.deny(
-    /.*/,
-    process.env.NODE_ENV === "development" ? "debug" : "debug"
-  );
-
-  minilog
-    .enable()
-    .pipe(minilog.backends.console.formatWithStack)
-    .pipe(minilog.backends.console);
-
-  logInstance = minilog("backend");
-  const existingErrorLogger = logInstance.error;
-  logInstance.error = err => {
-    existingErrorLogger(err && err.stack ? err.stack : err);
+if (process.env.NODE_ENV !== "production") {
+  // Note: pino-pretty is installed as a dev package
+  config.prettyPrint = {
+    ignore: "pid,hostname",
+    colorize: true
   };
 }
 
-const log = process.env.LAMBDA_DEBUG_LOG ? console : logInstance;
+const log = pino(config);
 
 export { log };

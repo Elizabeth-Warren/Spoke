@@ -25,6 +25,7 @@ import thinky from "./thinky";
 import datawarehouse from "./datawarehouse";
 
 import { cacheableData } from "./cacheable_queries";
+import { log } from "../../lib";
 
 function createLoader(model, opts) {
   const idKey = (opts && opts.idKey) || "id";
@@ -68,7 +69,7 @@ function createTablesIfNecessary() {
   // builds the database if we don't see the organization table
   return thinky.k.schema.hasTable("organization").then(tableExists => {
     if (!tableExists) {
-      console.log("CREATING DATABASE SCHEMA");
+      log.info("CREATING DATABASE SCHEMA");
       return createTables();
     }
     return null;

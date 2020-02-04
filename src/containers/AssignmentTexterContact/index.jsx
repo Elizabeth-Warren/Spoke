@@ -25,7 +25,6 @@ import {
   getChildren,
   getTopMostParent,
   interactionStepForId,
-  log,
   isBetweenTextingHours
 } from "../../lib";
 import { withRouter } from "react-router";
@@ -392,7 +391,7 @@ export class AssignmentTexterContact extends React.Component {
         this.skipContact();
       }
     } else {
-      log.error(e);
+      console.error(e);
       this.setState({
         snackbarError: "Something went wrong!"
       });

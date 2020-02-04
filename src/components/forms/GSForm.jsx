@@ -5,7 +5,6 @@ import GSSubmitButton from "./GSSubmitButton";
 import theme from "../../styles/theme";
 import { StyleSheet, css } from "aphrodite";
 import { GraphQLRequestError } from "../../network/errors";
-import { log } from "../../lib";
 
 const styles = StyleSheet.create({
   errorMessage: {
@@ -36,7 +35,7 @@ export default class GSForm extends React.Component {
     } else if (err.message) {
       this.setState({ globalErrorMessage: err.message });
     } else {
-      log.error(err);
+      console.error(err);
       this.setState({
         globalErrorMessage:
           "Oops! Your form submission did not work. Contact your administrator."

@@ -1,7 +1,6 @@
 import React from "react";
 import { connect } from "react-apollo";
 import LoadingIndicator from "../../components/LoadingIndicator";
-import { log } from "../../lib";
 
 const loadData = (Component, connectArgs) => {
   class LoadData extends React.Component {
@@ -50,7 +49,7 @@ const loadData = (Component, connectArgs) => {
       const dataProps = this.dataProps(this.props);
       Object.keys(dataProps).forEach(prop => {
         if (dataProps[prop].errors) {
-          log.error("ERROR IN REQUEST", dataProps[prop].errors);
+          console.error("ERROR IN REQUEST", dataProps[prop].errors);
         }
       });
       if (this.isLoading(this.props) && this.state.data === null) {

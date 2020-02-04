@@ -1,6 +1,5 @@
 import ApolloClient, { addQueryMerging } from "apollo-client";
 import ResponseMiddlewareNetworkInterface from "./response-middleware-network-interface";
-import { log } from "../lib";
 import fetch from "isomorphic-fetch";
 import { graphQLErrorParser } from "./errors";
 
@@ -13,7 +12,7 @@ responseMiddlewareNetworkInterface.use({
   applyResponseMiddleware: (response, next) => {
     const parsedError = graphQLErrorParser(response);
     if (parsedError) {
-      log.debug(parsedError);
+      console.debug(parsedError);
       if (parsedError.status === 401) {
         window.location = `/login?nextUrl=${window.location.pathname}`;
       } else if (parsedError.status === 403) {
@@ -21,7 +20,7 @@ responseMiddlewareNetworkInterface.use({
       } else if (parsedError.status === 404) {
         window.location = "/404";
       } else {
-        log.error(
+        console.error(
           `GraphQL request resulted in error:\nRequest:${JSON.stringify(
             response.data
           )}\nError:${JSON.stringify(response.errors)}`

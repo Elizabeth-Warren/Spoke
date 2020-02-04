@@ -1,5 +1,6 @@
 import { GraphQLError } from "graphql/error";
 import { r, cacheableData } from "../models";
+import { log } from "../../lib";
 
 export function authRequired(user) {
   if (!user) {
@@ -67,7 +68,7 @@ export async function assignmentAndNotSuspended(
     await accessRequired(user, organizationId, "TEXTER");
     await assignmentRequired(user, assignmentId, assignment);
   } catch (e) {
-    console.log(typeof e);
+    log.info(typeof e);
     if (e instanceof GraphQLError && allowSupervolunteer) {
       await accessRequired(user, organizationId, "SUPERVOLUNTEER", true);
     } else {

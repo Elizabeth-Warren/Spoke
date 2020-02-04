@@ -1,5 +1,6 @@
 import { messageSender56 } from "./job-processes";
+import { log } from "../lib";
 
 messageSender56().catch(err => {
-  console.log(err);
+  log.info(err);
 });
