@@ -10,6 +10,7 @@ import moment from "moment";
 import Divider from "material-ui/Divider";
 import { withRouter } from "react-router";
 import { dataTest } from "../lib/attributes";
+import theme from "../styles/theme";
 
 const inlineStyles = {
   badge: {
@@ -23,7 +24,7 @@ const inlineStyles = {
     height: 20
   },
   pastMsgStyle: {
-    backgroundColor: "#FFD700",
+    backgroundColor: theme.colors.EWnavy,
     fontSize: 12,
     top: 20,
     right: 20,

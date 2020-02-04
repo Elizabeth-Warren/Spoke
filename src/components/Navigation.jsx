@@ -8,6 +8,7 @@ import _ from "lodash";
 import { dataTest, camelCase } from "../lib/attributes";
 import { FlatButton } from "material-ui";
 import { StyleSheet, css } from "aphrodite";
+import theme from "../styles/theme";
 
 const styles = StyleSheet.create({
   sideBarWithMenu: {
@@ -30,9 +31,10 @@ const Navigation = function Navigation(props) {
       <div className={css(styles.sideBarWithMenu)}>
         <Paper
           rounded={false}
-          zDepth={2}
+          zDepth={1}
           style={{
-            height: "100%"
+            height: "100%",
+            backgroundColor: theme.colors.EWlightGrey
           }}
         >
           <div style={{ display: "flex", justifyContent: "flex-end" }}>

@@ -43,7 +43,13 @@ const MessageList = function MessageList(props) {
   );
 
   return (
-    <List>
+    <List
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        padding: "10px"
+      }}
+    >
       {messages.map((message, index) => (
         <Message key={index} message={message} />
       ))}

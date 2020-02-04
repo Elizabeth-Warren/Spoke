@@ -16,13 +16,16 @@ const inlineStyles = {
     opacity: 0.6
   },
   warn: {
-    color: theme.colors.EWred
+    color: theme.colors.EWred,
+    fontWeight: 900
   },
   good: {
-    color: theme.colors.EWnavy
+    color: theme.colors.EWnavy,
+    fontWeight: 900
   },
   warnUnsent: {
-    color: theme.colors.EWred
+    color: theme.colors.EWred,
+    fontWeight: 900
   }
 };
 

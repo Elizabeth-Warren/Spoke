@@ -168,7 +168,7 @@ class AdminCampaignList extends React.Component {
   };
 
   renderFilters = () => (
-    <Paper className={css(styles.settings)} zDepth={3}>
+    <Paper className={css(styles.settings)} zDepth={1}>
       <span>
         {this.props.params.adminPerms && this.renderArchiveMultiple()}
         {this.renderArchivedAndSortBy()}

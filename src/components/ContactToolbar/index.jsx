@@ -4,9 +4,9 @@ import React from "react";
 import { Toolbar, ToolbarGroup, ToolbarTitle } from "material-ui/Toolbar";
 import { getLocalTime, getContactTimezone } from "../../lib/timezones";
 import { getProcessEnvDstReferenceTimezone } from "../../lib/tz-helpers";
-import { grey100 } from "material-ui/styles/colors";
 import ContactInfo from "./ContactInfo";
 import Tags from "./Tags";
+import theme from "../../styles/theme";
 
 const styles = StyleSheet.create({
   tagButton: {
@@ -16,15 +16,18 @@ const styles = StyleSheet.create({
 
 const inlineStyles = {
   toolbar: {
-    backgroundColor: grey100
+    backgroundColor: theme.colors.EWnavy
   },
   cellToolbarTitle: {
-    fontSize: "1em"
+    color: theme.colors.white,
+    fontSize: "20"
   },
   locationToolbarTitle: {
+    color: theme.colors.white,
     fontSize: "1em"
   },
   timeToolbarTitle: {
+    color: theme.colors.white,
     fontSize: "1em"
   }
 };
@@ -74,7 +77,11 @@ const ContactToolbar = function ContactToolbar(props) {
     <div>
       <Toolbar style={inlineStyles.toolbar}>
         <ToolbarGroup>
-          <ToolbarTitle text={campaignContact.firstName} />
+          <ToolbarTitle
+            text={campaignContact.firstName}
+            style={inlineStyles.cellToolbarTitle}
+          />
+          //
           <ToolbarTitle style={inlineStyles.cellToolbarTitle} />
           {location ? (
             <ToolbarTitle

@@ -8,22 +8,25 @@ import moment from "moment";
 import theme from "../styles/theme";
 const styles = StyleSheet.create({
   conversationRow: {
-    color: "white",
     padding: "10px",
     borderRadius: "5px",
     fontWeight: "normal"
   },
   fromContact: {
     marginLeft: "10px",
-    marginRight: "60%",
-    backgroundColor: theme.colors.gray
+    marginRight: "50px",
+    alignSelf: "flex-start",
+    textAlign: "left",
+    backgroundColor: theme.colors.gray,
+    color: theme.colors.white
   },
   fromTexter: {
-    marginLeft: "60%",
     marginRight: "10px",
-    color: theme.colors.EWnavy,
+    marginLeft: "50px",
+    alignSelf: "flex-end",
     textAlign: "right",
-    backgroundColor: theme.colors.EWlibertyGreen
+    backgroundColor: theme.colors.EWlibertyGreen,
+    color: theme.colors.EWnavy
   },
   when: {
     fontSize: theme.text.body.fontSize - 2

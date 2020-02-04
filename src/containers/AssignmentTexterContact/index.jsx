@@ -694,7 +694,7 @@ export class AssignmentTexterContact extends React.Component {
     return messages.length === 0 ? (
       <Empty
         title={"This is your first message to " + contact.firstName}
-        icon={<CreateIcon color="rgb(83, 180, 119)" />}
+        icon={<CreateIcon />}
         hideMobile
       />
     ) : (
@@ -860,7 +860,7 @@ export class AssignmentTexterContact extends React.Component {
             tooltip="Return Home"
             tooltipPosition="bottom-center"
           >
-            <NavigateHomeIcon />
+            <NavigateHomeIcon color="rgb(255,255,255)" />
           </IconButton>
         }
       />
@@ -955,6 +955,7 @@ export class AssignmentTexterContact extends React.Component {
     );
   }
 
+  //todo middle scrolling section needs to be 800px and then next to it needs to
   render() {
     return (
       <div>
@@ -966,14 +967,7 @@ export class AssignmentTexterContact extends React.Component {
         ) : (
           ""
         )}
-        <div
-          className={css(styles.container)}
-          style={
-            this.props.contact.messageStatus === "needsResponse"
-              ? { backgroundColor: "rgba(83, 180, 119, 0.25)" }
-              : {}
-          }
-        >
+        <div className={css(styles.container)}>
           <div className={css(styles.topFixedSection)}>
             {this.renderTopFixedSection()}
           </div>

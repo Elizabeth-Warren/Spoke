@@ -391,7 +391,7 @@ export default class CampaignTextersForm extends React.Component {
             <Slider
               maxValue={this.formValues().contactsCount}
               value={texter.assignment.needsMessageCount}
-              color={theme.colors.green}
+              color={theme.colors.EWlibertyGreen}
               direction={0}
             />
           </div>

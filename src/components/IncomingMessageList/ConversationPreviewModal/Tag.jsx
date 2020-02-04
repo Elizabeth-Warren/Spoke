@@ -14,10 +14,10 @@ const styles = StyleSheet.create({
     fontWeight: "normal",
     marginLeft: undefined,
     marginRight: undefined,
-    backgroundColor: theme.colors.red,
+    backgroundColor: theme.colors.EWnavy,
     display: "flex",
     flexDirection: "row",
-    alignItems: "center"
+    alignSelf: "flex-start"
   },
   text: {
     marginLeft: "10px",
@@ -32,9 +32,10 @@ const styles = StyleSheet.create({
   }
 });
 
+//avatar should have no background
 const Tag = props => (
   <p key={props.index} className={css(styles.conversationRow)}>
-    <Avatar backgroundColor={theme.colors.red}>
+    <Avatar backgroundColor={theme.colors.EWnavy}>
       <FlagIcon color="white" />
     </Avatar>
     <div className={css(styles.text)}>

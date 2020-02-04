@@ -21,7 +21,12 @@ export default class MessageList extends Component {
     return (
       <div
         ref="messageWindow"
-        style={{ maxHeight: "300px", overflowY: "scroll" }}
+        style={{
+          maxHeight: "300px",
+          overflowY: "scroll",
+          display: "flex",
+          flexDirection: "column"
+        }}
       >
         {sortedItems.map((item, index) =>
           !item.tag ? (

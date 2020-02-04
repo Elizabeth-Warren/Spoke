@@ -12,7 +12,6 @@ const styles = StyleSheet.create({
     paddingTop: "25px"
   },
   button: {
-    backgroundColor: "blue",
     width: "28px",
     minWidth: "28px",
     minHeight: "28px",

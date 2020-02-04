@@ -26,7 +26,7 @@ const styles = {
   },
 
   interactionStep: {
-    borderLeft: `5px solid ${theme.colors.green}`,
+    borderLeft: `5px solid ${theme.colors.EWlibertyGreen}`,
     marginBottom: 24
   },
 

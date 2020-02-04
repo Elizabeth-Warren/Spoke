@@ -27,8 +27,7 @@ const inlineStyles = {
   },
   title: {
     textTransform: "uppercase",
-    textAlign: "center",
-    color: "gray"
+    textAlign: "center"
   }
 };
 

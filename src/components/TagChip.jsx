@@ -13,7 +13,7 @@ const inlineStyles = {
     justifyContent: "center",
     flexWrap: "nowrap",
     alignItems: "center",
-    backgroundColor: theme.colors.lightYellow
+    backgroundColor: theme.colors.EWlightLibertyGreen
   },
   text: {
     fontSize: "10px",
@@ -23,7 +23,7 @@ const inlineStyles = {
   icon: {
     width: "16px",
     height: "16px",
-    backgroundColor: theme.colors.lightYellow
+    backgroundColor: theme.colors.EWlightLibertyGreen
   }
 };
 
