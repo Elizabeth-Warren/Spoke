@@ -34,7 +34,7 @@ export const allScriptFields = customFields =>
 
 const capitalize = str => {
   const strTrimmed = str.trim();
-  return strTrimmed.charAt(0).toUpperCase() + strTrimmed.slice(1).toLowerCase();
+  return strTrimmed.charAt(0).toUpperCase() + strTrimmed.slice(1);
 };
 
 const getScriptFieldValue = (contact, texter, fieldName) => {
