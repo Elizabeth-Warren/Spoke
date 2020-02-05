@@ -62,11 +62,11 @@ import { resolvers as questionResolvers } from "./question";
 import { resolvers as questionResponseResolvers } from "./question-response";
 import { getUsers, resolvers as userResolvers } from "./user";
 import { change } from "../local-auth-helpers";
-
 import { getSendBeforeTimeUtc } from "../../lib/timezones";
 
 import request from "request";
 import { flatten, get } from "lodash";
+import humps from "humps";
 import { DateTime } from "timezonecomplete";
 
 const uuidv4 = require("uuid").v4;
@@ -217,7 +217,9 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
     const cannedResponses = campaign.cannedResponses;
     const convertedResponses = [];
     for (let index = 0; index < cannedResponses.length; index++) {
-      const response = cannedResponses[index];
+      const response = humps.decamelizeKeys(cannedResponses[index], {
+        separator: "_"
+      });
       convertedResponses.push({
         ...response,
         campaign_id: id,

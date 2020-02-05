@@ -35,6 +35,7 @@ export const cannedResponseCache = {
         id: cannedRes.id,
         title: cannedRes.title,
         text: cannedRes.text,
+        survey_question: cannedRes.survey_question,
         user_id: cannedRes.user_id
       }));
       await r.redis

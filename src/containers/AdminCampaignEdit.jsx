@@ -67,6 +67,7 @@ const campaignInfoFragment = `
     id
     title
     text
+    surveyQuestion
   }
   editors
 `;

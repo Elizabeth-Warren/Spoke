@@ -93,17 +93,22 @@ class ScriptList extends React.Component {
     // )
 
     const rightIconButton = null;
-    const listItems = scripts.map(script => (
-      <ListItem
-        value={script.text}
-        onTouchTap={() => onSelectCannedResponse(script)}
-        key={script.id}
-        primaryText={script.title}
-        secondaryText={script.text}
-        rightIconButton={rightIconButton}
-        secondaryTextLines={2}
-      />
-    ));
+    const listItems = scripts.map(script => {
+      const title = script.surveyQuestion
+        ? `[${script.surveyQuestion}] ${script.title}`
+        : script.title;
+      return (
+        <ListItem
+          value={script.text}
+          onTouchTap={() => onSelectCannedResponse(script)}
+          key={script.id}
+          primaryText={title}
+          secondaryText={script.text}
+          rightIconButton={rightIconButton}
+          secondaryTextLines={2}
+        />
+      );
+    });
 
     const list =
       scripts.length === 0 ? null : (

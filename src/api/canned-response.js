@@ -3,6 +3,7 @@ export const schema = `
     id: String
     title: String
     text: String
+    surveyQuestion: String
     campaignId: String
     userId: String
   }
@@ -11,6 +12,7 @@ export const schema = `
     id: ID
     title: String
     text: String
+    surveyQuestion: String
     isUserCreated: Boolean
   }
 `;

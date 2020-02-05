@@ -52,7 +52,8 @@ export default class CampaignCannedResponsesForm extends React.Component {
     cannedResponses: yup.array().of(
       yup.object({
         title: yup.string(),
-        text: yup.string()
+        text: yup.string(),
+        surveyQuestion: yup.string()
       })
     )
   });
@@ -97,37 +98,41 @@ export default class CampaignCannedResponsesForm extends React.Component {
   }
 
   listItems(cannedResponses) {
-    const listItems = cannedResponses.map(response => (
-      <ListItem
-        {...dataTest("cannedResponse")}
-        value={response.text}
-        key={response.id}
-        primaryText={response.title}
-        secondaryText={response.text}
-        rightIconButton={
-          <IconButton
-            onTouchTap={() => {
-              const newVals = this.props.formValues.cannedResponses
-                .map(responseToDelete => {
-                  if (responseToDelete.id === response.id) {
-                    return null;
-                  }
-                  return responseToDelete;
-                })
-                .filter(ele => ele !== null);
+    return cannedResponses.map(response => {
+      const title = response.surveyQuestion
+        ? `[${response.surveyQuestion}] ${response.title}`
+        : response.title;
+      return (
+        <ListItem
+          {...dataTest("cannedResponse")}
+          value={response.text}
+          key={response.id}
+          primaryText={title}
+          secondaryText={response.text}
+          rightIconButton={
+            <IconButton
+              onTouchTap={() => {
+                const newVals = this.props.formValues.cannedResponses
+                  .map(responseToDelete => {
+                    if (responseToDelete.id === response.id) {
+                      return null;
+                    }
+                    return responseToDelete;
+                  })
+                  .filter(ele => ele !== null);
 
-              this.props.onChange({
-                cannedResponses: newVals
-              });
-            }}
-          >
-            <DeleteIcon />
-          </IconButton>
-        }
-        secondaryTextLines={2}
-      />
-    ));
-    return listItems;
+                this.props.onChange({
+                  cannedResponses: newVals
+                });
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          }
+          secondaryTextLines={2}
+        />
+      );
+    });
   }
 
   render() {

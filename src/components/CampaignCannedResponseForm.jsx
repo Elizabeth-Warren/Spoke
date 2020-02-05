@@ -23,7 +23,8 @@ class CannedResponseForm extends React.Component {
   render() {
     const modelSchema = yup.object({
       title: yup.string().required(),
-      text: yup.string().required()
+      text: yup.string().required(),
+      surveyQuestion: yup.string()
     });
 
     const { customFields } = this.props;
@@ -45,6 +46,12 @@ class CannedResponseForm extends React.Component {
             label="Script"
             multiLine
             fullWidth
+          />
+          <Form.Field
+            {...dataTest("surveyQuestion")}
+            name="surveyQuestion"
+            fullWidth
+            label="Survey Question"
           />
           <div className={css(styles.buttonRow)}>
             <Form.Button

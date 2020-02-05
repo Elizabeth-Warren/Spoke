@@ -367,6 +367,18 @@ const migrations = [
           .default(null);
       });
     }
+  },
+  {
+    auto: true,
+    date: "2020-02-05",
+    migrate: async () => {
+      await r.knex.schema.alterTable("canned_response", table => {
+        table
+          .string("survey_question")
+          .nullable()
+          .default(null);
+      });
+    }
   }
 
   /* migration template

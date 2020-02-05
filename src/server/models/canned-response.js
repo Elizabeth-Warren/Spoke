@@ -15,7 +15,8 @@ const CannedResponse = thinky.createModel(
       text: requiredString(),
       title: requiredString(),
       user_id: optionalString(),
-      created_at: timestamp()
+      created_at: timestamp(),
+      survey_question: optionalString()
     })
     .allowExtra(false),
   { noAutoCreation: true }
