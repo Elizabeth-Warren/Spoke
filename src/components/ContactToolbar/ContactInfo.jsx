@@ -12,7 +12,7 @@ const styles = StyleSheet.create({
     display: "flex",
     flexDirection: "column"
   },
-  conversationLink: {
+  addSpace: {
     paddingTop: "25px"
   },
   button: {
@@ -59,6 +59,7 @@ export default class ContactInfo extends React.Component {
     </FlatButton>
   );
 
+  //TODO: Move toolkit link to .env
   renderDialog = () => (
     <Dialog
       title="Conversation Information"
@@ -68,6 +69,14 @@ export default class ContactInfo extends React.Component {
     >
       <div className={css(styles.container)}>
         <span>
+          <a
+            href="https://sites.google.com/elizabethwarren.com/warren-for-president-textteam/home"
+            target="_blank"
+          >
+            Text Team Help
+          </a>
+        </span>
+        <span className={css(styles.addSpace)}>
           Campaign: {this.props.campaign.id} {this.props.campaign.title}
         </span>
         <span>Texter: {this.props.assignment.texter.displayName}</span>
@@ -75,7 +84,7 @@ export default class ContactInfo extends React.Component {
           Contact: {this.props.campaignContact.id}{" "}
           {this.props.campaignContact.firstName}
         </span>
-        <div className={css(styles.conversationLink)}>
+        <div className={css(styles.addSpace)}>
           <ConversationLink
             organizationId={this.props.campaign.organization.id}
             conversation={{
