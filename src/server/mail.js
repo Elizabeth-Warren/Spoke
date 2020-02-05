@@ -1,5 +1,6 @@
 import { log } from "../lib";
 import aws from "aws-sdk";
+import config from "./config";
 
 let ses;
 if (process.env.EMAIL_ENABLED) {
@@ -39,4 +40,45 @@ export const sendEmail = ({ to, subject, text, replyTo }) => {
   }
 
   return ses.sendEmail(params).promise();
+};
+
+export const sendTemplatedEmail = async ({
+  to,
+  replyTo,
+  template,
+  templateData
+}) => {
+  log.debug({ templateData, template }, `Sending e-mail templated to ${to}.`);
+  if (!ses) {
+    log.info(
+      { templateData, template },
+      `Skipping send to ${to} because email is disabled`
+    );
+    return;
+  }
+
+  const params = {
+    Source: process.env.EMAIL_FROM,
+    Destination: {
+      ToAddresses: [to]
+    },
+    ConfigurationSetName: config.SES_CONFIGURATION_SET_NAME,
+    Template: template,
+    TemplateData: JSON.stringify({
+      email: to,
+      ...templateData
+    })
+  };
+
+  if (replyTo) {
+    params.ReplyToAddresses = [replyTo];
+  }
+  try {
+    await ses.sendTemplatedEmail(params).promise();
+  } catch (e) {
+    log.error(
+      { exception: e, templateData, template },
+      "Failed to send templated email"
+    );
+  }
 };

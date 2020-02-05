@@ -1,12 +1,19 @@
 import { r, Assignment, Campaign, User, Organization } from "./models";
 import { log } from "../lib";
-import { sendEmail } from "./mail";
+import { sendEmail, sendTemplatedEmail } from "./mail";
 
 export const Notifications = {
   CAMPAIGN_STARTED: "campaign.started",
   ASSIGNMENT_MESSAGE_RECEIVED: "assignment.message.received",
   ASSIGNMENT_CREATED: "assignment.created",
   ASSIGNMENT_UPDATED: "assignment.updated"
+};
+
+const SES_TEMPLATE_NAMES = {
+  [Notifications.ASSIGNMENT_MESSAGE_RECEIVED]:
+    "spoke_assignment_message_received",
+  [Notifications.ASSIGNMENT_CREATED]: "spoke_assignment_created",
+  [Notifications.ASSIGNMENT_UPDATED]: "spoke_assignment_updated"
 };
 
 async function getOrganizationOwner(organizationId) {
@@ -20,10 +27,22 @@ async function getOrganizationOwner(organizationId) {
       r.table("user")
     )("right")(0);
 }
-const sendAssignmentUserNotification = async (assignment, notification) => {
+
+const sendAssignmentUserNotification = async (assignment, type) => {
   const campaign = await Campaign.get(assignment.campaign_id);
 
   if (!campaign.is_started) {
+    return;
+  }
+
+  if (
+    type !== Notifications.ASSIGNMENT_UPDATED &&
+    type !== Notifications.ASSIGNMENT_CREATED
+  ) {
+    log.error(
+      "Incorrect notification type passed to sendAssignmentUserNotification",
+      type
+    );
     return;
   }
 
@@ -31,29 +50,26 @@ const sendAssignmentUserNotification = async (assignment, notification) => {
   const user = await User.get(assignment.user_id);
   const orgOwner = await getOrganizationOwner(organization.id);
 
-  let subject;
-  let text;
-  if (notification === Notifications.ASSIGNMENT_UPDATED) {
-    subject = `[${organization.name}] Updated assignment: ${campaign.title}`;
-    text = `Your assignment changed: \n\n${process.env.BASE_URL}/app/${campaign.organization_id}/todos`;
-  } else if (notification === Notifications.ASSIGNMENT_CREATED) {
-    subject = `[${organization.name}] New assignment: ${campaign.title}`;
-    text = `You just got a new texting assignment from ${organization.name}. You can start sending texts right away: \n\n${process.env.BASE_URL}/app/${campaign.organization_id}/todos`;
-  }
-
   try {
-    await sendEmail({
+    await sendTemplatedEmail({
       to: user.email,
       replyTo: orgOwner.email,
-      subject,
-      text
+      template: SES_TEMPLATE_NAMES[type],
+      templateData: {
+        first_name: user.first_name,
+        campaign_title: campaign.title,
+        organization_name: organization.name,
+        texter_link: `${process.env.BASE_URL}/app/${campaign.organization_id}/todos`
+      }
     });
   } catch (e) {
     log.error(e);
   }
 };
 
+// TODO: DRY this up
 export const sendUserNotification = async notification => {
+  log.debug("Sending notification: ", notification);
   const { type } = notification;
 
   if (type === Notifications.CAMPAIGN_STARTED) {
@@ -85,9 +101,16 @@ export const sendUserNotification = async notification => {
       const orgOwner = await getOrganizationOwner(organization.id);
 
       try {
-        await sendEmail({
+        await sendTemplatedEmail({
           to: user.email,
           replyTo: orgOwner.email,
+          template: SES_TEMPLATE_NAMES[type],
+          templateData: {
+            first_name: user.first_name,
+            campaign_title: campaign.title,
+            organization_name: organization.name,
+            texter_link: `${process.env.BASE_URL}/app/${campaign.organization_id}/todos`
+          },
           subject: `[${organization.name}] [${campaign.title}] New reply`,
           text: `Someone responded to your message. See all your replies here: \n\n${process.env.BASE_URL}/app/${campaign.organization_id}/todos/${notification.assignmentId}/reply`
         });

@@ -1,15 +1,17 @@
+// TODO: move this to server/
 import pino from "pino";
+import config from "../server/config";
 
-const config = { base: null };
+const logConfig = { base: null, level: config.LOG_LEVEL };
 
 if (process.env.NODE_ENV !== "production") {
   // Note: pino-pretty is installed as a dev package
-  config.prettyPrint = {
+  logConfig.prettyPrint = {
     ignore: "pid,hostname",
     colorize: true
   };
 }
 
-const log = pino(config);
+const log = pino(logConfig);
 
 export { log };
