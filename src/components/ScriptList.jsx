@@ -7,7 +7,6 @@ import CreateIcon from "material-ui/svg-icons/content/create";
 // import IconButton from 'material-ui/IconButton'
 // import IconMenu from 'material-ui/IconMenu'
 // import MenuItem from 'material-ui/MenuItem'
-import Subheader from "material-ui/Subheader";
 import Divider from "material-ui/Divider";
 import Dialog from "material-ui/Dialog";
 import CannedResponseForm from "./CannedResponseForm";
@@ -48,7 +47,6 @@ class ScriptList extends React.Component {
 
   render() {
     const {
-      subheader,
       scripts,
       onSelectCannedResponse,
       showAddScriptButton,
@@ -113,7 +111,7 @@ class ScriptList extends React.Component {
     const list =
       scripts.length === 0 ? null : (
         <List>
-          <Subheader>{subheader}</Subheader>,{listItems}
+          {listItems}
           <Divider />
         </List>
       );
@@ -159,7 +157,6 @@ class ScriptList extends React.Component {
 ScriptList.propTypes = {
   script: PropTypes.object,
   scripts: PropTypes.arrayOf(PropTypes.object),
-  subheader: PropTypes.element,
   onSelectCannedResponse: PropTypes.func,
   showAddScriptButton: PropTypes.bool,
   customFields: PropTypes.array,

@@ -1,28 +1,25 @@
 import type from "prop-types";
 import React from "react";
-import Popover from "material-ui/Popover";
 import { List } from "material-ui/List";
+import { ToolbarTitle } from "material-ui/Toolbar";
 import ScriptList from "./ScriptList";
+import theme from "../styles/theme";
 
 const styles = {
-  popover: {
-    width: "75%",
-    overflowY: "scroll"
+  title: {
+    color: theme.colors.EWnavy,
+    paddingLeft: 16
   }
 };
 
 class CannedResponseMenu extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      popoverOpen: false
-    };
   }
 
   handleSelectCannedResponse = cannedResponse => {
-    const { onSelectCannedResponse, onRequestClose } = this.props;
+    const { onSelectCannedResponse } = this.props;
     onSelectCannedResponse(cannedResponse.text);
-    onRequestClose();
   };
 
   renderCannedResponses({ scripts, subheader, showAddScriptButton }) {
@@ -43,42 +40,16 @@ class CannedResponseMenu extends React.Component {
   }
 
   render() {
-    const {
-      userCannedResponses,
-      campaignCannedResponses,
-      open,
-      onRequestClose,
-      anchorEl
-    } = this.props;
+    const { campaignCannedResponses } = this.props;
 
     return (
-      <div>
-        <Popover
-          style={styles.popover}
-          open={open}
-          anchorEl={anchorEl}
-          anchorOrigin={{ horizontal: "left", vertical: "bottom" }}
-          targetOrigin={{ horizontal: "left", vertical: "bottom" }}
-          onRequestClose={onRequestClose}
-          style={{
-            overflowY: "scroll",
-            width: "75%"
-          }}
-        >
-          <List>
-            {this.renderCannedResponses({
-              scripts: campaignCannedResponses,
-              subheader: "Suggested",
-              showAddScriptButton: false
-            })}
-            {this.renderCannedResponses({
-              scripts: userCannedResponses,
-              subheader: "Personal",
-              showAddScriptButton: false
-            })}
-          </List>
-        </Popover>
-      </div>
+      <List>
+        <ToolbarTitle text="Replies" style={styles.title} />
+        {this.renderCannedResponses({
+          scripts: campaignCannedResponses,
+          showAddScriptButton: false
+        })}
+      </List>
     );
   }
 }
@@ -86,12 +57,9 @@ class CannedResponseMenu extends React.Component {
 CannedResponseMenu.propTypes = {
   scripts: type.array,
   onSelectCannedResponse: type.func,
-  onRequestClose: type.func,
   customFields: type.array,
   texterId: type.number,
   userCannedResponses: type.array,
-  open: type.bool,
-  anchorEl: type.object,
   campaignId: type.number,
   campaignCannedResponses: type.array
 };

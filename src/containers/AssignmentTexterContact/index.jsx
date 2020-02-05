@@ -38,6 +38,7 @@ import {
   SkipDialog
 } from "../../components/AssignmentTexterContact";
 import { NO_TAG } from "../../lib/tags";
+import theme from "../../styles/theme";
 
 const styles = StyleSheet.create({
   mobile: {
@@ -91,6 +92,30 @@ const styles = StyleSheet.create({
   topFixedSection: {
     flex: "0 0 auto"
   },
+  mainSectionContainer: {
+    height: "100%",
+    display: "flex",
+    flexDirection: "row"
+  },
+  messageSection: {
+    flex: "1 1 auto",
+    height: "100%",
+    display: "flex",
+    flexDirection: "column"
+  },
+
+  responsesSection: {
+    backgroundColor: theme.colors.EWlibertyGreen,
+    height: "100%"
+  },
+
+  navButtonsWrapper: {
+    height: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center"
+  },
+
   middleScrollingSection: {
     flex: "1 1 auto",
     overflowY: "scroll",
@@ -147,6 +172,7 @@ const inlineStyles = {
   },
   actionToolbar: {
     backgroundColor: "white",
+
     "@media(min-width: 450px)": {
       marginBottom: 5
     },
@@ -215,7 +241,6 @@ export class AssignmentTexterContact extends React.Component {
       snackbarActionTitle,
       snackbarOnTouchTap,
       optOutMessageText: campaign.organization.optOutMessage,
-      responsePopoverOpen: false,
       messageText: this.getStartingMessageText(),
       optOutDialogOpen: false,
       skipDialogOpen: false,
@@ -334,20 +359,6 @@ export class AssignmentTexterContact extends React.Component {
           getTopMostParent(campaign.interactionSteps).script
         );
   }
-
-  handleOpenPopover = event => {
-    event.preventDefault();
-    this.setState({
-      responsePopoverAnchorEl: event.currentTarget,
-      responsePopoverOpen: true
-    });
-  };
-
-  handleClosePopover = () => {
-    this.setState({
-      responsePopoverOpen: false
-    });
-  };
 
   handleCannedResponseChange = cannedResponseScript => {
     this.handleChangeScript(cannedResponseScript);
@@ -768,10 +779,10 @@ export class AssignmentTexterContact extends React.Component {
               ) : (
                 ""
               )}
-              <div style={{ float: "right", marginLeft: 20 }}>
-                {navigationToolbarChildren}
-              </div>
             </ToolbarGroup>
+            <div className={css(styles.navButtonsWrapper)}>
+              {navigationToolbarChildren}
+            </div>
           </Toolbar>
         </div>
       );
@@ -795,16 +806,11 @@ export class AssignmentTexterContact extends React.Component {
                 onTouchTap={this.handleOpenDialog}
                 tooltip="Opt out this contact"
               />
-              <RaisedButton
-                style={inlineStyles.mobileCannedReplies}
-                label="Canned replies"
-                onTouchTap={this.handleOpenPopover}
-              />
               {this.renderNeedsResponseToggleButton(contact)}
-              <div style={{ float: "right", marginLeft: "-30px" }}>
-                {navigationToolbarChildren}
-              </div>
             </ToolbarGroup>
+            <div className={css(styles.navButtonsWrapper)}>
+              {navigationToolbarChildren}
+            </div>
           </Toolbar>
         </div>
       );
@@ -823,10 +829,6 @@ export class AssignmentTexterContact extends React.Component {
               />
               {this.renderNeedsResponseToggleButton(contact)}
               <RaisedButton
-                label="Canned responses"
-                onTouchTap={this.handleOpenPopover}
-              />
-              <RaisedButton
                 {...dataTest("optOut")}
                 secondary
                 label="Opt out"
@@ -834,10 +836,10 @@ export class AssignmentTexterContact extends React.Component {
                 tooltip="Opt out this contact"
                 tooltipPosition="top-center"
               />
-              <div style={{ float: "right", marginLeft: 20 }}>
-                {navigationToolbarChildren}
-              </div>
             </ToolbarGroup>
+            <div className={css(styles.navButtonsWrapper)}>
+              {navigationToolbarChildren}
+            </div>
           </Toolbar>
         </div>
       );
@@ -867,15 +869,12 @@ export class AssignmentTexterContact extends React.Component {
     );
   }
 
-  renderCannedResponsePopover() {
+  renderCannedResponseMenu() {
     const { campaign, assignment, texter } = this.props;
     const { userCannedResponses, campaignCannedResponses } = assignment;
 
     return (
       <CannedResponseMenu
-        onRequestClose={this.handleClosePopover}
-        open={this.state.responsePopoverOpen}
-        anchorEl={this.state.responsePopoverAnchorEl}
         campaignCannedResponses={campaignCannedResponses}
         userCannedResponses={userCannedResponses}
         customFields={campaign.customFields}
@@ -950,13 +949,18 @@ export class AssignmentTexterContact extends React.Component {
         </div>
         {this.renderSkipDialog()}
         {this.renderOptOutDialog()}
-        {this.renderCannedResponsePopover()}
       </div>
     );
   }
 
   //todo middle scrolling section needs to be 800px and then next to it needs to
   render() {
+    const { messageStatus } = this.props.contact;
+    const { justSentNew } = this.state;
+    const shouldHideCannedResponses = !(
+      messageStatus === "needsMessage" || justSentNew
+    );
+
     return (
       <div>
         {this.state.disabled ? (
@@ -971,15 +975,24 @@ export class AssignmentTexterContact extends React.Component {
           <div className={css(styles.topFixedSection)}>
             {this.renderTopFixedSection()}
           </div>
-          <div
-            {...dataTest("messageList")}
-            ref="messageScrollContainer"
-            className={css(styles.middleScrollingSection)}
-          >
-            {this.renderMiddleScrollingSection()}
-          </div>
-          <div className={css(styles.bottomFixedSection)}>
-            {this.renderBottomFixedSection()}
+          <div className={css(styles.mainSectionContainer)}>
+            <div className={css(styles.messageSection)}>
+              <div
+                {...dataTest("messageList")}
+                ref="messageScrollContainer"
+                className={css(styles.middleScrollingSection)}
+              >
+                {this.renderMiddleScrollingSection()}
+              </div>
+              <div className={css(styles.bottomFixedSection)}>
+                {this.renderBottomFixedSection()}
+              </div>
+            </div>
+            {shouldHideCannedResponses && (
+              <div className={css(styles.responsesSection)}>
+                {this.renderCannedResponseMenu()}
+              </div>
+            )}
           </div>
         </div>
         <Snackbar
