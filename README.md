@@ -33,6 +33,10 @@ Open two terminal windows:
 1. `docker-compose up`
 2. `yarn run dev`
 
+### Updating ngrok url for messaging service
+
+`./dev-tools/manage-messaging-services.js --command update --baseUrl <YOUR_NGROK_URL> --sid <TWILIO_MESSAGE_SERVICE_SID>`
+
 / begin original README
 
 # Spoke
