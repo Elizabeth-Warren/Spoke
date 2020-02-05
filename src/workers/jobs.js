@@ -26,6 +26,7 @@ import Papa from "papaparse";
 import moment from "moment";
 import { sendEmail } from "../server/mail";
 import { Notifications, sendUserNotification } from "../server/notifications";
+const EXPORT_S3_PATH = "campaign-exports/";
 
 const defensivelyDeleteJob = async job => {
   if (job.id) {
@@ -1000,6 +1001,10 @@ export async function exportCampaign(job) {
     process.env.AWS_ACCESS_AVAILABLE ||
     (process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY)
   ) {
+    if (!process.env.AWS_S3_BUCKET_NAME) {
+      log.error("Missing AWS_S3_BUCKET_NAME env var, aborting export.");
+      return;
+    }
     try {
       const s3bucket = new AWS.S3({
         params: { Bucket: process.env.AWS_S3_BUCKET_NAME }
@@ -1007,10 +1012,12 @@ export async function exportCampaign(job) {
       const campaignTitle = campaign.title
         .replace(/ /g, "_")
         .replace(/\//g, "_");
-      const key = `${campaignTitle}-${moment().format(
+      const keyPrefix = `${EXPORT_S3_PATH}${campaignTitle}-${moment().format(
         "YYYY-MM-DD-HH-mm-ss"
-      )}.csv`;
-      const messageKey = `${key}-messages.csv`;
+      )}`;
+      const key = `${keyPrefix}.csv`;
+      const messageKey = `${keyPrefix}-messages.csv`;
+
       let params = { Key: key, Body: campaignCsv };
       await s3bucket.putObject(params).promise();
       params = { Key: key, Expires: 86400 };
@@ -1025,6 +1032,7 @@ export async function exportCampaign(job) {
         "getObject",
         params
       );
+      // TODO[matteo]: send templated email instead
       await sendEmail({
         to: user.email,
         subject: `Export ready for ${campaign.title}`,

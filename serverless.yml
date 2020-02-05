@@ -42,6 +42,12 @@ provider:
         - "ses:SendTemplatedEmail"
         - "ses:UpdateTemplate"
       Resource: "*"
+    - Effect: Allow
+      Action:
+        - "s3:*"
+      Resource:
+        - "${ssm:/${self:custom.infrastructure}/s3/spoke-private/bucket/arn~true}"
+        - "${ssm:/${self:custom.infrastructure}/s3/spoke-private/bucket/arn~true}/*"
   environment:
     STAGE: ${self:custom.stage}
     INFRASTRUCTURE: ${self:custom.infrastructure}
@@ -53,6 +59,8 @@ provider:
     SUPPRESS_SEED_CALLS: 1
     KNEX_MIGRATION_DIR: ./build/server/migrations
     PASSPORT_STRATEGY: auth0
+    AWS_S3_BUCKET_NAME: ${ssm:/${self:custom.infrastructure}/s3/spoke-private/bucket/name~true}
+    AWS_ACCESS_AVAILABLE: 1
     DEBUG_APOLLO: ${self:custom.debugApollo.${self:custom.stage}}
     AUTH0_CLIENT_ID: ${ssm:/${self:custom.stage}/spoke/auth0/CLIENT_ID~true}
     AUTH0_CLIENT_SECRET: ${ssm:/${self:custom.stage}/spoke/auth0/CLIENT_SECRET~true}
