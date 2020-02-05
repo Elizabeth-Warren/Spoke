@@ -11,6 +11,7 @@ import { connect } from "react-apollo";
 import { withRouter } from "react-router";
 import gql from "graphql-tag";
 import { dataTest } from "../lib/attributes";
+import { hasRoleAtLeast } from "../lib/permissions";
 
 const avatarSize = 28;
 
@@ -43,16 +44,23 @@ class UserMenu extends Component {
 
   handleMenuChange = (event, value) => {
     this.handleRequestClose();
+    const { currentUser } = this.props.data;
     if (value === "logout") {
       window.AuthService.logout();
     } else if (value === "account") {
       const { orgId } = this.props;
-      const { currentUser } = this.props.data;
       if (orgId) {
         this.props.router.push(`/app/${orgId}/account/${currentUser.id}`);
       }
     } else {
-      this.props.router.push(`/admin/${value}`);
+      const roleObj = currentUser.allRoles.find(item => item.orgId == value);
+      const roleForOrg = roleObj && roleObj.role;
+      const isAdmin = hasRoleAtLeast(roleForOrg, "SUPERVOLUNTEER");
+      if (isAdmin) {
+        this.props.router.push(`/admin/${value}`);
+      } else {
+        this.props.router.push(`/app/${value}/todos`);
+      }
     }
   };
 
@@ -158,6 +166,10 @@ const mapQueriesToProps = () => ({
           id
           displayName
           email
+          allRoles {
+            orgId
+            role
+          }
           organizations {
             id
             name

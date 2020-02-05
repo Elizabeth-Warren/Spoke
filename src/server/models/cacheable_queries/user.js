@@ -134,6 +134,18 @@ const userOrgs = async (userId, role) => {
   return matchedOrgs.map(orgId => orgRoles[orgId]);
 };
 
+const allRoles = async (userId) => {
+  const acceptableRoles = [...ROLE_HIERARCHY];
+  const orgRoles = await loadUserRoles(userId);
+  const matchedOrgs = Object.keys(orgRoles).filter(
+    orgId => acceptableRoles.indexOf(orgRoles[orgId].role) !== -1
+  );
+  return matchedOrgs.map(orgId => {
+    const { role } = orgRoles[orgId];
+    return { orgId, role };
+  });
+};
+
 const orgRoles = async (userId, orgId) => {
   const orgRolesDict = await loadUserRoles(userId);
   if (orgId in orgRolesDict) {
@@ -219,6 +231,7 @@ const userCache = {
   userHasRole,
   userLoggedIn,
   userOrgs,
+  allRoles,
   orgRoles,
   clearUser: async (userId, authId) => {
     if (r.redis) {

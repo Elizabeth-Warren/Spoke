@@ -276,6 +276,7 @@ export const resolvers = {
     },
     roles: async (user, { organizationId }) =>
       cacheableData.user.orgRoles(user.id, organizationId),
+    allRoles: async (user) => cacheableData.user.allRoles(user.id),
     todos: async (user, { organizationId }) =>
       r
         .table("assignment")

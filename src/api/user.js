@@ -9,12 +9,13 @@ export const schema = `
     organizations(role: String): [Organization]
     todos(organizationId: String): [Assignment]
     roles(organizationId: String!): [String]
+    allRoles: [RolesForOrg]
     assignedCell: Phone
     assignment(campaignId: String): Assignment
     terms: Boolean
     cacheable: Boolean
   }
-  
+
 type UsersList {
   users: [User]
 }

@@ -152,6 +152,11 @@ const rootSchema = gql`
     total: Int!
   }
 
+  type RolesForOrg {
+    orgId: Int!,
+    role: String
+  }
+
   type ReturnString {
     data: String!
   }
