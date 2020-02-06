@@ -40,7 +40,7 @@
     "dev-start-debug": "nodemon -e js,jsx,md,mustache -w ./src --exec ./dev-tools/babel-run-debug  -- ./src/server",
     "generate-contacts": "./dev-tools/babel-run ./dev-tools/generate-contacts.js",
     "jest-test": "jest __test__/backend.test.js",
-    "dev": "nf start -w --procfile ./dev-tools/Procfile.dev",
+    "dev": "yarn run dev-migrate && nf start -w --procfile ./dev-tools/Procfile.dev",
     "dev-migrate": "nf run ./dev-tools/babel-run ./dev-tools/migrate.js",
     "create-test-db": "./dev-tools/create_test_database.sh",
     "dev-nowrap": "nf start --trim 500 --procfile ./dev-tools/Procfile.dev --env ./__test__/e2e/.env.e2e",
