@@ -76,7 +76,7 @@ const ContactToolbar = function ContactToolbar(props) {
   return (
     <div>
       <Toolbar style={inlineStyles.toolbar}>
-        <ToolbarGroup>
+        <ToolbarGroup style={inlineStyles.group}>
           <ToolbarTitle
             text={campaignContact.firstName}
             style={inlineStyles.cellToolbarTitle}

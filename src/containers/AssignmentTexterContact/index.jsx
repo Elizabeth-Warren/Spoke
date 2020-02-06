@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     flexDirection: "row"
   },
   messageSection: {
-    flex: "1 1 auto",
+    flex: "0 0 66%",
     height: "100%",
     display: "flex",
     flexDirection: "column"
@@ -106,7 +106,8 @@ const styles = StyleSheet.create({
 
   responsesSection: {
     backgroundColor: theme.colors.EWlibertyGreen,
-    height: "100%"
+    height: "100%",
+    flex: "0 0 34%"
   },
 
   navButtonsWrapper: {
@@ -160,10 +161,7 @@ const inlineStyles = {
   exitTexterIconButton: {
     float: "right",
     height: "50px",
-    zIndex: 100,
-    position: "absolute",
-    top: 0,
-    right: "-30"
+    zIndex: 100
   },
   toolbarIconButton: {
     position: "absolute",
