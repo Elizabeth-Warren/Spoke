@@ -108,6 +108,7 @@ functions:
 plugins:
   - serverless-domain-manager
   - serverless-associate-waf
+  - serverless-api-compression
 
 package:
   excludeDevDependencies: true

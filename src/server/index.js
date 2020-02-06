@@ -1,4 +1,4 @@
-import "babel-polyfill";
+import "@babel/polyfill";
 import bodyParser from "body-parser";
 import express from "express";
 import appRenderer from "./middleware/app-renderer";
@@ -7,19 +7,29 @@ import { makeExecutableSchema, addMockFunctionsToSchema } from "graphql-tools";
 // ORDERING: ./models import must be imported above ./api to help circular imports
 import { createLoaders } from "./models";
 import { resolvers } from "./api/schema";
-import { schema } from "../api/schema";
+import { schema } from "src/api/schema";
 import mocks from "./api/mocks";
 import passport from "passport";
 import cookieSession from "cookie-session";
 import passportSetup from "./auth-passport";
 import wrap from "./wrap";
-import { log } from "../lib";
+import { log } from "src/lib";
 // import nexmo from "./api/lib/nexmo";
 import twilio from "./api/lib/twilio";
 import { setupUserNotificationObservers } from "./notifications";
 import { twiml } from "twilio";
 import { existsSync } from "fs";
+import sourceMapSupport from "source-map-support";
 import telemetry from "./telemetry";
+
+// Support source maps in stack traces
+sourceMapSupport.install();
+
+process.on("uncaughtException", ex => {
+  log.error(ex);
+  process.exit(1);
+});
+
 const DEBUG = process.env.NODE_ENV === "development";
 
 const loginCallbacks = passportSetup[

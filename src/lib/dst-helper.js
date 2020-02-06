@@ -1,7 +1,7 @@
 import { DateTime, zone, DateFunctions } from "timezonecomplete";
 
 class TimezoneOffsetAndDst {
-  constructor(tzOffsetMinutes: number, hasDst: boolean) {
+  constructor(tzOffsetMinutes, hasDst) {
     this.tzOffsetMinutes = tzOffsetMinutes;
     this.hasDst = hasDst;
   }
@@ -44,17 +44,17 @@ export class DstHelper {
     }
   }
 
-  static getTimezoneOffsetHours(timezone: string): number {
+  static getTimezoneOffsetHours(timezone) {
     DstHelper.ensureTimezoneDstCalculated(timezone);
     return _timezoneOffsetAndDst[timezone].tzOffsetMinutes / 60;
   }
 
-  static timezoneHasDst(timezone: string): boolean {
+  static timezoneHasDst(timezone) {
     DstHelper.ensureTimezoneDstCalculated(timezone);
     return _timezoneOffsetAndDst[timezone].hasDst;
   }
 
-  static isOffsetDst(offset: number, timezone: string): boolean {
+  static isOffsetDst(offset, timezone) {
     DstHelper.ensureTimezoneDstCalculated(timezone);
 
     // if this timezone has DST (meaning, january and july offsets were different)
@@ -67,12 +67,12 @@ export class DstHelper {
     );
   }
 
-  static isDateDst(date: Date, timezone: string): boolean {
+  static isDateDst(date, timezone) {
     let d = new DateTime(date, DateFunctions.Get, zone(timezone));
     return DstHelper.isOffsetDst(d.offset(), timezone);
   }
 
-  static isDateTimeDst(date: DateTime, timezone: string): boolean {
+  static isDateTimeDst(date, timezone) {
     return DstHelper.isOffsetDst(date.offset(), timezone);
   }
 }

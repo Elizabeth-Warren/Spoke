@@ -32,9 +32,9 @@ if (process.env.NODE_ENV === "production") {
         : path.join(process.env.ASSETS_DIR, process.env.ASSETS_MAP_FILE)
     )
   );
-  const staticBase = process.env.STATIC_BASE_URL || "/assets/";
+
   for (var a in assetMapData) {
-    assetMap[a] = staticBase + assetMapData[a];
+    assetMap[a] = assetMapData[a];
   }
 }
 

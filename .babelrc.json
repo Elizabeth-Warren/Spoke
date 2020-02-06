@@ -1,0 +1,25 @@
+{
+  "presets": [
+    "@babel/react",
+    [
+      "@babel/env",
+      {
+        "targets": {
+          "node": true
+        },
+        "modules": "commonjs"
+      }
+    ]
+  ],
+  "plugins": [
+    "@babel/plugin-proposal-class-properties",
+    "@babel/plugin-proposal-export-default-from",
+    [
+      "babel-plugin-module-resolver",
+      {
+        "root": ["."]
+      }
+    ]
+  ],
+  "only": ["**/*.js", "**/*.jsx"]
+}

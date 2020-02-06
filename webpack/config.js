@@ -17,7 +17,35 @@ const plugins = [
     }
   )
 ];
-const jsxLoaders = [{ loader: "babel-loader" }];
+const jsxLoaders = [
+  {
+    loader: "babel-loader",
+    options: {
+      babelrc: false,
+      presets: [
+        "@babel/react",
+        [
+          "@babel/preset-env",
+          {
+            targets: "> 2%",
+            modules: "commonjs"
+          }
+        ]
+      ],
+      plugins: [
+        "@babel/plugin-proposal-class-properties",
+        "@babel/plugin-proposal-export-default-from",
+        "@babel/plugin-transform-runtime",
+        [
+          "babel-plugin-module-resolver",
+          {
+            root: ["."]
+          }
+        ]
+      ]
+    }
+  }
+];
 const assetsDir = process.env.ASSETS_DIR;
 const assetMapFile = process.env.ASSETS_MAP_FILE;
 const outputFile = DEBUG ? "[name].js" : "[name].[chunkhash].js";
@@ -28,16 +56,6 @@ if (!DEBUG) {
       fileName: assetMapFile
     })
   );
-  plugins.push(
-    new webpack.optimize.UglifyJsPlugin({
-      sourceMap: true
-    })
-  );
-  plugins.push(
-    new webpack.LoaderOptionsPlugin({
-      minimize: true
-    })
-  );
 } else {
   plugins.push(new webpack.HotModuleReplacementPlugin());
   jsxLoaders.unshift({ loader: "react-hot-loader" });
@@ -45,7 +63,7 @@ if (!DEBUG) {
 
 const config = {
   entry: {
-    bundle: ["babel-polyfill", "./src/client/index.jsx"]
+    bundle: ["@babel/polyfill", "./src/client/index.jsx"]
   },
   module: {
     rules: [
@@ -74,6 +92,10 @@ const config = {
 if (DEBUG) {
   config.devtool = "inline-source-map";
   config.output.sourceMapFilename = `${outputFile}.map`;
+  config.mode = "development";
+} else {
+  config.devtool = "source-map";
+  config.mode = "production";
 }
 
 module.exports = config;

@@ -3,12 +3,14 @@ import ReactDOM from "react-dom";
 import { Router, browserHistory } from "react-router";
 import { syncHistoryWithStore } from "react-router-redux";
 import { StyleSheet } from "aphrodite";
-import errorCatcher from "./error-catcher";
-import makeRoutes from "../routes";
-import Store from "../store";
 import { ApolloProvider } from "react-apollo";
-import ApolloClientSingleton from "../network/apollo-client-singleton";
+
+import makeRoutes from "src/routes";
+import Store from "src/store";
+import ApolloClientSingleton from "src/network/apollo-client-singleton";
+
 import { login, logout } from "./auth-service";
+import errorCatcher from "./error-catcher";
 
 window.onerror = (msg, file, line, col, error) => {
   errorCatcher(error);
