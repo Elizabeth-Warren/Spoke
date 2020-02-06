@@ -36,6 +36,9 @@ provider:
     blockPublicAccess: true
   iamRoleStatements:
     - Effect: Allow
+      Action: events:PutEvents
+      Resource: "*"
+    - Effect: Allow
       Action:
         - "ses:CreateTemplate"
         - "ses:SendEmail"
