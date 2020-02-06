@@ -163,6 +163,9 @@ export default class CampaignCannedResponsesForm extends React.Component {
           type="submit"
           disabled={this.props.saveDisabled}
           label={this.props.saveLabel}
+          onClick={() => {
+            !this.props.saveDisabled && this.props.onSubmit();
+          }}
         />
       </GSForm>
     );
