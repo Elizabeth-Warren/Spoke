@@ -19,11 +19,7 @@ import twilio from "./api/lib/twilio";
 import { setupUserNotificationObservers } from "./notifications";
 import { twiml } from "twilio";
 import { existsSync } from "fs";
-
-process.on("uncaughtException", ex => {
-  log.error(ex);
-  process.exit(1);
-});
+import telemetry from "./telemetry";
 const DEBUG = process.env.NODE_ENV === "development";
 
 const loginCallbacks = passportSetup[
@@ -175,6 +171,10 @@ app.use(
         request.awsContext && request.awsContext.getRemainingTimeInMillis
           ? request.awsContext.getRemainingTimeInMillis()
           : 5 * 60 * 1000 // default saying 5 min, no matter what
+    },
+    formatError: async err => {
+      await telemetry.reportError(err.originalError);
+      return err;
     }
   }))
 );
@@ -187,6 +187,7 @@ app.get(
 
 // This middleware should be last. Return the React app only if no other route is hit.
 app.use(appRenderer);
+app.use(telemetry.expressMiddleware);
 
 if (port) {
   app.listen(port, () => {
