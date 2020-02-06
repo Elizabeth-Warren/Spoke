@@ -215,7 +215,7 @@ export default class CampaignInteractionStepsForm extends React.Component {
               <Form.Field
                 {...dataTest("editorInteraction")}
                 name="script"
-                __type="script"
+                type="script"
                 fullWidth
                 customFields={this.props.customFields}
                 label="Script"
