@@ -313,15 +313,6 @@ export class AssignmentTexter extends React.Component {
     );
   };
 
-  handleCannedResponseChange = script => {
-    this.handleScriptChange(script);
-    this.handleClosePopover();
-  };
-
-  handleScriptChange = script => {
-    this.setState({ script });
-  };
-
   handleExitTexter = () => {
     this.props.router.push("/app/" + (this.props.organizationId || ""));
   };

@@ -379,6 +379,21 @@ const migrations = [
           .default(null);
       });
     }
+  },
+  {
+    auto: true,
+    date: "2020-02-05",
+    migrate: async () => {
+      await r.knex.schema.alterTable("message", table => {
+        table
+          .integer("canned_response_id")
+          .unsigned()
+          .nullable()
+          .default(null)
+          .references("id")
+          .inTable("canned_response");
+      });
+    }
   }
 
   /* migration template

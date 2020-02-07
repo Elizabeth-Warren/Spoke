@@ -19,7 +19,7 @@ class CannedResponseMenu extends React.Component {
 
   handleSelectCannedResponse = cannedResponse => {
     const { onSelectCannedResponse } = this.props;
-    onSelectCannedResponse(cannedResponse.text);
+    onSelectCannedResponse(cannedResponse);
   };
 
   renderCannedResponses({ scripts, subheader, showAddScriptButton }) {

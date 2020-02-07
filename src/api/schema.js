@@ -83,10 +83,11 @@ const rootSchema = gql`
   }
 
   input MessageInput {
-    text: String
+    text: String!
     contactNumber: Phone
-    assignmentId: String
+    assignmentId: String!
     userId: String
+    cannedResponseId: Int
   }
 
   input InviteInput {
@@ -153,7 +154,7 @@ const rootSchema = gql`
   }
 
   type RolesForOrg {
-    orgId: Int!,
+    orgId: Int!
     role: String
   }
 

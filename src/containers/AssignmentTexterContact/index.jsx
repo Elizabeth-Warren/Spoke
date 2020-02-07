@@ -362,19 +362,26 @@ export class AssignmentTexterContact extends React.Component {
         );
   }
 
-  handleCannedResponseChange = cannedResponseScript => {
-    this.handleChangeScript(cannedResponseScript);
+  handleCannedResponseChange = cannedResponse => {
+    this.setState(
+      {
+        cannedResponseId: cannedResponse.id
+      },
+      () => {
+        this.handleChangeScript(cannedResponse.text);
+      }
+    );
   };
 
-  createMessageToContact(text) {
-    const { texter, assignment } = this.props;
-    const { contact } = this.props;
+  createMessageToContact(text, cannedResponseId) {
+    const { texter, assignment, contact } = this.props;
 
     return {
       contactNumber: contact.cell,
       userId: texter.id,
       text,
-      assignmentId: assignment.id
+      assignmentId: assignment.id,
+      cannedResponseId
     };
   }
 
@@ -414,7 +421,10 @@ export class AssignmentTexterContact extends React.Component {
   handleMessageFormSubmit = async ({ messageText }) => {
     try {
       const { contact } = this.props;
-      const message = this.createMessageToContact(messageText);
+      const message = this.createMessageToContact(
+        messageText,
+        this.state.cannedResponseId
+      );
       if (this.state.disabled) {
         return; // stops from multi-send
       }
@@ -580,6 +590,7 @@ export class AssignmentTexterContact extends React.Component {
 
     this.setState(
       {
+        cannedResponseId: undefined,
         questionResponses
       },
       () => {
@@ -660,7 +671,16 @@ export class AssignmentTexterContact extends React.Component {
       .max(window.MAX_MESSAGE_LENGTH)
   });
 
-  handleMessageFormChange = ({ messageText }) => this.setState({ messageText });
+  handleMessageFormChange = ({ messageText }) => {
+    const newState = { messageText };
+    // Clear out the canned response id if it's set and the message gets
+    // cleared completely.
+    // TODO: do we want to do something similar for question responses?
+    if (this.state.cannedResponseId && !messageText) {
+      newState.cannedResponseId = undefined;
+    }
+    this.setState(newState);
+  };
 
   renderSkipDialog = () => (
     <SkipDialog
@@ -1120,18 +1140,6 @@ const mapMutationsToProps = () => ({
     variables: {
       message,
       campaignContactId
-    }
-  }),
-  bulkSendMessages: assignmentId => ({
-    mutation: gql`
-      mutation bulkSendMessages($assignmentId: Int!) {
-        bulkSendMessages(assignmentId: $assignmentId) {
-          id
-        }
-      }
-    `,
-    variables: {
-      assignmentId
     }
   }),
   addTag: (campaignContactIds, tags, comment) => ({

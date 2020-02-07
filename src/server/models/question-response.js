@@ -9,8 +9,6 @@ const QuestionResponse = thinky.createModel(
   "question_response",
   type
     .object()
-    // todo: ids should be ints
-    // make interaction_step_id optional and add canned response id
     .schema({
       id: type.string(),
       campaign_contact_id: requiredString(),

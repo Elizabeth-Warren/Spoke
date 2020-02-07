@@ -1,4 +1,3 @@
-import camelCaseKeys from "camelcase-keys";
 import GraphQLDate from "graphql-date";
 import GraphQLJSON from "graphql-type-json";
 import { GraphQLError } from "graphql/error";
@@ -6,11 +5,9 @@ import isUrl from "is-url";
 import { organizationCache } from "../models/cacheable_queries/organization";
 import db from "../db";
 import { gzip, log, makeTree } from "../../lib";
-import { applyScript } from "../../lib/scripts";
 import {
   assignTexters,
   exportCampaign,
-  // importScript,
   loadContactsFromDataWarehouse,
   uploadContacts
 } from "../../workers/jobs";
@@ -1090,61 +1087,12 @@ const rootMutations = {
       };
     },
     bulkSendMessages: async (_, { assignmentId }, loaders) => {
-      if (!process.env.ALLOW_SEND_ALL || !process.env.NOT_IN_USA) {
-        log.error("Not allowed to send all messages at once");
-        throw new GraphQLError({
-          status: 403,
-          message: "Not allowed to send all messages at once"
-        });
-      }
-
-      const assignment = await Assignment.get(assignmentId);
-      const campaign = await Campaign.get(assignment.campaign_id);
-      // Assign some contacts
-      await rootMutations.RootMutation.findNewCampaignContact(
-        _,
-        {
-          assignmentId,
-          numberContacts: Number(process.env.BULK_SEND_CHUNK_SIZE) - 1
-        },
-        loaders
-      );
-
-      const contacts = await r
-        .knex("campaign_contact")
-        .where({ message_status: "needsMessage" })
-        .where({ assignment_id: assignmentId })
-        .orderByRaw("updated_at")
-        .limit(process.env.BULK_SEND_CHUNK_SIZE);
-
-      const texter = camelCaseKeys(await User.get(assignment.user_id));
-      const customFields = Object.keys(JSON.parse(contacts[0].custom_fields));
-
-      const contactMessages = await contacts.map(async contact => {
-        const script = await campaignContactResolvers.CampaignContact.currentInteractionStepScript(
-          contact
-        );
-        contact.customFields = contact.custom_fields;
-        const text = applyScript({
-          contact: camelCaseKeys(contact),
-          texter,
-          script,
-          customFields
-        });
-        const contactMessage = {
-          contactNumber: contact.cell,
-          userId: assignment.user_id,
-          text,
-          assignmentId
-        };
-        await rootMutations.RootMutation.sendMessage(
-          _,
-          { message: contactMessage, campaignContactId: contact.id },
-          loaders
-        );
+      // Note: not supported in the Warren fork
+      log.error("Not allowed to send all messages at once");
+      throw new GraphQLError({
+        status: 403,
+        message: "Not allowed to send all messages at once"
       });
-
-      return [];
     },
     sendMessage: async (
       _,
@@ -1154,6 +1102,7 @@ const rootMutations = {
       const contact = await loaders.campaignContact.load(campaignContactId);
       const campaign = await loaders.campaign.load(contact.campaign_id);
       await accessRequired(user, campaign.organization_id, "TEXTER");
+      // TODO: assignmentId should be an int
       if (
         contact.assignment_id !== parseInt(message.assignmentId, 10) ||
         campaign.is_archived
@@ -1257,7 +1206,8 @@ const rootMutations = {
         service: orgFeatures.service || process.env.DEFAULT_SERVICE || "",
         is_from_contact: false,
         queued_at: new Date(),
-        send_before: sendBeforeDate
+        send_before: sendBeforeDate,
+        canned_response_id: message.cannedResponseId
       });
 
       await messageInstance.save();
