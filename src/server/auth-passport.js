@@ -1,6 +1,7 @@
 import passport from "passport";
 import Auth0Strategy from "passport-auth0";
 import { Strategy as LocalStrategy } from "passport-local";
+import SlackStrategy from "./vendor/passport-slack-strategy";
 import { User, cacheableData } from "./models";
 import localAuthHelpers from "./local-auth-helpers";
 import wrap from "./wrap";
@@ -53,6 +54,7 @@ export function setupAuth0Passport() {
             // eslint-disable-next-line no-underscore-dangle
             req.user._json.user_metadata ||
             {};
+
           const userData = {
             auth0_id: auth0Id,
             // eslint-disable-next-line no-underscore-dangle
@@ -64,7 +66,9 @@ export function setupAuth0Passport() {
             email: req.user._json.email,
             is_superadmin: false
           };
+
           await User.save(userData);
+
           res.redirect(req.query.state || "terms");
           return;
         }
@@ -115,6 +119,12 @@ export function setupLocalAuthPassport() {
 
   passport.deserializeUser(
     wrap(async (id, done) => {
+      const intId = parseInt(id, 10);
+      if (Number.isNaN(intId)) {
+        done(null, false);
+        return;
+      }
+
       const user = await cacheableData.user.userLoggedIn(
         "id",
         parseInt(id, 10)
@@ -133,7 +143,98 @@ export function setupLocalAuthPassport() {
   };
 }
 
+export function setupSlackPassport(app) {
+  passport.use(
+    new SlackStrategy(
+      {
+        clientID: process.env.SLACK_CLIENT_ID,
+        clientSecret: process.env.SLACK_CLIENT_SECRET,
+        callbackURL: `${process.env.BASE_URL}/login-callback`
+      },
+      function(
+        accessToken,
+        scopes,
+        team,
+        { bot, incomingWebhook },
+        { user: userProfile, team: teamProfile },
+        done
+      ) {
+        done(null, {
+          ...userProfile,
+          team: teamProfile
+        });
+      }
+    )
+  );
+
+  passport.serializeUser((user, done) => {
+    done(null, user.id);
+  });
+
+  passport.deserializeUser(
+    wrap(async (id, done) => {
+      // add new cacheable query
+      const user = await cacheableData.user.userLoggedIn("auth0_id", id);
+      done(null, user || false);
+    })
+  );
+
+  app.get("/login/slack-redirect", (req, res) => {
+    passport.authenticate("slack", {
+      scope: ["identity.basic", "identity.email", "identity.team"],
+      team: process.env.SLACK_TEAM_ID,
+      state: req.query.nextUrl
+    })(req, res);
+  });
+
+  return {
+    loginCallback: [
+      passport.authenticate("slack", { failureRedirect: "/login" }),
+      wrap(async (req, res) => {
+        // eslint-disable-next-line no-underscore-dangle
+        const slackUser = req.user;
+
+        // This might not be strictly neccesary -- if you try to sign in
+        // with a different team, Slack will error and not redirect you
+        // back becuase the OAuth app hasn't been configured for that
+        // other team. But we do it anyway just in case there's some way
+        // to get Slack to authenticate you against another team or if
+        // someone accidentally publishes our Slack OAuth app as a
+        // public app.
+        if (slackUser.team.id !== process.env.SLACK_TEAM_ID) {
+          res.send("You must log in using the Dream Big Fight Hard slack");
+          return;
+        }
+
+        // eslint-disable-next-line no-underscore-dangle
+        const existingUser = await User.filter({ auth0_id: slackUser.id });
+
+        if (existingUser.length === 0) {
+          const userData = {
+            auth0_id: slackUser.id,
+            // eslint-disable-next-line no-underscore-dangle
+            first_name: slackUser.name.split(" ")[0],
+            // eslint-disable-next-line no-underscore-dangle
+            last_name: slackUser.name
+              .split(" ")
+              .slice(1)
+              .join(" "),
+            cell: "",
+            email: slackUser.email,
+            is_superadmin: false
+          };
+          await User.save(userData);
+        }
+
+        res.redirect(req.query.state || "/");
+        return;
+      })
+    ]
+  };
+}
+
 export default {
   local: setupLocalAuthPassport,
-  auth0: setupAuth0Passport
+  auth0: setupAuth0Passport,
+  slack: setupSlackPassport
 };

@@ -204,7 +204,7 @@ class UserEdit extends React.Component {
                       label="Change password"
                       variant="outlined"
                     />
-                  ) : (
+                  ) : window.PASSPORT_STRATEGY === "slack" ? null : (
                     <InitiatePasswordResetDialog
                       currentUser={this.props.editUser}
                       userId={this.props.userId}

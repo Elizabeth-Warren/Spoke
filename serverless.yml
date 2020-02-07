@@ -61,7 +61,7 @@ provider:
     SESSION_SECRET: ${ssm:/${self:custom.stage}/spoke/SESSION_SECRET~true}
     SUPPRESS_SEED_CALLS: 1
     KNEX_MIGRATION_DIR: ./build/server/migrations
-    PASSPORT_STRATEGY: auth0
+    PASSPORT_STRATEGY: slack
     AWS_S3_BUCKET_NAME: ${ssm:/${self:custom.infrastructure}/s3/spoke-private/bucket/name~true}
     AWS_ACCESS_AVAILABLE: 1
     DEBUG_APOLLO: ${self:custom.debugApollo.${self:custom.stage}}
@@ -92,6 +92,10 @@ provider:
     BASE_URL: ${self:custom.baseUrl}
     OPTOUTS_SHARE_ALL_ORGS: 1
     ENABLE_CLOUDWATCH_REPORTING: 1
+    SLACK_CLIENT_ID: ${ssm:/${self:custom.stage}/spoke/slack/CLIENT_ID~true}
+    SLACK_CLIENT_SECRET: ${ssm:/${self:custom.stage}/spoke/slack/CLIENT_SECRET~true}
+    SLACK_TEAM_ID: ${ssm:/${self:custom.stage}/spoke/slack/TEAM_ID~true}
+
 functions:
   api:
     handler: lambda.handler

@@ -254,15 +254,24 @@ export class PeopleList extends Component {
   renderChangePasswordButton = (columnKey, row) => {
     const { texterId } = row;
     const { currentUser } = this.props;
-    return window.PASSPORT_STRATEGY === "local" ? (
-      <FlatButton
-        label="Reset Password"
-        disabled={currentUser.id === texterId}
-        onTouchTap={() => {
-          this.resetPassword(texterId);
-        }}
-      />
-    ) : (
+
+    if (window.PASSPORT_STRATEGY === "slack") {
+      return null;
+    }
+
+    if (window.PASSPORT_STRATEGY === "local") {
+      return (
+        <FlatButton
+          label="Reset Password"
+          disabled={currentUser.id === texterId}
+          onTouchTap={() => {
+            this.resetPassword(texterId);
+          }}
+        />
+      );
+    }
+
+    return (
       <InitiatePasswordResetDialog
         currentUser={currentUser.id}
         userId={texterId}
