@@ -103,7 +103,7 @@ class AssignmentTexterSurveyDropdown extends Component {
 AssignmentTexterSurveyDropdown.propTypes = {
   step: PropTypes.object,
   answerValue: PropTypes.object,
-  isCurrentStep: PropTypes.bool,
+  isCurrentStep: PropTypes.boolean,
   campaignContactId: PropTypes.number,
   mutations: PropTypes.object
 };

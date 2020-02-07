@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
     width: 200,
     marginLeft: "auto",
     marginRight: "auto",
-    "@media(maxWidth: 450px)": {
+    "@media(max-width: 450px)": {
       display: "none"
     }
   },

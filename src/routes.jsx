@@ -53,8 +53,7 @@ export default function makeRoutes(requireAuth = () => {}) {
             main: () => <DashboardLoader path="/app" />,
             topNav: p => (
               <TopNav title="Spoke Texting" orgId={p.params.organizationId} />
-            ),
-            fullScreen: null
+            )
           }}
         />
         <Route path=":organizationId">

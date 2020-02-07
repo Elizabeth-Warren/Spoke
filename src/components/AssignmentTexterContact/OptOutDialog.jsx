@@ -11,7 +11,7 @@ import GSSubmitButton from "../forms/GSSubmitButton";
 
 const styles = StyleSheet.create({
   optOutCard: {
-    "@media(maxWidth: 320px)": {
+    "@media(max-width: 320px)": {
       padding: "2px 10px !important"
     },
     zIndex: 2000,

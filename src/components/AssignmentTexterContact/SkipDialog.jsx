@@ -10,7 +10,7 @@ import { TAGS, NO_TAG } from "../../lib/tags";
 
 const styles = StyleSheet.create({
   skipCard: {
-    "@media(maxWidth: 320px)": {
+    "@media(max-width: 320px)": {
       padding: "2px 10px !important"
     },
     zIndex: 2000,
