@@ -20,7 +20,7 @@ const inlineStyles = {
   },
   cellToolbarTitle: {
     color: theme.colors.white,
-    fontSize: "20"
+    fontSize: 20
   },
   locationToolbarTitle: {
     color: theme.colors.white,

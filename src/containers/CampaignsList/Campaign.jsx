@@ -81,7 +81,7 @@ const Campaign = props => {
   } = campaign;
 
   let listItemStyle = {};
-  let leftIcon = "";
+  let leftIcon = null;
   if (isArchived) {
     listItemStyle = inlineStyles.past;
   } else if (!isStarted || hasUnassignedContacts) {

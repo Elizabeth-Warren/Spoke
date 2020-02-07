@@ -111,7 +111,7 @@ InitiatePasswordResetDialog.propTypes = {
   organizationId: PropTypes.string,
   userId: PropTypes.string,
   mutations: PropTypes.object,
-  disabled: PropTypes.boolean
+  disabled: PropTypes.bool
 };
 
 const mapMutationsToProps = ({ ownProps }) => ({

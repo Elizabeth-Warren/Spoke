@@ -360,16 +360,19 @@ export class AssignmentTexter extends React.Component {
       <ToolbarTitle
         className={css(styles.navigationToolbarTitle)}
         text={title}
+        key={title}
       />,
       <IconButton
         onTouchTap={this.handleNavigatePrevious}
         disabled={!this.hasPrevious()}
+        key="previous"
       >
         <NavigateBeforeIcon />
       </IconButton>,
       <IconButton
         onTouchTap={this.handleNavigateNext}
         disabled={!this.hasNext()}
+        key="next"
       >
         <NavigateNextIcon />
       </IconButton>
@@ -441,9 +444,9 @@ export class AssignmentTexter extends React.Component {
       }, self.state.reloadDelay);
       return <LoadingIndicator />;
     }
+
     return (
       <AssignmentTexterContact
-        key={contact.id}
         assignment={assignment}
         campaignContactId={contact.id}
         contact={contactData}

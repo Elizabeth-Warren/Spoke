@@ -42,12 +42,12 @@ import theme from "../../styles/theme";
 
 const styles = StyleSheet.create({
   mobile: {
-    "@media(min-width: 425px)": {
+    "@media(minWidth: 425px)": {
       display: "none !important"
     }
   },
   desktop: {
-    "@media(max-width: 450px)": {
+    "@media(maxWidth: 450px)": {
       display: "none !important"
     }
   },
@@ -129,20 +129,20 @@ const styles = StyleSheet.create({
   },
   messageField: {
     padding: "0px 8px",
-    "@media(max-width: 450px)": {
+    "@media(maxWidth: 450px)": {
       marginBottom: "8%"
     }
   },
   textField: {
-    "@media(max-width: 350px)": {
+    "@media(maxWidth: 350px)": {
       overflowY: "scroll !important"
     }
   },
   lgMobileToolBar: {
-    "@media(max-width: 449px) and (min-width: 300px)": {
+    "@media(maxWidth: 449px) and (minWidth: 300px)": {
       display: "inline-block"
     },
-    "@media(max-width: 320px) and (min-width: 300px)": {
+    "@media(maxWidth: 320px) and (minWidth: 300px)": {
       marginLeft: "-30px !important"
     }
   }
@@ -151,10 +151,14 @@ const styles = StyleSheet.create({
 const inlineStyles = {
   mobileToolBar: {
     position: "absolute",
-    bottom: "-5"
+    bottom: "-5px"
   },
+  buttonWidth: {
+    minWidth: "110px"
+  },
+
   mobileCannedReplies: {
-    "@media(max-width: 450px)": {
+    "@media(maxWidth: 450px)": {
       marginBottom: "1"
     }
   },
@@ -171,10 +175,10 @@ const inlineStyles = {
   actionToolbar: {
     backgroundColor: "white",
 
-    "@media(min-width: 450px)": {
+    "@media(minWidth: 450px)": {
       marginBottom: 5
     },
-    "@media(max-width: 450px)": {
+    "@media(maxWidth: 450px)": {
       marginBottom: 50
     }
   },
@@ -727,6 +731,7 @@ export class AssignmentTexterContact extends React.Component {
         <RaisedButton
           onTouchTap={() => this.handleEditMessageStatus("needsResponse")}
           label="Reopen"
+          style={inlineStyles.buttonWidth}
         />
       );
     } else if (messageStatus === "needsResponse") {
@@ -734,6 +739,7 @@ export class AssignmentTexterContact extends React.Component {
         <RaisedButton
           onTouchTap={this.handleOpenSkipDialog}
           label="Skip Reply"
+          style={inlineStyles.buttonWidth}
         />
       );
     }
@@ -802,7 +808,7 @@ export class AssignmentTexterContact extends React.Component {
                 secondary
                 label="Opt out"
                 onTouchTap={this.handleOpenDialog}
-                tooltip="Opt out this contact"
+                style={inlineStyles.buttonWidth}
               />
               {this.renderNeedsResponseToggleButton(contact)}
             </ToolbarGroup>
@@ -831,8 +837,7 @@ export class AssignmentTexterContact extends React.Component {
                 secondary
                 label="Opt out"
                 onTouchTap={this.handleOpenDialog}
-                tooltip="Opt out this contact"
-                tooltipPosition="top-center"
+                style={inlineStyles.buttonWidth}
               />
             </ToolbarGroup>
             <div className={css(styles.navButtonsWrapper)}>
@@ -876,8 +881,8 @@ export class AssignmentTexterContact extends React.Component {
         campaignCannedResponses={campaignCannedResponses}
         userCannedResponses={userCannedResponses}
         customFields={campaign.customFields}
-        campaignId={campaign.id}
-        texterId={texter.id}
+        campaignId={parseInt(campaign.id)}
+        texterId={parseInt(texter.id)}
         onSelectCannedResponse={this.handleCannedResponseChange}
       />
     );
@@ -896,7 +901,7 @@ export class AssignmentTexterContact extends React.Component {
           threeClickEnabled={campaign.organization.threeClickEnabled}
           onFinalTouchTap={this.handleClickSendMessageButton}
           disabled={
-            this.state.disabled || this.state.notSendableButForceDisplay
+            !!(this.state.disabled || this.state.notSendableButForceDisplay)
           }
         />
       );
