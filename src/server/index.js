@@ -182,9 +182,9 @@ app.use(
           ? request.awsContext.getRemainingTimeInMillis()
           : 5 * 60 * 1000 // default saying 5 min, no matter what
     },
-    formatError: async err => {
-      await telemetry.reportError(err.originalError);
-      return err;
+    formatError: error => {
+      telemetry.reportError(error.originalError);
+      return error.originalError.errors[0].originalError;
     }
   }))
 );

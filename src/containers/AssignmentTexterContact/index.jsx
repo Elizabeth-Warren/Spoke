@@ -39,6 +39,8 @@ import {
 } from "../../components/AssignmentTexterContact";
 import { NO_TAG } from "../../lib/tags";
 import theme from "../../styles/theme";
+import Dialog from "material-ui/Dialog";
+import FlatButton from "material-ui/FlatButton";
 
 const styles = StyleSheet.create({
   mobile: {
@@ -245,6 +247,7 @@ export class AssignmentTexterContact extends React.Component {
       optOutMessageText: campaign.organization.optOutMessage,
       messageText: this.getStartingMessageText(),
       optOutDialogOpen: false,
+      errorModalOpen: false,
       skipDialogOpen: false,
       currentInteractionStep:
         availableSteps.length > 0
@@ -541,8 +544,16 @@ export class AssignmentTexterContact extends React.Component {
       };
 
       await this.handleSubmitSurveys();
-      await this.props.mutations.createOptOut(optOut, contact.id);
-      this.props.onFinishContact(contact.id);
+      const optOutRes = await this.props.mutations.createOptOut(
+        optOut,
+        contact.id
+      );
+
+      if (optOutRes.errors) {
+        this.toggleErrorModal();
+      } else {
+        this.props.onFinishContact(contact.id);
+      }
     } catch (e) {
       this.handleSendMessageError(e);
     }
@@ -559,6 +570,12 @@ export class AssignmentTexterContact extends React.Component {
   handleOpenDialog = () => {
     this.setState({ optOutDialogOpen: true });
   };
+
+  toggleErrorModal = () =>
+    this.setState(prevState => {
+      const errorModalOpen = !prevState.errorModalOpen;
+      return { errorModalOpen };
+    });
 
   handleCloseDialog = () => {
     this.setState({ optOutDialogOpen: false });
@@ -694,6 +711,37 @@ export class AssignmentTexterContact extends React.Component {
       onSkipCommentChanged={skipComment => this.setState({ skipComment })}
       onTagChanged={tag => this.setState({ tag })}
     />
+  );
+
+  dialogActions = (
+    <FlatButton
+      label="Close"
+      primary
+      onClick={() => this.handleCloseDialog()}
+    />
+  );
+  renderErrorModal = () => (
+    <Dialog
+      title="Oh no! There's been an error."
+      open={this.state.errorModalOpen}
+      modal
+      actions={
+        <FlatButton
+          label="Close"
+          primary
+          onClick={() => {
+            this.toggleErrorModal();
+            this.props.onFinishContact(this.props.contact.id);
+          }}
+        />
+      }
+    >
+      <span>
+        We may not have been able to successfully opt out this number. Please
+        contact an administrator in Slack to ensure that opt out is saved to our
+        database. Thanks!
+      </span>
+    </Dialog>
   );
 
   renderOptOutDialog = () => (
@@ -986,6 +1034,7 @@ export class AssignmentTexterContact extends React.Component {
 
     return (
       <div>
+        {this.state.errorModalOpen && this.renderErrorModal()}
         {this.state.disabled ? (
           <div className={css(styles.overlay)}>
             <CircularProgress size={0.5} />
