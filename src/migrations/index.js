@@ -6,7 +6,7 @@ import { log } from "../lib";
 
 const migrations = [
   {
-    auto: true, // 0
+    auto: true, // 1
     date: "2017-08-10",
     // eslint-disable-next-line
     migrate: async () => {
@@ -17,7 +17,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 1
+    auto: true, // 2
     date: "2017-08-22",
     // eslint-disable-next-line
     migrate: async () => {
@@ -28,7 +28,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 2
+    auto: true, // 3
     date: "2017-08-23",
     // eslint-disable-next-line
     migrate: async () => {
@@ -42,7 +42,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 3
+    auto: true, // 4
     date: "2017-09-24",
     // eslint-disable-next-line
     migrate: async () => {
@@ -61,7 +61,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 4
+    auto: true, // 5
     date: "2017-09-22",
     migrate: async () => {
       console.log(
@@ -82,7 +82,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 5
+    auto: true, // 6
     date: "2017-09-25",
     migrate: async () => {
       await r.knex.schema.alterTable("campaign_contact", table => {
@@ -92,7 +92,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 6
+    auto: true, // 7
     date: "2017-10-03",
     migrate: async () => {
       await r.knex.schema.alterTable("interaction_step", table => {
@@ -106,7 +106,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 7
+    auto: true, // 8
     date: "2017-10-04",
     migrate: async () => {
       await r.knex.schema.alterTable("campaign", table => {
@@ -121,7 +121,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 8
+    auto: true, // 9
     date: "2017-09-28",
     migrate: async () => {
       console.log("updating user table");
@@ -132,7 +132,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 9
+    auto: true, // 10
     date: "2017-10-23",
     migrate: async () => {
       console.log("updating message table");
@@ -145,7 +145,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 10
+    auto: true, // 11
     date: "2017-10-23",
     migrate: async () => {
       console.log("adding log table");
@@ -158,7 +158,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 11
+    auto: true, // 12
     date: "2018-07-16",
     migrate: async () => {
       await r.knex.schema.alterTable("message", table => {
@@ -175,7 +175,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 12
+    auto: true, // 13
     date: "2018-08-25",
     migrate: async () => {
       console.log("adding texting hours fields to campaign");
@@ -206,7 +206,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 13
+    auto: true, // 14
     date: "2018-09-03",
     migrate: async function() {
       await r.knex.schema.alterTable("message", table => {
@@ -216,7 +216,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 14
+    auto: true, // 15
     date: "2019-02-24",
     migrate: async () => {
       console.log("adding creator_id field to campaign");
@@ -235,7 +235,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 15
+    auto: true, // 16
     date: "2019-05-13",
     migrate: async () => {
       console.log("setting sequence value for canned_response");
@@ -253,7 +253,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 16
+    auto: true, // 17
     date: "2019-07-16",
     migrate: async () => {
       const tableExists = await r.knex.schema.hasTable("tag");
@@ -293,7 +293,7 @@ const migrations = [
     }
   },
   {
-    auto: true, // 17
+    auto: true, // 18
     date: "2019-07-26",
     migrate: async () => {
       console.log("adding has_unresolved_messages to campaign_contact");
@@ -307,7 +307,7 @@ const migrations = [
     }
   },
   {
-    auto: true,
+    auto: true, // 19
     date: "2020-01-30",
     migrate: async () => {
       await r.knex.schema.alterTable("campaign", table => {
@@ -316,7 +316,7 @@ const migrations = [
     }
   },
   {
-    auto: true,
+    auto: true, // 20
     date: "2020-01-31",
     migrate: async () => {
       await r.knex.schema.alterTable("message", table => {
@@ -328,7 +328,7 @@ const migrations = [
     }
   },
   {
-    auto: true,
+    auto: true, // 21
     date: "2020-02-01",
     migrate: async () => {
       // This column was defined correctly in the migration above but was incorrect
@@ -353,7 +353,7 @@ const migrations = [
     }
   },
   {
-    auto: true,
+    auto: true, // 22
     date: "2020-02-02",
     migrate: async () => {
       await r.knex.schema.alterTable("campaign_contact", table => {
@@ -369,7 +369,7 @@ const migrations = [
     }
   },
   {
-    auto: true,
+    auto: true, // 23
     date: "2020-02-05",
     migrate: async () => {
       await r.knex.schema.alterTable("canned_response", table => {
@@ -381,7 +381,7 @@ const migrations = [
     }
   },
   {
-    auto: true,
+    auto: true, // 24
     date: "2020-02-05",
     migrate: async () => {
       await r.knex.schema.alterTable("message", table => {
@@ -393,6 +393,23 @@ const migrations = [
           .references("id")
           .inTable("canned_response");
       });
+    }
+  },
+  {
+    auto: true, // 25
+    date: "2020-02-07",
+    migrate: async function() {
+      // it is ok if this function fails if run again, but
+      // it should be ok to be run twice.  If not, then make auto=false
+      await r.knex.raw("DROP INDEX IF EXISTS user_email_index");
+      await r.knex.raw("DROP INDEX IF EXISTS user_auth0_id_index");
+
+      await r.knex.schema.alterTable("user", table => {
+        table.index("email");
+        table.unique("auth0_id");
+      });
+
+      console.log("added indexes to email and auth0_id columns on user table");
     }
   }
 

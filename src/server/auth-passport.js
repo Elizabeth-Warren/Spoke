@@ -6,6 +6,7 @@ import { User, cacheableData } from "./models";
 import localAuthHelpers from "./local-auth-helpers";
 import wrap from "./wrap";
 import { capitalizeWord } from "./api/lib/utils";
+import { log } from "src/lib/log";
 
 export function setupAuth0Passport() {
   const strategy = new Auth0Strategy(
@@ -143,6 +144,10 @@ export function setupLocalAuthPassport() {
   };
 }
 
+function slackLoginId(teamId, userId) {
+  return ["slack", teamId, userId].join("|");
+}
+
 export function setupSlackPassport(app) {
   passport.use(
     new SlackStrategy(
@@ -168,13 +173,30 @@ export function setupSlackPassport(app) {
   );
 
   passport.serializeUser((user, done) => {
-    done(null, user.id);
+    done(null, slackLoginId(user.team.id, user.id));
   });
 
   passport.deserializeUser(
     wrap(async (id, done) => {
+      const [loginType, teamId, userId] = id.split("|");
+
+      if (loginType !== "slack") {
+        log.error(`Invalid loginType in session token: ${loginType}`);
+        done(null, false);
+        return;
+      }
+
+      if (teamId !== process.env.SLACK_TEAM_ID) {
+        log.error(`Invalid team ID in session token: ${teamId}`);
+        done(null, false);
+        return;
+      }
+
       // add new cacheable query
-      const user = await cacheableData.user.userLoggedIn("auth0_id", id);
+      const user = await cacheableData.user.userLoggedIn(
+        "auth0_id",
+        slackLoginId(teamId, userId)
+      );
       done(null, user || false);
     })
   );
@@ -207,11 +229,12 @@ export function setupSlackPassport(app) {
         }
 
         // eslint-disable-next-line no-underscore-dangle
-        const existingUser = await User.filter({ auth0_id: slackUser.id });
+        const loginId = slackLoginId(slackUser.team.id, slackUser.id);
+        const existingUser = await User.filter({ auth0_id: loginId });
 
         if (existingUser.length === 0) {
           const userData = {
-            auth0_id: slackUser.id,
+            auth0_id: loginId,
             // eslint-disable-next-line no-underscore-dangle
             first_name: slackUser.name.split(" ")[0],
             // eslint-disable-next-line no-underscore-dangle

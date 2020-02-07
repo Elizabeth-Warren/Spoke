@@ -23,4 +23,10 @@ const User = thinky.createModel(
   { noAutoCreation: true }
 );
 
+User.ensureIndex("email");
+
+// Note: this doesn't enforce uniqueness; the knex migration to
+// add this index creates it with a unique constraint.
+User.ensureIndex("auth0_id");
+
 export default User;
