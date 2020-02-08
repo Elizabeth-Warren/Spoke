@@ -1,4 +1,3 @@
-const seedZipCodes = require("../src/server/seeds/seed-zip-codes").seedZipCodes;
 const runMigrations = require("../src/migrations").runMigrations;
 const createTablesIfNecessary = require("../src/server/models")
   .createTablesIfNecessary;
@@ -10,7 +9,6 @@ async function migrate() {
   try {
     await createTablesIfNecessary();
     await runMigrations();
-    await seedZipCodes();
     console.log("All done!");
   } catch (e) {
     console.log("Error running migrations", e);
