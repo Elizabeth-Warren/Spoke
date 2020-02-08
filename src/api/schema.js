@@ -101,10 +101,7 @@ const rootSchema = gql`
     id: String
     firstName: String!
     lastName: String!
-    email: String!
-    cell: String!
-    oldPassword: String
-    newPassword: String
+    email: String
   }
 
   input ContactMessage {

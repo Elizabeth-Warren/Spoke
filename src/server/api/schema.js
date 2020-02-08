@@ -39,7 +39,8 @@ import {
   assignmentRequired,
   assignmentAndNotSuspended,
   authRequired,
-  superAdminRequired
+  superAdminRequired,
+  requireAuthStrategy
 } from "./errors";
 import { resolvers as interactionStepResolvers } from "./interaction-step";
 import { resolvers as inviteResolvers } from "./invite";
@@ -385,12 +386,17 @@ const rootMutations = {
       return loaders.organization.load(organizationId);
     },
     editUser: async (_, { organizationId, userId, userData }, { user }) => {
-      if (user.id !== userId) {
-        // User can edit themselves
+      if (
+        user.id !== userId ||
+        (userData && userData.hasOwnProperty("email"))
+      ) {
+        // Users can edit their own name. Admins can edit the names and emails
+        // of users in their orgs
         await accessRequired(user, organizationId, "ADMIN", true);
       }
+
       const userRes = await r.knex
-        .select("user.id", "first_name", "last_name", "email", "cell")
+        .select("user.id", "first_name", "last_name", "email", "auth0_id")
         .from("user")
         .join("user_organization", "user.id", "user_organization.user_id")
         .where({
@@ -398,38 +404,47 @@ const rootMutations = {
           "user.id": userId
         })
         .limit(1);
+
       if (!userRes || !userRes.length) {
         return null;
-      } else {
-        const member = userRes[0];
-        if (userData) {
-          const userRes = await r
-            .knex("user")
-            .where("id", userId)
-            .update({
-              first_name: userData.firstName,
-              last_name: userData.lastName,
-              email: userData.email,
-              cell: userData.cell
-            });
-          await cacheableData.user.clearUser(member.id, member.auth0_id);
-          userData = {
-            id: userId,
-            first_name: userData.firstName,
-            last_name: userData.lastName,
-            email: userData.email,
-            cell: userData.cell
-          };
-        } else {
-          userData = member;
-        }
-        return userData;
       }
+
+      const member = userRes[0];
+
+      if (!userData) {
+        // no mutation; just return the existing user
+        return member;
+      }
+
+      // Mutate the user
+      const updates = {
+        first_name: userData.firstName,
+        last_name: userData.lastName
+      };
+
+      if (userData.hasOwnProperty("email")) {
+        updates.email = userData.email;
+      }
+
+      await r
+        .knex("user")
+        .where("id", userId)
+        .update(updates);
+
+      await cacheableData.user.clearUser(member.id, member.auth0_id);
+
+      return {
+        id: userId,
+        first_name: userData.firstName,
+        last_name: userData.lastName,
+        email: userData.email
+      };
     },
     resetUserPassword: async (_, { organizationId, userId }, { user }) => {
       if (user.id === userId) {
         throw new Error("You can't reset your own password.");
       }
+      requireAuthStrategy("local");
       await accessRequired(user, organizationId, "ADMIN", true);
 
       // Add date at the end in case user record is modified after password is reset
@@ -449,6 +464,8 @@ const rootMutations = {
         throw new Error("You can only change your own password.");
       }
 
+      requireAuthStrategy("local");
+
       const { password, newPassword, passwordConfirm } = formData;
 
       const updatedUser = await change({
@@ -464,6 +481,8 @@ const rootMutations = {
       if (user.id !== userId) {
         await accessRequired(user, organizationId, "ADMIN", true);
       }
+
+      requireAuthStrategy("auth0");
 
       const targetUser = await r.table("user").get(userId);
 

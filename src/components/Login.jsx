@@ -141,6 +141,7 @@ class Login extends React.Component {
           <div className={css(styles.fieldContainer)}>
             <h2 className={css(styles.header)}>Welcome to Spoke</h2>
             <UserEdit
+              includeEmail
               authType={this.state.active}
               saveLabel={saveLabels[this.state.active]}
               router={router}

@@ -368,7 +368,8 @@ const mapMutationsToProps = () => ({
       userId,
       roles,
       campaignId
-    }
+    },
+    refetchQueries: ["getUsers"]
   }),
   resetUserPassword: (organizationId, userId) => ({
     mutation: gql`

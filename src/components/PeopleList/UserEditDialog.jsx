@@ -14,6 +14,7 @@ const UserEditDialog = props => (
     onRequestClose={props.requestClose}
   >
     <UserEdit
+      includeEmail
       organizationId={props.organizationId}
       userId={props.userId}
       onRequestClose={props.updateUser}

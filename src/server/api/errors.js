@@ -86,3 +86,9 @@ export function superAdminRequired(user) {
     throw new GraphQLError("You are not authorized to access that resource.");
   }
 }
+
+export function requireAuthStrategy(strategy) {
+  if (process.env.PASSPORT_STRATEGY !== strategy) {
+    throw new GraphQLError("Password reset is only available for Auth0 login.");
+  }
+}

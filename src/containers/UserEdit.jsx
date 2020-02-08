@@ -41,13 +41,26 @@ class UserEdit extends React.Component {
 
   async componentWillMount() {
     if (!this.props.authType) {
-      await this.props.mutations.editUser(null);
+      await this.props.mutations.editUser(null, {
+        includeEmail: this.props.includeEmail
+      });
     }
   }
 
   async handleSave(formData) {
     if (!this.props.authType) {
-      await this.props.mutations.editUser(formData);
+      const userUpdate = {
+        firstName: formData.firstName,
+        lastName: formData.lastName
+      };
+
+      if (this.props.includeEmail) {
+        userUpdate.email = formData.email;
+      }
+
+      await this.props.mutations.editUser(userUpdate, {
+        includeEmail: this.props.includeEmail
+      });
       if (this.props.onRequestClose) {
         this.props.onRequestClose();
       }
@@ -95,7 +108,7 @@ class UserEdit extends React.Component {
     this.setState({ successDialog: true });
   }
 
-  buildFormSchema(authType) {
+  buildFormSchema(authType, { includeEmail } = {}) {
     let passwordFields = {};
     if (authType) {
       passwordFields = {
@@ -127,16 +140,22 @@ class UserEdit extends React.Component {
     if (!authType || authType === "signup") {
       userFields = {
         firstName: yup.string().required(),
-        lastName: yup.string().required(),
-        cell: yup.string().required()
+        lastName: yup.string().required()
+      };
+    }
+
+    let emailFields = {};
+    if (includeEmail) {
+      emailFields = {
+        email: yup
+          .string()
+          .email()
+          .required()
       };
     }
 
     return yup.object({
-      email: yup
-        .string()
-        .email()
-        .required(),
+      ...emailFields,
       ...userFields,
       ...passwordFields
     });
@@ -146,7 +165,9 @@ class UserEdit extends React.Component {
     const { authType, editUser, style, userId, data, saveLabel } = this.props;
     const user = (editUser && editUser.editUser) || {};
 
-    const formSchema = this.buildFormSchema(authType);
+    const formSchema = this.buildFormSchema(authType, {
+      includeEmail: this.props.includeEmail
+    });
 
     return (
       <div>
@@ -156,7 +177,10 @@ class UserEdit extends React.Component {
           defaultValue={user}
           className={style}
         >
-          <Form.Field label="Email" name="email" {...dataTest("email")} />
+          {this.props.includeEmail && [
+            <Form.Field label="Email" name="email" {...dataTest("email")} />,
+            <br />
+          ]}
           {(!authType || authType === "signup") && (
             <span>
               <Form.Field
@@ -168,11 +192,6 @@ class UserEdit extends React.Component {
                 label="Last name"
                 name="lastName"
                 {...dataTest("lastName")}
-              />
-              <Form.Field
-                label="Cell Number"
-                name="cell"
-                {...dataTest("cell")}
               />
             </span>
           )}
@@ -263,7 +282,8 @@ UserEdit.propTypes = {
   nextUrl: PropTypes.string,
   style: PropTypes.string,
   handleClose: PropTypes.func,
-  openSuccessDialog: PropTypes.func
+  openSuccessDialog: PropTypes.func,
+  includeEmail: PropTypes.bool
 };
 
 const mapQueriesToProps = ({ ownProps }) => {
@@ -285,7 +305,7 @@ const mapQueriesToProps = ({ ownProps }) => {
 const mapMutationsToProps = ({ ownProps }) => {
   if (ownProps.userId) {
     return {
-      editUser: userData => ({
+      editUser: (userData, { includeEmail } = {}) => ({
         mutation: gql`
           mutation editUser(
             $organizationId: String!
@@ -300,8 +320,7 @@ const mapMutationsToProps = ({ ownProps }) => {
               id
               firstName
               lastName
-              cell
-              email
+              ${includeEmail ? "email" : ""}
             }
           }
         `,
@@ -309,7 +328,8 @@ const mapMutationsToProps = ({ ownProps }) => {
           userId: ownProps.userId,
           organizationId: ownProps.organizationId,
           userData
-        }
+        },
+        refetchQueries: ["getCurrentUserForMenu"]
       }),
       changeUserPassword: formData => ({
         mutation: gql`
