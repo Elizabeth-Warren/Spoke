@@ -4,7 +4,7 @@
   "description": "Spoke",
   "main": "src/server",
   "engines": {
-    "node": ">=10.3 <11",
+    "node": ">=10.18 <11",
     "npm": "3.10.10"
   },
   "scripts": {
@@ -81,7 +81,7 @@
     "is-url": "^1.2.2",
     "isomorphic-fetch": "^2.2.1",
     "json-loader": "^0.5.4",
-    "knex": "^0.13.0",
+    "knex": "0.20.6",
     "lodash": "^4.13.1",
     "material-ui": "^0.20.1",
     "material-ui-color-picker": "^1.0.1",
