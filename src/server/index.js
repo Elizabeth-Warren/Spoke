@@ -187,7 +187,13 @@ app.use(
           : 5 * 60 * 1000 // default saying 5 min, no matter what
     },
     formatError: error => {
-      telemetry.reportError(error.originalError);
+      telemetry.reportError(error.originalError, {
+        userId: request.user && request.user.id,
+        awsRequestId: request.awsContext
+          ? request.awsContext.awsRequestId
+          : undefined,
+        awsEvent: request.awsEvent
+      });
       return error;
     }
   }))
