@@ -1340,6 +1340,45 @@ const rootMutations = {
         campaignIdMessagesIdsMap,
         newTexterUserId
       );
+    },
+    addUserToOrganizationByEmail: async (
+      _,
+      { organizationId, email, role },
+      { user }
+    ) => {
+      const roleRequired = role === "OWNER" ? "OWNER" : "ADMIN";
+      await accessRequired(user, organizationId, roleRequired);
+
+      const userRes = await r.knex
+        .select("id")
+        .from("user")
+        .where({ email })
+        .limit(1);
+
+      if (userRes.length === 0) {
+        return "NO_USER_WITH_EMAIL";
+      }
+
+      const userId = userRes[0].id;
+
+      const membershipRes = await r.knex
+        .select("id")
+        .from("user_organization")
+        .where({ user_id: userId, organization_id: organizationId });
+
+      if (membershipRes.length > 0) {
+        return "USER_ALREADY_IN_ORG";
+      }
+
+      await UserOrganization.save({
+        user_id: userId,
+        organization_id: organizationId,
+        role
+      });
+
+      cacheableData.user.clearUser(userId);
+
+      return "USER_ADDED";
     }
   }
 };

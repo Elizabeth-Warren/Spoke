@@ -184,6 +184,12 @@ const rootSchema = gql`
     TITLE
   }
 
+  enum AddUserByEmailResult {
+    USER_ADDED
+    USER_ALREADY_IN_ORG
+    NO_USER_WITH_EMAIL
+  }
+
   type RootQuery {
     currentUser: User
     currentUserWithAccess(organizationId: String!, role: String!): User
@@ -316,6 +322,11 @@ const rootSchema = gql`
       newTexterUserId: String!
     ): [CampaignIdAssignmentId]
     importCampaignScript(campaignId: String!, url: String!): Int
+    addUserToOrganizationByEmail(
+      organizationId: String!
+      email: String!
+      role: String!
+    ): AddUserByEmailResult
   }
 
   schema {

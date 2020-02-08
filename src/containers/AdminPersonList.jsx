@@ -20,6 +20,7 @@ import Search from "../components/Search";
 import SimpleRolesDropdown, {
   ALL_ROLES
 } from "../components/PeopleList/SimpleRolesDropdown";
+import AddUserToOrganization from "./AddUserToOrganization";
 
 export const ALL_CAMPAIGNS = -1;
 
@@ -294,11 +295,11 @@ class AdminPersonList extends React.Component {
         {organizationData.organization && (
           <div>
             <Dialog
-              title="Invite new texters"
+              title="Add people to organization"
               actions={[
                 <FlatButton
                   {...dataTest("inviteOk")}
-                  label="OK"
+                  label="Close"
                   primary
                   onTouchTap={this.handleClose}
                 />
@@ -307,8 +308,12 @@ class AdminPersonList extends React.Component {
               open={this.state.open}
               onRequestClose={this.handleClose}
             >
-              <OrganizationJoinLink
-                organizationUuid={organizationData.organization.uuid}
+              <AddUserToOrganization
+                currentUser={currentUser}
+                organizationId={
+                  organizationData.organization &&
+                  organizationData.organization.id
+                }
               />
             </Dialog>
           </div>
