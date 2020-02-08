@@ -35,8 +35,9 @@ export const sendEmail = ({ to, subject, text, replyTo }) => {
     Source: process.env.EMAIL_FROM
   };
 
-  if (replyTo) {
-    params.ReplyToAddresses = [replyTo];
+  const replyAddr = replyTo || process.env.EMAIL_REPLY_TO;
+  if (replyAddr) {
+    params.ReplyToAddresses = [replyAddr];
   }
 
   return ses.sendEmail(params).promise();
@@ -70,9 +71,11 @@ export const sendTemplatedEmail = async ({
     })
   };
 
-  if (replyTo) {
-    params.ReplyToAddresses = [replyTo];
+  const replyAddr = replyTo || process.env.EMAIL_REPLY_TO;
+  if (replyAddr) {
+    params.ReplyToAddresses = [replyAddr];
   }
+
   try {
     await ses.sendTemplatedEmail(params).promise();
   } catch (e) {
