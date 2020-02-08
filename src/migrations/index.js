@@ -411,6 +411,20 @@ const migrations = [
 
       console.log("added indexes to email and auth0_id columns on user table");
     }
+  },
+  {
+    auto: true, // 26
+    date: "2020-02-08",
+    migrate: async function() {
+      await r.knex.schema.alterTable("opt_out", table => {
+        table
+          .integer("assignment_id")
+          .alter()
+          .nullable()
+          .default(null);
+      });
+      console.log("made out_out#assignment_id nullable");
+    }
   }
 
   /* migration template

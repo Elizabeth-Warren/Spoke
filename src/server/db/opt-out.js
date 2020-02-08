@@ -11,7 +11,7 @@ function queryBuilder(opts, tableName = TABLE_NAME) {
 // TODO[matteo]: add get/list functions and replace thinky in the OptOut resolver
 
 async function create(
-  { cell, assignment_id, organization_id, reason_code = undefined },
+  { cell, organization_id, reason_code = undefined, assignment_id = undefined },
   opts
 ) {
   const res = await queryBuilder(opts).insert({

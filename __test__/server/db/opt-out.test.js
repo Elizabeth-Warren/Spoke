@@ -1,4 +1,4 @@
-import db from "../../src/server/db";
+import db from "src/server/db";
 import {
   setupTest,
   cleanupTest,
@@ -10,9 +10,9 @@ import {
   createScript,
   assignTexter,
   startCampaign
-} from "../test_helpers";
-import { r } from "../../src/server/models";
-import config from "../../src/server/config";
+} from "__test__/test_helpers";
+import { r } from "src/server/models";
+import config from "src/server/config";
 let fixture1;
 let fixture2;
 let testAdminUser;
@@ -64,6 +64,17 @@ async function isOptedOut(fixture) {
     organization_id: fixture.orgId
   });
 }
+
+describe("opt outs synced from external sources", async () => {
+  test("are respected", async () => {
+    await db.OptOut.create({
+      cell: fixture1.contact.cell,
+      organization_id: fixture1.orgId
+      // missing assignment_id
+    });
+    expect(await isOptedOut(fixture1)).toBeTruthy();
+  });
+});
 
 describe("with OPTOUTS_SHARE_ALL_ORGS turned on", async () => {
   const previousValue = config.OPTOUTS_SHARE_ALL_ORGS;
