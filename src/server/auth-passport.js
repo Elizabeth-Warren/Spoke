@@ -6,7 +6,7 @@ import { User, cacheableData } from "./models";
 import localAuthHelpers from "./local-auth-helpers";
 import wrap from "./wrap";
 import { capitalizeWord } from "./api/lib/utils";
-import { log } from "src/lib/log";
+import log from "src/server/log";
 
 export function setupAuth0Passport() {
   const strategy = new Auth0Strategy(

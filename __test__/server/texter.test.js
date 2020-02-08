@@ -154,7 +154,7 @@ it("should be able to receive a response and reply (using fakeService)", async (
     assignmentId
   };
 
-  const [messageMutation, messageVars] = mutations.sendMessage(
+  const [messageMutation, messageVars] = await mutations.sendMessage(
     message,
     contact.id
   );

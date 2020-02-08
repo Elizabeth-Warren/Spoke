@@ -1,14 +1,13 @@
-import { assignTexters } from "../../src/workers/jobs";
+import { dispatchJob } from "src/server/workers";
 import {
   r,
   Campaign,
   CampaignContact,
   JobRequest,
   Organization,
-  User,
-  ZipCode
-} from "../../src/server/models";
-import { setupTest, cleanupTest } from "../test_helpers";
+  User
+} from "src/server/models";
+import { setupTest, cleanupTest } from "__test__/test_helpers";
 
 describe("test texter assignment in dynamic mode", () => {
   beforeAll(
@@ -85,7 +84,7 @@ describe("test texter assignment in dynamic mode", () => {
       queue_name: "3:edit_campaign",
       job_type: "assign_texters"
     });
-    await assignTexters(job);
+    await dispatchJob(job);
     const result = await r
       .knex("campaign_contact")
       .where({ campaign_id: campaign.id })
@@ -119,7 +118,7 @@ describe("test texter assignment in dynamic mode", () => {
       queue_name: "4:edit_campaign",
       job_type: "assign_texters"
     });
-    await assignTexters(job);
+    await dispatchJob(job);
     const ten = await r
       .knex("assignment")
       .where({ campaign_id: testCampaign.id, user_id: "1" })

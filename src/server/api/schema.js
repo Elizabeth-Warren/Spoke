@@ -4,25 +4,19 @@ import { GraphQLError } from "graphql/error";
 import isUrl from "is-url";
 import { organizationCache } from "../models/cacheable_queries/organization";
 import db from "../db";
-import { gzip, log, makeTree } from "../../lib";
-import {
-  assignTexters,
-  exportCampaign,
-  loadContactsFromDataWarehouse,
-  uploadContacts
-} from "../../workers/jobs";
+import { gzip, makeTree } from "src/lib";
+import log from "src/server/log";
+import { applyScript } from "../../lib/scripts";
 import {
   Assignment,
   Campaign,
   CannedResponse,
   InteractionStep,
-  datawarehouse,
   Invite,
   JobRequest,
   Message,
   Organization,
   QuestionResponse,
-  Tag,
   User,
   UserOrganization,
   r,
@@ -61,26 +55,13 @@ import { getUsers, resolvers as userResolvers } from "./user";
 import { change } from "../local-auth-helpers";
 import { getSendBeforeTimeUtc } from "../../lib/timezones";
 
+import { dispatchJob } from "../workers";
+
 import request from "request";
 import { flatten, get } from "lodash";
 import humps from "humps";
-import { DateTime } from "timezonecomplete";
 
 const uuidv4 = require("uuid").v4;
-const JOBS_SAME_PROCESS = !!(
-  process.env.JOBS_SAME_PROCESS || global.JOBS_SAME_PROCESS
-);
-const JOBS_SYNC = !!(process.env.JOBS_SYNC || global.JOBS_SYNC);
-
-async function startJobIfNeeded(jobFn, ...args) {
-  if (JOBS_SAME_PROCESS) {
-    if (JOBS_SYNC) {
-      await jobFn.call(this, ...args);
-    } else {
-      jobFn.call(this, ...args);
-    }
-  }
-}
 
 async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
   const {
@@ -145,47 +126,26 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
       modelData.campaign_id = id;
       return modelData;
     });
-    // avoid unnecessary gzip + base64 roundtrip and save less data to the db
-    let payload;
-    if (!JOBS_SAME_PROCESS) {
-      const compressedString = await gzip(JSON.stringify(contactsToSave));
-      // NOTE: stringifying because compressedString is a binary buffer
-      payload = compressedString.toString("base64");
-    } else {
-      payload = "PLACEHOLDER_JOB_SAME_PROCESS";
-    }
 
+    // avoid unnecessary gzip + base64 roundtrip and save less data to the db
+    const compressedString = await gzip(JSON.stringify(contactsToSave));
     const job = await JobRequest.save({
       queue_name: `${id}:edit_campaign`,
       job_type: "upload_contacts",
       locks_queue: true,
-      assigned: JOBS_SAME_PROCESS, // can get called immediately, below
+      assigned: true,
       campaign_id: id,
-      payload
+      // NOTE: stringifying because compressedString is a binary buffer
+      payload: compressedString.toString("base64")
     });
-    await startJobIfNeeded(uploadContacts, job, contactsToSave);
+    await dispatchJob(job);
   }
-  if (
-    campaign.hasOwnProperty("contactSql") &&
-    datawarehouse &&
-    user.is_superadmin
-  ) {
-    await accessRequired(user, organizationId, "ADMIN", /* superadmin*/ true);
-    let job = await JobRequest.save({
-      queue_name: `${id}:edit_campaign`,
-      job_type: "upload_contacts_sql",
-      locks_queue: true,
-      assigned: JOBS_SAME_PROCESS, // can get called immediately, below
-      campaign_id: id,
-      payload: campaign.contactSql
-    });
-    await startJobIfNeeded(loadContactsFromDataWarehouse, job);
-  }
+  // Warren fork: removed contactSql option to load from data warehouse
   if (campaign.hasOwnProperty("texters")) {
-    let job = await JobRequest.save({
+    const job = await JobRequest.save({
       queue_name: `${id}:edit_campaign`,
       locks_queue: true,
-      assigned: JOBS_SAME_PROCESS, // can get called immediately, below
+      assigned: true,
       job_type: "assign_texters",
       campaign_id: id,
       payload: JSON.stringify({
@@ -193,7 +153,7 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
         texters: campaign.texters
       })
     });
-    await startJobIfNeeded(assignTexters, job);
+    await dispatchJob(job);
   }
 
   if (campaign.hasOwnProperty("interactionSteps")) {
@@ -369,14 +329,14 @@ const rootMutations = {
         queue_name: `${id}:export`,
         job_type: "export",
         locks_queue: false,
-        assigned: JOBS_SAME_PROCESS, // can get called immediately, below
+        assigned: true,
         campaign_id: id,
         payload: JSON.stringify({
           id,
           requester: user.id
         })
       });
-      await startJobIfNeeded(exportCampaign, newJob);
+      await dispatchJob(newJob);
       return newJob;
     },
     editOrganizationRoles: async (
@@ -1135,16 +1095,12 @@ const rootMutations = {
         });
       }
 
-      // const zipData = await r.table('zip_code')
-      //   .get(contact.zip)
-      //   .default(null)
-
+      // TODO[matteo]: enforce organization/campaign texting hours here
       // const config = {
       //   textingHoursEnforced: organization.texting_hours_enforced,
       //   textingHoursStart: organization.texting_hours_start,
       //   textingHoursEnd: organization.texting_hours_end,
       // }
-      // const offsetData = zipData ? { offset: zipData.timezone_offset, hasDST: zipData.has_dst } : null
       // if (!isBetweenTextingHours(offsetData, config)) {
       //   throw new GraphQLError({
       //     status: 400,
@@ -1202,7 +1158,7 @@ const rootMutations = {
         contact_number: contactNumber,
         user_number: "",
         assignment_id: message.assignmentId,
-        send_status: JOBS_SAME_PROCESS ? "SENDING" : "QUEUED",
+        send_status: "SENDING",
         service: orgFeatures.service || process.env.DEFAULT_SERVICE || "",
         is_from_contact: false,
         queued_at: new Date(),
@@ -1385,39 +1341,6 @@ const rootMutations = {
         newTexterUserId
       );
     }
-    //  // Not enabled in the Warren fork:
-    //   importCampaignScript: async (_, { campaignId, url }, { loaders }) => {
-    //     const campaign = await loaders.campaign.load(campaignId);
-    //     if (campaign.is_started || campaign.is_archived) {
-    //       throw new GraphQLError(
-    //         "Cannot import a campaign script for a campaign that is started or archived"
-    //       );
-    //     }
-    //
-    //     const compressedString = await gzip(
-    //       JSON.stringify({
-    //         campaignId,
-    //         url
-    //       })
-    //     );
-    //     const job = await JobRequest.save({
-    //       queue_name: `${campaignId}:import_script`,
-    //       job_type: "import_script",
-    //       locks_queue: true,
-    //       assigned: JOBS_SAME_PROCESS, // can get called immediately, below
-    //       campaign_id: campaignId,
-    //       // NOTE: stringifying because compressedString is a binary buffer
-    //       payload: compressedString.toString("base64")
-    //     });
-    //
-    //     const jobId = job.id;
-    //
-    //     if (JOBS_SAME_PROCESS) {
-    //       importScript(job);
-    //     }
-    //
-    //     return jobId;
-    //   }
   }
 };
 

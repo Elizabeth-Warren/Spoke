@@ -20,8 +20,6 @@ export {
 export { getProcessEnvTz } from "./tz-helpers";
 export { DstHelper } from "./dst-helper";
 export { isClient } from "./is-client";
-import { log } from "./log";
-export { log };
 import Papa from "papaparse";
 import _ from "lodash";
 import { getFormattedPhoneNumber, getFormattedZip } from "../lib";
@@ -105,6 +103,7 @@ const getValidatedData = (data, optOuts) => {
   };
 };
 
+// move to backend
 export const gzip = str =>
   new Promise((resolve, reject) => {
     zlib.gzip(str, (err, res) => {

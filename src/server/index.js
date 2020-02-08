@@ -13,7 +13,7 @@ import passport from "passport";
 import cookieSession from "cookie-session";
 import passportSetup from "./auth-passport";
 import wrap from "./wrap";
-import { log } from "src/lib";
+import log from "src/server/log";
 // import nexmo from "./api/lib/nexmo";
 import twilio from "./api/lib/twilio";
 import { setupUserNotificationObservers } from "./notifications";
@@ -21,6 +21,9 @@ import { twiml } from "twilio";
 import { existsSync } from "fs";
 import sourceMapSupport from "source-map-support";
 import telemetry from "./telemetry";
+import db from "src/server/db";
+
+db.enableTracing();
 
 // Support source maps in stack traces
 sourceMapSupport.install();
@@ -185,7 +188,7 @@ app.use(
     },
     formatError: error => {
       telemetry.reportError(error.originalError);
-      return error.originalError.errors[0].originalError;
+      return error;
     }
   }))
 );

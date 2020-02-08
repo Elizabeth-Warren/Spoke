@@ -1,5 +1,5 @@
 import { r } from "../../models";
-import { log } from "../../../lib";
+import log from "src/server/log";
 
 export async function getLastMessage({
   contactNumber,

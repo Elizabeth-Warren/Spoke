@@ -2,7 +2,7 @@ import _ from "lodash";
 import { Assignment, r } from "../models";
 import { addWhereClauseForContactsFilterMessageStatusIrrespectiveOfPastDue } from "./assignment";
 import { buildCampaignQuery } from "./campaign";
-import { log } from "../../lib";
+import log from "src/server/log";
 
 function getConversationsJoinsAndWhereClause(
   queryParam,

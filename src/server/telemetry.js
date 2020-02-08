@@ -1,6 +1,6 @@
 import moment from "moment";
 import AWS from "aws-sdk";
-import { log } from "../lib/log";
+import log from "src/server/log";
 
 // default no-ops
 let reportError = () => {};

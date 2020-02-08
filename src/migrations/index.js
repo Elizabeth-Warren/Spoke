@@ -1,5 +1,5 @@
 import { r, Migrations, CannedResponse } from "../server/models";
-import { log } from "../lib";
+import log from "src/server/log";
 
 // To add a migrations, add a new migration object to the
 // bottom of the migrations array.

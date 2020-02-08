@@ -1,4 +1,3 @@
-// TODO: move this to server/
 import pino from "pino";
 import config from "../server/config";
 
@@ -12,6 +11,4 @@ if (process.env.NODE_ENV !== "production") {
   };
 }
 
-const log = pino(logConfig);
-
-export { log };
+export default pino(logConfig);

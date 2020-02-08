@@ -1,4 +1,4 @@
-import { log } from "../lib";
+import log from "src/server/log";
 import aws from "aws-sdk";
 import config from "./config";
 

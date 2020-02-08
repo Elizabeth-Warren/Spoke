@@ -1,5 +1,5 @@
 import { r, Assignment, Campaign, User, Organization } from "./models";
-import { log } from "../lib";
+import log from "src/server/log";
 import { sendEmail, sendTemplatedEmail } from "./mail";
 
 export const Notifications = {

@@ -134,7 +134,7 @@ const userOrgs = async (userId, role) => {
   return matchedOrgs.map(orgId => orgRoles[orgId]);
 };
 
-const allRoles = async (userId) => {
+const allRoles = async userId => {
   const acceptableRoles = [...ROLE_HIERARCHY];
   const orgRoles = await loadUserRoles(userId);
   const matchedOrgs = Object.keys(orgRoles).filter(

@@ -4,7 +4,7 @@ import _ from "lodash";
 import { compose, map, reduce, getOr, find, filter, has } from "lodash/fp";
 
 import { r } from "../../models";
-import { log } from "../../../lib";
+import log from "src/server/log";
 
 const textRegex = RegExp(".*[A-Za-z0-9]+.*");
 

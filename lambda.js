@@ -1,19 +1,17 @@
 "use strict";
-const AWS = require("aws-sdk");
 const awsServerlessExpress = require("aws-serverless-express");
-let app, server, jobs;
+
+// TODO Babel
+let app;
 try {
   app = require("./build/server/server/index");
-  server = awsServerlessExpress.createServer(app.default);
-  jobs = require("./build/server/workers/job-processes");
 } catch (err) {
   if (!global.TEST_ENVIRONMENT) {
     console.error(`Unable to load built server: ${err}`);
   }
   app = require("./src/server/index");
-  server = awsServerlessExpress.createServer(app.default);
-  jobs = require("./src/workers/job-processes");
 }
+const server = awsServerlessExpress.createServer(app.default);
 
 // NOTE: the downside of loading above is environment variables are initially loaded immediately,
 //       so changing them means that the code must test environment variable inline (rather than use a const set on-load)
@@ -39,74 +37,30 @@ function cleanHeaders(event) {
 }
 
 exports.handler = async (event, context) => {
-  // Note: When lambda is called with invoke() we MUST call handleCallback with a success
-  // or Lambda will re-run/re-try the invocation twice:
-  // https://docs.aws.amazon.com/lambda/latest/dg/retries-on-errors.html
   if (process.env.LAMBDA_DEBUG_LOG) {
     console.log("LAMBDA EVENT", event);
   }
-  if (!event.command) {
-    // default web server stuff
-    const startTime = context.getRemainingTimeInMillis
+  const startTime = context.getRemainingTimeInMillis
+    ? context.getRemainingTimeInMillis()
+    : 0;
+  invocationEvent = event;
+  invocationContext = context;
+  cleanHeaders(event);
+  const webResponse = awsServerlessExpress.proxy(
+    server,
+    event,
+    context,
+    "PROMISE"
+  ).promise;
+  if (process.env.DEBUG_SCALING) {
+    const endTime = context.getRemainingTimeInMillis
       ? context.getRemainingTimeInMillis()
       : 0;
-    invocationEvent = event;
-    invocationContext = context;
-    cleanHeaders(event);
-    const webResponse = awsServerlessExpress.proxy(
-      server,
-      event,
-      context,
-      "PROMISE"
-    ).promise;
-    if (process.env.DEBUG_SCALING) {
-      const endTime = context.getRemainingTimeInMillis
-        ? context.getRemainingTimeInMillis()
-        : 0;
-      if (endTime - startTime > 3000) {
-        //3 seconds
-        console.log("SLOW_RESPONSE milliseconds:", endTime - startTime, event);
-      }
-    }
-
-    return webResponse;
-  } else {
-    // handle a custom command sent as an event
-    const functionName = context.functionName;
-    if (event.env) {
-      for (var a in event.env) {
-        process.env[a] = event.env[a];
-      }
-    }
-    console.log("Running " + event.command);
-    if (event.command in jobs) {
-      const job = jobs[event.command];
-      // behavior and arguments documented here:
-      // https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/Lambda.html#invoke-property
-      const result = await job(event, function dispatcher(
-        dataToSend,
-        callback
-      ) {
-        const lambda = new AWS.Lambda();
-        return lambda.invoke(
-          {
-            FunctionName: functionName,
-            InvocationType: "Event", //asynchronous
-            Payload: JSON.stringify(dataToSend)
-          },
-          function(err, dataReceived) {
-            if (err) {
-              console.error("Failed to invoke Lambda job: ", err);
-            }
-            if (callback) {
-              callback(err, dataReceived);
-            }
-          }
-        );
-      });
-      return result;
-    } else {
-      console.error("Unfound command sent as a Lambda event: " + event.command);
+    if (endTime - startTime > 3000) {
+      //3 seconds
+      console.log("SLOW_RESPONSE milliseconds:", endTime - startTime, event);
     }
   }
+
+  return webResponse;
 };

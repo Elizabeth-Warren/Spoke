@@ -1,7 +1,7 @@
 import Twilio from "twilio";
 import { getFormattedPhoneNumber } from "../../../lib/phone-format";
 import { Message, Campaign, r } from "../../models";
-import { log } from "../../../lib";
+import log from "src/server/log";
 import { getLastMessage, saveNewIncomingMessage } from "./message-sending";
 
 let twilio = null;

@@ -4,6 +4,7 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 
 custom:
   stage: ${opt:stage, 'dev'}
+  region: ${opt:region, 'us-east-1'}
   infrastructure: ${opt:infrastructure, env:INFRASTRUCTURE, "dev"}
   baseUrl: https://${self:custom.customDomain.domainName}
   debugApollo:
@@ -35,6 +36,9 @@ provider:
     name: ${self:custom.deploy.bucket_name}
     blockPublicAccess: true
   iamRoleStatements:
+    - Effect: Allow
+      Action: lambda:InvokeFunction
+      Resource: "arn:aws:lambda:${self:custom.region}:445320746747:function:internal-spoke-${self:custom.stage}-worker"
     - Effect: Allow
       Action: events:PutEvents
       Resource: "*"
@@ -85,8 +89,8 @@ provider:
     TWILIO_AUTH_TOKEN: ${ssm:/${self:custom.stage}/spoke/TWILIO_AUTH_TOKEN~true}
     TWILIO_MESSAGE_SERVICE_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_MESSAGE_SERVICE_SID~true}
     TWILIO_STATUS_CALLBACK_URL: ${self:custom.baseUrl}/twilio-message-report
-    JOBS_SAME_PROCESS: 1
-    JOBS_SYNC: 1
+    JOB_EXECUTOR: LAMBDA
+    JOB_LAMBDA_WORKER_FUNCTION_NAME: internal-spoke-${self:custom.stage}-worker
     ASSETS_DIR: ./build/client/assets
     ASSETS_MAP_FILE: assets.json
     BASE_URL: ${self:custom.baseUrl}
@@ -100,10 +104,13 @@ functions:
   api:
     handler: lambda.handler
     vpc: ${self:custom.vpcConfig}
-    timeout: 90
     events:
       - http: ANY /
       - http: ANY {proxy+}
+  worker:
+    handler: build/server/server/lambda/worker.handler
+    vpc: ${self:custom.vpcConfig}
+    timeout: 180
   preflight:
     handler: preflight.handler
     vpc: ${self:custom.vpcConfig}

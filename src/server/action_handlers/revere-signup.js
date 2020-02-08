@@ -1,7 +1,7 @@
 import request from "request";
 import aws from "aws-sdk";
 import { r } from "../models";
-import { log } from "../../lib";
+import log from "src/server/log";
 
 const sqs = new aws.SQS();
 // What the user sees as the option

@@ -14,8 +14,7 @@ module.exports = {
         user: "spoke_test"
       }
     }),
-    JOBS_SYNC: "1",
-    JOBS_SAME_PROCESS: "1",
+    JOB_EXECUTOR: "IN_PROCESS",
     REDIS_URL: "redis://localhost:6379/2",
     RETHINK_KNEX_NOREFS: "1", // avoids db race conditions
     DEFAULT_SERVICE: "fakeservice",

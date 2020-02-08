@@ -12,14 +12,14 @@ const JobRequest = thinky.createModel(
       id: type.string(),
       campaign_id: requiredString(),
       payload: requiredString(),
-      queue_name: requiredString(),
+      queue_name: requiredString(), // TODO: drop/make optional
       job_type: requiredString(),
       result_message: type.string().default(""),
-      locks_queue: type
+      locks_queue: type // TODO: drop/make optional
         .boolean()
         .required()
         .default(false),
-      assigned: type
+      assigned: type // TODO: drop/make optional
         .boolean()
         .required()
         .default(false),

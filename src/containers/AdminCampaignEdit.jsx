@@ -236,7 +236,6 @@ class AdminCampaignEdit extends React.Component {
           return contactInput;
         });
         newCampaign.contacts = contactData;
-        newCampaign.texters = [];
       } else {
         newCampaign.contacts = null;
       }
@@ -268,16 +267,19 @@ class AdminCampaignEdit extends React.Component {
     }
   };
 
-  async pollDuringActiveJobs(noMore) {
-    const pendingJobs = await this.props.pendingJobsData.refetch();
-    if (pendingJobs.length && !noMore) {
+  async pollDuringActiveJobs() {
+    const response = await this.props.pendingJobsData.refetch();
+
+    const pendingJobs = response.data.campaign.pendingJobs;
+    if (pendingJobs.length) {
       const self = this;
       setTimeout(() => {
         // run it once more after there are no more jobs
-        self.pollDuringActiveJobs(true);
+        self.pollDuringActiveJobs();
       }, 1000);
+    } else {
+      await this.props.campaignData.refetch();
     }
-    this.props.campaignData.refetch();
   }
 
   checkSectionSaved(section) {

@@ -1,6 +1,6 @@
 import { GraphQLError } from "graphql/error";
 import { r, cacheableData } from "../models";
-import { log } from "../../lib";
+import log from "src/server/log";
 
 export function authRequired(user) {
   if (!user) {
