@@ -305,7 +305,7 @@ const rootSchema = gql`
       organizationUuid: String!
       campaignId: String!
     ): Campaign
-    userAgreeTerms(userId: String!): User
+    userAgreeTerms: User
     reassignCampaignContacts(
       organizationId: String!
       campaignIdsContactIds: [CampaignIdContactId]!

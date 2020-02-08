@@ -10,13 +10,17 @@ import Divider from "material-ui/Divider";
 import wrapMutations from "./hoc/wrap-mutations";
 import { withRouter } from "react-router";
 
+const labelStyles = {
+  marginLeft: "25px",
+  paddingLeft: "21px"
+};
+
 class Terms extends React.Component {
   handleTermsAgree = async () => {
     const { data, router, mutations, location } = this.props;
-    const userData = await mutations.userAgreeTerms(data.currentUser.id);
-    if (userData.data.userAgreeTerms.terms) {
-      router.push(location.query.next);
-    }
+    await mutations.userAgreeTerms(data.currentUser.id);
+
+    router.push(location.query.next || "/");
   };
 
   state = {
@@ -77,13 +81,7 @@ class Terms extends React.Component {
           <Stepper activeStep={stepIndex} orientation="vertical">
             <Step>
               <StepLabel>
-                <div
-                  style={{
-                    marginLeft: "25px",
-                    paddingLeft: "21px",
-                    marginTop: "-46px"
-                  }}
-                >
+                <div style={labelStyles}>
                   <u>Inappropriate Behaviour</u>
                 </div>
               </StepLabel>
@@ -98,13 +96,7 @@ class Terms extends React.Component {
             </Step>
             <Step>
               <StepLabel>
-                <div
-                  style={{
-                    marginLeft: "25px",
-                    paddingLeft: "21px",
-                    marginTop: "-46px"
-                  }}
-                >
+                <div style={labelStyles}>
                   <u>Commit to Reply</u>
                 </div>
               </StepLabel>
@@ -119,19 +111,21 @@ class Terms extends React.Component {
             </Step>
             <Step>
               <StepLabel>
-                <div
-                  style={{
-                    marginLeft: "25px",
-                    paddingLeft: "21px",
-                    marginTop: "-46px"
-                  }}
-                >
-                  <u>Retention</u>
+                <div style={labelStyles}>
+                  <u>Terms of Service</u>
                 </div>
               </StepLabel>
               <StepContent>
                 <p>
-                  We maintain a record of all conversations with this account.
+                  We maintain a record of all conversations. To join Warren Text
+                  Team, you must agree to our{" "}
+                  <a
+                    href="https://elizabethwarren.com/terms-of-service/"
+                    target="_blank"
+                  >
+                    Terms of Service
+                  </a>
+                  .
                 </p>
                 {this.renderStepActions(2)}
               </StepContent>
@@ -168,8 +162,8 @@ const mapQueriesToProps = () => ({
 const mapMutationsToProps = ownProps => ({
   userAgreeTerms: userId => ({
     mutation: gql`
-      mutation userAgreeTerms($userId: String!) {
-        userAgreeTerms(userId: $userId) {
+      mutation userAgreeTerms {
+        userAgreeTerms {
           id
           terms
         }

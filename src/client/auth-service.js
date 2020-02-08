@@ -33,7 +33,7 @@ const loginStrategies = {
 
   slack: {
     login(nextUrl) {
-      const queryParams = "";
+      let queryParams = "";
       if (nextUrl) {
         queryParams = `?nextUrl=${encodeURIComponent(nextUrl)}`;
       }

@@ -70,7 +70,7 @@ export function setupAuth0Passport() {
 
           await User.save(userData);
 
-          res.redirect(req.query.state || "terms");
+          res.redirect(req.query.state || "/");
           return;
         }
         res.redirect(req.query.state || "/");
@@ -228,29 +228,33 @@ export function setupSlackPassport(app) {
           return;
         }
 
-        // eslint-disable-next-line no-underscore-dangle
         const loginId = slackLoginId(slackUser.team.id, slackUser.id);
         const existingUser = await User.filter({ auth0_id: loginId });
 
-        if (existingUser.length === 0) {
-          const userData = {
-            auth0_id: loginId,
-            // eslint-disable-next-line no-underscore-dangle
-            first_name: slackUser.name.split(" ")[0],
-            // eslint-disable-next-line no-underscore-dangle
-            last_name: slackUser.name
-              .split(" ")
-              .slice(1)
-              .join(" "),
-            cell: "",
-            email: slackUser.email,
-            is_superadmin: false
-          };
-          await User.save(userData);
+        if (existingUser.length > 0) {
+          // user already exists
+          res.redirect(req.query.state || "/");
+          return;
         }
 
-        res.redirect(req.query.state || "/");
-        return;
+        const userData = {
+          auth0_id: loginId,
+          first_name: slackUser.name.split(" ")[0],
+          last_name: slackUser.name
+            .split(" ")
+            .slice(1)
+            .join(" "),
+          cell: "",
+          email: slackUser.email,
+          is_superadmin: false
+        };
+        await User.save(userData);
+
+        // new user -- send them to the TOS which will then send them on to
+        // the original redirect URL
+        res.redirect(
+          `/terms?next=${encodeURIComponent(req.query.state || "/")}`
+        );
       })
     ]
   };

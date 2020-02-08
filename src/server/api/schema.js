@@ -263,13 +263,10 @@ const includeTags = info => {
 
 const rootMutations = {
   RootMutation: {
-    userAgreeTerms: async (_, { userId }, { user, loaders }) => {
-      if (user.id === Number(userId)) {
-        return user.terms ? user : null;
-      }
+    userAgreeTerms: async (_, _unused, { user, loaders }) => {
       const currentUser = await r
         .table("user")
-        .get(userId)
+        .get(user.id)
         .update({
           terms: true
         });
@@ -437,7 +434,7 @@ const rootMutations = {
         id: userId,
         first_name: userData.firstName,
         last_name: userData.lastName,
-        email: userData.email
+        email: userData.email || null
       };
     },
     resetUserPassword: async (_, { organizationId, userId }, { user }) => {
