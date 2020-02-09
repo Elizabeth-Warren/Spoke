@@ -1,1 +1,5 @@
-docker exec -ti internal-spoke_postgres_1  psql  -h localhost -p 5432 -U spoke spokedev
+#!/bin/bash
+
+set -euo pipefail
+
+docker exec -ti internal-spoke_postgres_1  psql  -h localhost -p 5432 -U spoke spokedev "$@"
