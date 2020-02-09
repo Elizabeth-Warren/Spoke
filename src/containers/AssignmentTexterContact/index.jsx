@@ -109,7 +109,8 @@ const styles = StyleSheet.create({
   responsesSection: {
     backgroundColor: theme.colors.EWlibertyGreen,
     height: "100%",
-    flex: "0 0 34%"
+    flex: "0 0 34%",
+    overflowY: "scroll"
   },
 
   navButtonsWrapper: {
