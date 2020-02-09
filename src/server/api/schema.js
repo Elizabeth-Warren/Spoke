@@ -173,24 +173,52 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
 
   if (campaign.hasOwnProperty("cannedResponses")) {
     const cannedResponses = campaign.cannedResponses;
-    const convertedResponses = [];
+
+    const newResponses = [];
+    const updatedResponses = [];
+
+    // Segment responses into new/updated and remove the isNew key. Also
+    // add order and campaign_id and convert to snake_case for the DB.
     for (let index = 0; index < cannedResponses.length; index++) {
-      const response = humps.decamelizeKeys(cannedResponses[index], {
+      const response = {
+        ...cannedResponses[index],
+        order: index,
+        campaignId: id
+      };
+
+      const isNew = response.isNew;
+      delete response.isNew;
+
+      if (isNew) {
+        response.id = undefined;
+      }
+
+      const decamelizedResponse = humps.decamelizeKeys(response, {
         separator: "_"
       });
-      convertedResponses.push({
-        ...response,
-        campaign_id: id,
-        id: undefined
-      });
+
+      (isNew ? newResponses : updatedResponses).push(decamelizedResponse);
     }
 
-    await r
-      .table("canned_response")
-      .getAll(id, { index: "campaign_id" })
-      .filter({ user_id: "" })
-      .delete();
-    await CannedResponse.save(convertedResponses);
+    await r.knex.transaction(async trx => {
+      // insert new rows
+      await r.knex
+        .batchInsert("canned_response", newResponses)
+        .transacting(trx);
+
+      // update existing rows
+      for (const updatedResponse of updatedResponses) {
+        await r
+          .knex("canned_response")
+          .where({
+            id: updatedResponse.id,
+            campaign_id: id
+          })
+          .update(updatedResponse)
+          .transacting(trx);
+      }
+    });
+
     await cacheableData.cannedResponse.clearQuery({
       userId: "",
       campaignId: id
@@ -815,37 +843,6 @@ const rootMutations = {
         })
         .delete();
       return { id };
-    },
-    createCannedResponse: async (_, { cannedResponse }, { user, loaders }) => {
-      authRequired(user);
-
-      const cannedResponseInstance = new CannedResponse({
-        campaign_id: cannedResponse.campaignId,
-        user_id: cannedResponse.userId,
-        title: cannedResponse.title,
-        text: cannedResponse.text
-      }).save();
-      // deletes duplicate created canned_responses
-      let query = r
-        .knex("canned_response")
-        .where(
-          "text",
-          "in",
-          r
-            .knex("canned_response")
-            .where({
-              text: cannedResponse.text,
-              campaign_id: cannedResponse.campaignId
-            })
-            .select("text")
-        )
-        .andWhere({ user_id: cannedResponse.userId })
-        .del();
-      await query;
-      cacheableData.cannedResponse.clearQuery({
-        campaignId: cannedResponse.campaignId,
-        userId: cannedResponse.userId
-      });
     },
     createOrganization: async (
       _,

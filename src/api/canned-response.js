@@ -6,6 +6,8 @@ export const schema = `
     surveyQuestion: String
     campaignId: String
     userId: String
+    deleted: Boolean
+    isNew: Boolean
   }
 
   type CannedResponse {
@@ -14,5 +16,6 @@ export const schema = `
     text: String
     surveyQuestion: String
     isUserCreated: Boolean
+    deleted: Boolean
   }
 `;

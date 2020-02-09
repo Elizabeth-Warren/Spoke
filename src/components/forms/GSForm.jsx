@@ -30,6 +30,7 @@ export default class GSForm extends React.Component {
   };
 
   handleFormError(err) {
+    console.error(err);
     if (err instanceof GraphQLRequestError) {
       this.setState({ globalErrorMessage: err.message });
     } else if (err.message) {

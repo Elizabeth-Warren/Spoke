@@ -4,7 +4,7 @@ import { CannedResponse } from "../models";
 export const resolvers = {
   CannedResponse: {
     ...mapFieldsToModel(
-      ["id", "title", "text", "surveyQuestion"],
+      ["id", "title", "text", "surveyQuestion", "deleted"],
       CannedResponse
     ),
     isUserCreated: cannedResponse => cannedResponse.user_id !== ""

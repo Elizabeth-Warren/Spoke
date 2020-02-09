@@ -23,7 +23,7 @@ const styles = {
   }
 };
 
-class ScriptList extends React.Component {
+export default class ScriptList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -56,20 +56,6 @@ class ScriptList extends React.Component {
       texterId
     } = this.props;
     const { dialogOpen } = this.state;
-
-    const onSaveCannedResponse = async cannedResponse => {
-      try {
-        const saveObject = {
-          ...cannedResponse,
-          campaignId,
-          userId: texterId
-        };
-        await mutations.createCannedResponse(saveObject);
-        this.setState({ dialogOpen: false });
-      } catch (err) {
-        console.error(err);
-      }
-    };
 
     // const rightIconButton = (
     //   <IconMenu
@@ -116,41 +102,7 @@ class ScriptList extends React.Component {
         </List>
       );
 
-    return (
-      <div>
-        {list}
-        {showAddScriptButton ? (
-          <FlatButton
-            label="Add new canned response"
-            icon={<CreateIcon />}
-            onTouchTap={this.handleOpenDialog}
-          />
-        ) : (
-          ""
-        )}
-        <Form.Context>
-          <Dialog
-            style={styles.dialog}
-            open={dialogOpen}
-            actions={[
-              <FlatButton label="Cancel" onTouchTap={this.handleCloseDialog} />,
-              <Form.Button
-                type="submit"
-                component={GSSubmitButton}
-                label="Save"
-              />
-            ]}
-            onRequestClose={this.handleCloseDialog}
-          >
-            <CannedResponseForm
-              onSaveCannedResponse={onSaveCannedResponse}
-              customFields={customFields}
-              script={this.state.script}
-            />
-          </Dialog>
-        </Form.Context>
-      </div>
-    );
+    return <div>{list}</div>;
   }
 }
 
@@ -164,20 +116,3 @@ ScriptList.propTypes = {
   mutations: PropTypes.object,
   texterId: PropTypes.number
 };
-
-const mapMutationsToProps = () => ({
-  createCannedResponse: cannedResponse => ({
-    mutation: gql`
-      mutation createCannedResponse($cannedResponse: CannedResponseInput!) {
-        createCannedResponse(cannedResponse: $cannedResponse) {
-          id
-        }
-      }
-    `,
-    variables: { cannedResponse }
-  })
-});
-
-export default connect({
-  mapMutationsToProps
-})(ScriptList);

@@ -185,6 +185,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
             title
             text
             surveyQuestion
+            deleted
             isUserCreated
           }
           texter {

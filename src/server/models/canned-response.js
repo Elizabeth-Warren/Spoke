@@ -1,6 +1,11 @@
 import thinky from "./thinky";
 const type = thinky.type;
-import { requiredString, timestamp, optionalString } from "./custom-types";
+import {
+  requiredString,
+  timestamp,
+  optionalString,
+  requiredInteger
+} from "./custom-types";
 
 const CannedResponse = thinky.createModel(
   "canned_response",
@@ -13,7 +18,17 @@ const CannedResponse = thinky.createModel(
       title: requiredString(),
       user_id: optionalString(),
       created_at: timestamp(),
-      survey_question: optionalString()
+      survey_question: optionalString(),
+      deleted: type
+        .boolean()
+        .required()
+        .default(false),
+      order: type
+        .number()
+        .integer()
+        .required()
+        .min(0)
+        .default(0)
     })
     .allowExtra(false),
   { noAutoCreation: true }

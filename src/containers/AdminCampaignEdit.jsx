@@ -68,6 +68,7 @@ const campaignInfoFragment = `
     title
     text
     surveyQuestion
+    deleted
   }
   editors
 `;
@@ -251,11 +252,6 @@ class AdminCampaignEdit extends React.Component {
         newCampaign.interactionSteps = Object.assign(
           {},
           newCampaign.interactionSteps
-        );
-      }
-      if (newCampaign.hasOwnProperty("cannedResponses")) {
-        newCampaign.cannedResponses = newCampaign.cannedResponses.map(cr =>
-          _.omit(cr, "isNew")
         );
       }
       await this.props.mutations.editCampaign(

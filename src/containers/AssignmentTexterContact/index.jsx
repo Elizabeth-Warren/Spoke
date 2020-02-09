@@ -945,9 +945,11 @@ export class AssignmentTexterContact extends React.Component {
     const { campaign, assignment, texter } = this.props;
     const { userCannedResponses, campaignCannedResponses } = assignment;
 
+    const nonDeletedResponses = campaignCannedResponses.filter(r => !r.deleted);
+
     return (
       <CannedResponseMenu
-        campaignCannedResponses={campaignCannedResponses}
+        campaignCannedResponses={nonDeletedResponses}
         userCannedResponses={userCannedResponses}
         customFields={campaign.customFields}
         campaignId={parseInt(campaign.id)}

@@ -29,13 +29,14 @@ export const cannedResponseCache = {
       .getAll(campaignId, { index: "campaign_id" })
       // TODO[matteo]: is this correct when userId is undefined?
       .filter({ user_id: userId || "" })
-      .orderBy("title");
+      .orderBy("order");
     if (r.redis) {
       const cacheData = dbResult.map(cannedRes => ({
         id: cannedRes.id,
         title: cannedRes.title,
         text: cannedRes.text,
         survey_question: cannedRes.survey_question,
+        deleted: cannedRes.deleted,
         user_id: cannedRes.user_id
       }));
       await r.redis

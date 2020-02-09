@@ -229,7 +229,6 @@ const rootSchema = gql`
     deleteJob(campaignId: String!, id: String!): JobRequest
     copyCampaign(id: String!): Campaign
     exportCampaign(id: String!): JobRequest
-    createCannedResponse(cannedResponse: CannedResponseInput!): CannedResponse
     createOrganization(
       name: String!
       userId: String!

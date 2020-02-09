@@ -14,6 +14,8 @@ import CreateIcon from "material-ui/svg-icons/content/create";
 import theme from "../styles/theme";
 import { StyleSheet, css } from "aphrodite";
 import { dataTest } from "../lib/attributes";
+import { SortableContainer, SortableElement } from "react-sortable-hoc";
+import arrayMove from "array-move";
 
 const styles = StyleSheet.create({
   formContainer: {
@@ -35,18 +37,12 @@ const styles = StyleSheet.create({
 export default class CampaignCannedResponsesForm extends React.Component {
   constructor(props) {
     super(props);
-    this.closeForm = this.closeForm.bind(this);
   }
 
   state = {
-    showForm: false
+    showAddForm: false,
+    currentlyEditing: []
   };
-
-  closeForm() {
-    this.setState({
-      showForm: false
-    });
-  }
 
   formSchema = yup.object({
     cannedResponses: yup.array().of(
@@ -58,29 +54,119 @@ export default class CampaignCannedResponsesForm extends React.Component {
     )
   });
 
+  closeAddForm = () => {
+    this.setState({
+      showAddForm: false
+    });
+  };
+
+  handleAdd = values => {
+    const newResponse = {
+      ...values,
+      isNew: true,
+      id: Math.random()
+        .toString(36)
+        .replace(/[^a-zA-Z1-9]+/g, "")
+    };
+
+    this.props.onChange({
+      cannedResponses: this.props.formValues.cannedResponses.concat([
+        newResponse
+      ])
+    });
+
+    this.closeAddForm();
+  };
+
+  handleDelete = response => {
+    const newVals = this.props.formValues.cannedResponses
+      .map(responseToDelete => {
+        if (responseToDelete.id === response.id) {
+          if (response.isNew) {
+            // This response hasn't been saved to the backend --
+            // hard-delete it
+            return null;
+          } else {
+            // This response has been saved to the backend --
+            // soft-delete it
+            return {
+              ...responseToDelete,
+              deleted: true
+            };
+          }
+        }
+
+        return responseToDelete;
+      })
+      .filter(ele => ele !== null);
+
+    this.props.onChange({
+      cannedResponses: newVals
+    });
+  };
+
+  stopEditing = responseId => {
+    this.setState({
+      currentlyEditing: this.state.currentlyEditing.filter(
+        id => id !== responseId
+      )
+    });
+  };
+
+  startEditing = responseId => {
+    this.setState({
+      currentlyEditing: this.state.currentlyEditing.concat([responseId])
+    });
+  };
+
+  handleEdit = (responseId, newData) => {
+    const newVals = this.props.formValues.cannedResponses.map(
+      responseToEdit => {
+        if (responseToEdit.id === responseId) {
+          return {
+            ...responseToEdit,
+            ...newData
+          };
+        }
+
+        return responseToEdit;
+      }
+    );
+
+    this.props.onChange({
+      cannedResponses: newVals
+    });
+
+    this.stopEditing(responseId);
+  };
+
+  handleSort = ({ oldIndex, newIndex }) => {
+    // oldIndex and newIndex are indices into the *filtered* set of responses, so we
+    // have to look at just the active responses, perform the reordering operation on those,
+    // and then add back in the deleted responses.
+
+    const [deletedResponses, activeResponses] = _.partition(
+      this.props.formValues.cannedResponses,
+      "deleted"
+    );
+
+    arrayMove.mutate(activeResponses, oldIndex, newIndex);
+
+    this.props.onChange({
+      cannedResponses: activeResponses.concat(deletedResponses)
+    });
+  };
+
   showAddForm() {
-    if (this.state.showForm) {
+    if (this.state.showAddForm) {
       return (
         <div className={css(styles.formContainer)}>
           <div className={css(styles.form)}>
             <CampaignCannedResponseForm
-              onSaveCannedResponse={ele => {
-                const newVals = this.props.formValues.cannedResponses.slice(0);
-                const newEle = {
-                  ...ele,
-                  isNew: true
-                };
-                newEle.id = Math.random()
-                  .toString(36)
-                  .replace(/[^a-zA-Z1-9]+/g, "");
-                newVals.push(newEle);
-                this.props.onChange({
-                  cannedResponses: newVals
-                });
-                this.closeForm();
-              }}
+              submitLabel="Add Response"
+              onSaveCannedResponse={this.handleAdd}
               customFields={this.props.customFields}
-              closeForm={this.closeForm}
+              closeForm={this.closeAddForm}
             />
           </div>
         </div>
@@ -92,16 +178,41 @@ export default class CampaignCannedResponsesForm extends React.Component {
         secondary
         label="Add new canned response"
         icon={<CreateIcon />}
-        onTouchTap={() => this.setState({ showForm: true })}
+        onTouchTap={() => this.setState({ showAddForm: true })}
       />
     );
   }
 
   listItems(cannedResponses) {
-    return cannedResponses.map(response => {
+    const SortableItem = SortableElement(({ value: response }) => {
+      if (this.state.currentlyEditing.indexOf(response.id) != -1) {
+        // we're editing this response
+        return (
+          <div className={css(styles.formContainer)} key={response.id}>
+            <div className={css(styles.form)}>
+              <CampaignCannedResponseForm
+                submitLabel="Update Response"
+                onSaveCannedResponse={newData =>
+                  this.handleEdit(response.id, newData)
+                }
+                customFields={this.props.customFields}
+                closeForm={() => {
+                  this.stopEditing(response.id);
+                }}
+                initialTitle={response.title}
+                initialText={response.text}
+                initialSurveyQuestion={response.surveyQuestion}
+              />
+            </div>
+          </div>
+        );
+      }
+
+      // not editing; just display it
       const title = response.surveyQuestion
         ? `[${response.surveyQuestion}] ${response.title}`
         : response.title;
+
       return (
         <ListItem
           {...dataTest("cannedResponse")}
@@ -112,27 +223,41 @@ export default class CampaignCannedResponsesForm extends React.Component {
           rightIconButton={
             <IconButton
               onTouchTap={() => {
-                const newVals = this.props.formValues.cannedResponses
-                  .map(responseToDelete => {
-                    if (responseToDelete.id === response.id) {
-                      return null;
-                    }
-                    return responseToDelete;
-                  })
-                  .filter(ele => ele !== null);
-
-                this.props.onChange({
-                  cannedResponses: newVals
-                });
+                this.handleDelete(response);
               }}
             >
               <DeleteIcon />
             </IconButton>
           }
+          onClick={() => {
+            this.startEditing(response.id);
+          }}
           secondaryTextLines={2}
         />
       );
     });
+
+    const SortableList = SortableContainer(({ items }) => {
+      return (
+        <ul>
+          {items.map((value, index) => (
+            <SortableItem
+              key={`item-${value.id}`}
+              index={index}
+              value={value}
+            />
+          ))}
+        </ul>
+      );
+    });
+
+    return (
+      <SortableList
+        items={cannedResponses.filter(response => !response.deleted)}
+        onSortEnd={this.handleSort}
+        distance={5}
+      />
+    );
   }
 
   render() {
@@ -151,7 +276,6 @@ export default class CampaignCannedResponsesForm extends React.Component {
         schema={this.formSchema}
         value={formValues}
         onChange={this.props.onChange}
-        onSubmit={this.props.onSubmit}
       >
         <CampaignFormSectionHeading
           title="Canned responses for texters"

@@ -13,8 +13,15 @@ const styles = StyleSheet.create({
   }
 });
 
-// THIS IS A COPY/PASTE FROM CANNED RESPONSE FORM BECAUSE I CANT MAKE FORM.CONTEXT WORK
 class CannedResponseForm extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      title: this.props.initialTitle,
+      text: this.props.initialText,
+      surveyQuestion: this.props.initialSurveyQuestion
+    };
+  }
   handleSave = formValues => {
     const { onSaveCannedResponse } = this.props;
     onSaveCannedResponse(formValues);
@@ -30,7 +37,13 @@ class CannedResponseForm extends React.Component {
     const { customFields } = this.props;
     return (
       <div>
-        <GSForm ref="form" schema={modelSchema} onSubmit={this.handleSave}>
+        <GSForm
+          ref="form"
+          schema={modelSchema}
+          onSubmit={this.handleSave}
+          value={this.state}
+          onChange={v => this.setState(v)}
+        >
           <Form.Field
             {...dataTest("title")}
             name="title"
@@ -57,7 +70,7 @@ class CannedResponseForm extends React.Component {
             <Form.Button
               {...dataTest("addResponse")}
               type="submit"
-              label="Add Response"
+              label={this.props.submitLabel}
               style={{
                 display: "inline-block"
               }}
@@ -80,7 +93,11 @@ class CannedResponseForm extends React.Component {
 CannedResponseForm.propTypes = {
   onSaveCannedResponse: type.func,
   customFields: type.array,
-  closeForm: type.func
+  closeForm: type.func,
+  initialTitle: type.string,
+  initialText: type.string,
+  intitialSurveyQuestion: type.string,
+  submitLabel: type.string.isRequired
 };
 
 export default CannedResponseForm;
