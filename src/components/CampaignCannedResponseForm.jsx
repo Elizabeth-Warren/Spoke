@@ -31,7 +31,7 @@ class CannedResponseForm extends React.Component {
     const modelSchema = yup.object({
       title: yup.string().required(),
       text: yup.string().required(),
-      surveyQuestion: yup.string()
+      surveyQuestion: yup.string().nullable()
     });
 
     const { customFields } = this.props;
