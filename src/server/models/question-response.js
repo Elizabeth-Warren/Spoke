@@ -20,7 +20,4 @@ const QuestionResponse = thinky.createModel(
   { noAutoCreation: true, dependencies: [CampaignContact, InteractionStep] }
 );
 
-QuestionResponse.ensureIndex("campaign_contact_id");
-QuestionResponse.ensureIndex("interaction_step_id");
-
 export default QuestionResponse;

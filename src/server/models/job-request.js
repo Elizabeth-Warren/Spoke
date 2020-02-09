@@ -35,6 +35,4 @@ const JobRequest = thinky.createModel(
   { noAutoCreation: true }
 );
 
-JobRequest.ensureIndex("queue_name");
-
 export default JobRequest;

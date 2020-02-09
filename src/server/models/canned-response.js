@@ -2,9 +2,6 @@ import thinky from "./thinky";
 const type = thinky.type;
 import { requiredString, timestamp, optionalString } from "./custom-types";
 
-import Campaign from "./campaign";
-import User from "./user";
-
 const CannedResponse = thinky.createModel(
   "canned_response",
   type
@@ -21,8 +18,5 @@ const CannedResponse = thinky.createModel(
     .allowExtra(false),
   { noAutoCreation: true }
 );
-
-CannedResponse.ensureIndex("campaign_id");
-CannedResponse.ensureIndex("user_id");
 
 export default CannedResponse;

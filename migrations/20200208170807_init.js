@@ -5,10 +5,7 @@ exports.up = async knex => {
     `${__dirname}/initial_db_dump.sql`,
     "utf8"
   );
-  // await knex.raw(initalSchema);
-  console.log(
-    "Not running anything, uncomment me once this has run once in dev and prod"
-  );
+  await knex.raw(initalSchema);
 };
 
 exports.down = async knex => {

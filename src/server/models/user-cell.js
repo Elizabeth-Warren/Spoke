@@ -22,6 +22,4 @@ const UserCell = thinky.createModel(
   { noAutoCreation: true, dependencies: [User] }
 );
 
-UserCell.ensureIndex("user_id");
-
 export default UserCell;

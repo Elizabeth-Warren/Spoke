@@ -1,10 +1,5 @@
 import thinky from "./thinky";
-import {
-  optionalString,
-  requiredString,
-  timestamp,
-  optionalTimestamp
-} from "./custom-types";
+import { requiredString, timestamp, optionalTimestamp } from "./custom-types";
 
 const type = thinky.type;
 
@@ -24,8 +19,5 @@ const Tag = thinky.createModel(
     .allowExtra(true),
   { noAutoCreation: true }
 );
-
-Tag.ensureIndex("campaign_contact_id");
-Tag.ensureIndex("tag");
 
 export default Tag;

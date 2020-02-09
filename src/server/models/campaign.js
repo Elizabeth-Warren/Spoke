@@ -2,8 +2,6 @@ import thinky from "./thinky";
 const type = thinky.type;
 import { requiredString, optionalString, timestamp } from "./custom-types";
 
-import Organization from "./organization";
-
 const Campaign = thinky.createModel(
   "campaign",
   type
@@ -59,8 +57,5 @@ const Campaign = thinky.createModel(
     .allowExtra(false),
   { noAutoCreation: true }
 );
-
-Campaign.ensureIndex("organization_id");
-Campaign.ensureIndex("creator_id");
 
 export default Campaign;

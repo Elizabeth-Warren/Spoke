@@ -1,21 +1,39 @@
 import _ from "lodash";
-import {
-  createLoaders,
-  createTables,
-  dropTables,
-  User,
-  CampaignContact,
-  r
-} from "../src/server/models/";
+import { createLoaders, User, CampaignContact, r } from "../src/server/models/";
 import { graphql } from "graphql";
 
+// TODO: create and drop a fresh schema for every test suite instead
+const ALL_TABLES = [
+  "assignment",
+  "campaign",
+  "campaign_contact",
+  "canned_response",
+  "interaction_step",
+  "invite",
+  "job_request",
+  "knex_migrations",
+  "knex_migrations_lock",
+  "message",
+  "opt_out",
+  "organization",
+  "pending_message_part",
+  "question_response",
+  "tag",
+  "user",
+  "user_cell",
+  "user_organization",
+  "zip_code"
+];
+const QUOTED_TABLES = ALL_TABLES.map(t => `"${t}"`);
+
 export async function setupTest() {
-  await createTables();
-  return;
+  await r.knex.migrate.latest();
 }
 
 export async function cleanupTest() {
-  await dropTables();
+  for (const table of QUOTED_TABLES) {
+    await r.knex.raw(`DROP TABLE IF EXISTS ${table} CASCADE`);
+  }
 }
 
 export function getContext(context) {

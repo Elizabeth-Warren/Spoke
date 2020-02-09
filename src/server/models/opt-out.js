@@ -21,8 +21,4 @@ const OptOut = thinky.createModel(
   { noAutoCreation: true, dependencies: [Organization, Assignment] }
 );
 
-OptOut.ensureIndex("cell");
-OptOut.ensureIndex("assignment_id");
-OptOut.ensureIndex("organization_id");
-
 export default OptOut;

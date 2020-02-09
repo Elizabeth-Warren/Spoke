@@ -56,12 +56,4 @@ const Message = thinky.createModel(
   { noAutoCreation: true, dependencies: [User, Assignment] }
 );
 
-Message.ensureIndex("user_id");
-Message.ensureIndex("assignment_id");
-Message.ensureIndex("send_status");
-Message.ensureIndex("user_number");
-Message.ensureIndex("contact_number");
-Message.ensureIndex("service_id");
-Message.ensureIndex("messaging_service_sid");
-
 export default Message;

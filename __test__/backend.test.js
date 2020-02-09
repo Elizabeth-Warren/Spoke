@@ -1,11 +1,6 @@
 import { resolvers } from "../src/server/api/schema";
 import { schema } from "../src/api/schema";
-import {
-  accessRequired,
-  assignmentRequired,
-  authRequired,
-  superAdminRequired
-} from "../src/server/api/errors";
+import { assignmentRequired } from "../src/server/api/errors";
 import { graphql } from "graphql";
 import {
   User,
@@ -18,6 +13,7 @@ import {
 import { resolvers as campaignResolvers } from "../src/server/api/campaign";
 import { getContext, setupTest, cleanupTest } from "./test_helpers";
 import { makeExecutableSchema } from "graphql-tools";
+import faker from "faker";
 
 const mySchema = makeExecutableSchema({
   typeDefs: schema,
@@ -39,11 +35,11 @@ let testTexterUser;
 
 async function createUser(
   userInfo = {
-    auth0_id: "test123",
-    first_name: "TestUserFirst",
-    last_name: "TestUserLast",
-    cell: "555-555-5555",
-    email: "testuser@example.com"
+    auth0_id: faker.random.uuid(),
+    first_name: faker.name.firstName(),
+    last_name: faker.name.lastName(),
+    cell: faker.phone.phoneNumber(),
+    email: faker.internet.email()
   }
 ) {
   const user = new User(userInfo);
@@ -54,7 +50,7 @@ async function createUser(
     return user;
   } catch (err) {
     console.error("Error saving user");
-    return false;
+    // return false;
   }
 }
 
@@ -207,7 +203,7 @@ it("should return the current user when user is logged in", async () => {
   const result = await graphql(mySchema, query, rootValue, context);
   const { data } = result;
 
-  expect(data.currentUser.email).toBe("testuser@example.com");
+  expect(data.currentUser.email).toBe(testAdminUser.email);
 });
 
 // TESTING CAMPAIGN CREATION FROM END TO END
@@ -478,7 +474,7 @@ describe("Campaign", () => {
 
     test("resolves unassigned contacts when false with assigned contacts", async () => {
       const user = await new User({
-        auth0_id: "test123",
+        auth0_id: "test12345",
         first_name: "TestUserFirst",
         last_name: "TestUserLast",
         cell: "555-555-5555",
@@ -522,7 +518,6 @@ describe("Campaign", () => {
 
     test("test assignmentRequired access control", async () => {
       const user = await createUser();
-
       const assignment = await new Assignment({
         user_id: user.id,
         campaign_id: campaign.id

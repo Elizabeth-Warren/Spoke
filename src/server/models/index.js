@@ -10,7 +10,6 @@ import CampaignContact from "./campaign-contact";
 import InteractionStep from "./interaction-step";
 import QuestionResponse from "./question-response";
 import OptOut from "./opt-out";
-import Migrations from "./migrations";
 import JobRequest from "./job-request";
 import Invite from "./invite";
 import CannedResponse from "./canned-response";
@@ -18,7 +17,6 @@ import UserOrganization from "./user-organization";
 import UserCell from "./user-cell";
 import Message from "./message";
 import ZipCode from "./zip-code";
-import Log from "./log";
 import Tag from "./tag";
 
 import thinky from "./thinky";
@@ -41,49 +39,6 @@ function createLoader(model, opts) {
   });
 }
 
-// This is in dependency order, so tables are after their dependencies
-const tableList = [
-  "organization", // good candidate?
-  "user", // good candidate
-  "campaign", // good candidate
-  "assignment",
-  // the rest are alphabetical
-  "campaign_contact", // ?good candidate (or by cell)
-  "canned_response", // good candidate
-  "interaction_step",
-  "invite",
-  "job_request",
-  "log",
-  "message",
-  "migrations",
-  "opt_out", // good candidate
-  "pending_message_part",
-  "question_response",
-  "tag",
-  "user_cell",
-  "user_organization",
-  "zip_code" // good candidate (or by contact)?
-];
-
-function createTablesIfNecessary() {
-  // builds the database if we don't see the organization table
-  return thinky.k.schema.hasTable("organization").then(tableExists => {
-    if (!tableExists) {
-      log.info("CREATING DATABASE SCHEMA");
-      return createTables();
-    }
-    return null;
-  });
-}
-
-function createTables() {
-  return thinky.createTables(tableList);
-}
-
-function dropTables() {
-  return thinky.dropTables(tableList);
-}
-
 const createLoaders = () => ({
   assignment: createLoader(Assignment),
   campaign: createLoader(Campaign, { cacheObj: cacheableData.campaign }),
@@ -95,11 +50,9 @@ const createLoaders = () => ({
   interactionStep: createLoader(InteractionStep),
   campaignContact: createLoader(CampaignContact),
   zipCode: createLoader(ZipCode, { idKey: "zip" }),
-  log: createLoader(Log),
   cannedResponse: createLoader(CannedResponse),
   jobRequest: createLoader(JobRequest),
   message: createLoader(Message),
-  migrations: createLoader(Migrations),
   optOut: createLoader(OptOut),
   pendingMessagePart: createLoader(PendingMessagePart),
   tag: createLoader(Tag),
@@ -114,11 +67,7 @@ export {
   createLoaders,
   r,
   cacheableData,
-  createTables,
-  createTablesIfNecessary,
-  dropTables,
   datawarehouse,
-  Migrations,
   Assignment,
   Campaign,
   CampaignContact,

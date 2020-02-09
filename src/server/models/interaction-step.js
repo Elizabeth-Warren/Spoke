@@ -2,8 +2,6 @@ import thinky from "./thinky";
 const type = thinky.type;
 import { requiredString, optionalString, timestamp } from "./custom-types";
 
-import Campaign from "./campaign";
-
 const InteractionStep = thinky.createModel(
   "interaction_step",
   type
@@ -34,8 +32,5 @@ const InteractionStep = thinky.createModel(
     .allowExtra(false),
   { noAutoCreation: true }
 );
-
-InteractionStep.ensureIndex("campaign_id");
-InteractionStep.ensureIndex("parent_interaction_id");
 
 export default InteractionStep;

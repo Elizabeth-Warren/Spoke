@@ -143,6 +143,7 @@
     "eslint-plugin-import": "^1.10.2",
     "eslint-plugin-jsx-a11y": "^1.5.5",
     "eslint-plugin-react": "^5.2.2",
+    "faker": "^4.1.0",
     "foreman": "^1.4.1",
     "googleapis": "^39.2.0",
     "husky": "^3.0.1",

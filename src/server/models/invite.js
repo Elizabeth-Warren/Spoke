@@ -19,6 +19,4 @@ const Invite = thinky.createModel(
   { noAutoCreation: true }
 );
 
-Invite.ensureIndex("is_valid");
-
 export default Invite;

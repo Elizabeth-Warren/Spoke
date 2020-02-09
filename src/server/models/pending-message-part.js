@@ -28,7 +28,4 @@ const PendingMessagePart = thinky.createModel(
   { noAutoCreation: true }
 );
 
-PendingMessagePart.ensureIndex("parent_id");
-PendingMessagePart.ensureIndex("service");
-
 export default PendingMessagePart;
