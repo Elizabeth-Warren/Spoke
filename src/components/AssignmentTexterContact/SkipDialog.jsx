@@ -7,6 +7,7 @@ import { StyleSheet, css } from "aphrodite";
 import DropDownMenu, { MenuItem } from "material-ui/DropDownMenu";
 import TextField from "material-ui/TextField";
 import { TAGS, NO_TAG } from "../../lib/tags";
+import theme from "../../styles/theme";
 
 const styles = StyleSheet.create({
   skipCard: {
@@ -42,6 +43,9 @@ const styles = StyleSheet.create({
 const inlineStyles = {
   dialogButton: {
     display: "inline-block"
+  },
+  dropdownIconStyle: {
+    fill: theme.colors.EWnavy
   }
 };
 
@@ -58,6 +62,7 @@ const SkipDialog = props =>
           <div className={css(styles.inputFields)}>
             <DropDownMenu
               className={css(styles.tag)}
+              iconStyle={inlineStyles.dropdownIconStyle}
               anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
               autoWidth={false}
               onChange={(event, key, value) => props.onTagChanged(value)}
