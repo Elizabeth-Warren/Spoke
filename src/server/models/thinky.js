@@ -5,14 +5,6 @@ import bluebird from "bluebird";
 bluebird.promisifyAll(redis.RedisClient.prototype);
 bluebird.promisifyAll(redis.Multi.prototype);
 
-// // This was how to connect to rethinkdb:
-// export default thinky({
-//   host: process.env.DB_HOST,
-//   port: process.env.DB_PORT,
-//   db: process.env.DB_NAME,
-//   authKey: process.env.DB_KEY
-// })
-
 let config;
 
 const use_ssl =
@@ -53,22 +45,12 @@ if (process.env.DB_JSON || global.DB_JSON) {
     ssl: use_ssl
   };
 } else {
-  config = {
-    client: "sqlite3",
-    connection: {
-      filename: "./mydb.sqlite"
-    },
-    defaultsUnsupported: true
-  };
+  throw Error("Missing database configuration");
 }
 
 const thinkyConn = dumbThinky(config);
 
 thinkyConn.r.getCount = async query => {
-  // helper method to get a count result
-  // with fewer bugs.  Using knex's .count()
-  // results in a 'count' key on postgres, but a 'count(*)' key
-  // on sqlite -- ridiculous.  This smooths that out
   if (Array.isArray(query)) {
     return query.length;
   }

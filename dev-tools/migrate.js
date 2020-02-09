@@ -1,14 +1,9 @@
-const runMigrations = require("../src/migrations").runMigrations;
-const createTablesIfNecessary = require("../src/server/models")
-  .createTablesIfNecessary;
-
-process.env.RETHINK_KNEX_FORCE_INDEXCREATION = "1";
+import { r } from "../src/server/models";
 
 async function migrate() {
   console.log("Beginning migrations...");
   try {
-    await createTablesIfNecessary();
-    await runMigrations();
+    await r.knex.migrate.latest();
     console.log("All done!");
   } catch (e) {
     console.log("Error running migrations", e);

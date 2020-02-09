@@ -20,7 +20,6 @@ Generally, label by filename what kind of documentation it is in all-caps, one o
 
 ## Helpful Dev Tips
 
-- Run `sqlite3 mydb.sqlite` to connect to a SQL shell for the dev database
 - [Set up an ESLint plugin in your code editor so that you catch coding errors and follow code style guidelines more easily!](https://medium.com/planet-arkency/catch-mistakes-before-you-run-you-javascript-code-6e524c36f0c8#.oboqsse48)
 - [Install the redux-devtools-extension](https://github.com/zalmoxisus/redux-devtools-extension) in Chrome to get advanced Redux debugging features.
 - Right now there is a bug in Apollo (https://github.com/apollostack/react-apollo/issues/57) that means in one particular case, errors get swallowed. If you end up with an app that is silently breaking, console.log(this.props.data) and check the errors property.
@@ -50,7 +49,7 @@ enviornment variable:
 ###TLDR
 
 - For db calls, generally use knex (`r.knex(<table>)`....) while legacy stuff is `r.table(<table>)`
-- Make sure you make queries and code that supports, at least, PostgreSQL and Sqlite.
+- Make sure you make queries and code that supports PostgreSQL.
 
 ### RethinkDB legacy => rethink-knex-adapter and Knex
 
@@ -111,9 +110,6 @@ There are two specific gotchas:
 
 Schema changes should include an addition to `src/migrations/index.js`. If you create a table, make sure you use
 `r.knex.schema.createTableIfNotExists` (see knex documentation and existing examples).
-
-In order to support PostgreSQL and Sqlite, you can define a field as `.json()` when defining it in the
-migration, but it should be `type.string()` in its `src/server/models/` definition.
 
 Production instances can disable automatic migrations on startup with environment variable `SUPPRESS_MIGRATIONS`.
 

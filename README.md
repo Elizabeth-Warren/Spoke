@@ -15,12 +15,13 @@ Notable changes from upstream:
 - Added support for using a different Twilio Messaging Service for each campaign
 - Added external_id_type and state_code as top-level fields to campaign_contact
 - Removed support for `zip` on campaign_contact, which was incomplete in WFP fork anyway
+- Removed support for sqlite
 
 ## Running for the first time
 
 Run `docker-compose up` to start the db.
 
-Then, run `yarn run dev-migrate` and  `yarn run create-test-db`
+Then, run `yarn run dev-migrate` and `yarn run create-test-db`
 
 `./dev-tools/manage-messaging-services.js --command create --friendlyName <your test messaging service name> " --baseUrl <your ngrok url>`
 

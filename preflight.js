@@ -1,14 +1,12 @@
-const runMigrations = require("./build/server/migrations").runMigrations;
-const createTablesIfNecessary = require("./build/server/server/models")
-  .createTablesIfNecessary;
+const r = require("./build/server/server/models").r;
 
 module.exports.handler = async function(event, context) {
   console.log("Beginning preflight...");
-
-  await createTablesIfNecessary();
-  await runMigrations();
-
+  try {
+    await r.knex.migrate.latest();
+  } catch (e) {
+    console.log("Preflight failed with exception", e);
+    throw e;
+  }
   console.log("All done...");
-
-  return Promise.resolve();
 };
