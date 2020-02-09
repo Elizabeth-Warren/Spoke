@@ -11,7 +11,7 @@ import theme from "../../styles/theme";
 
 const styles = StyleSheet.create({
   skipCard: {
-    "@media(max-width: 320px)": {
+    "@media(maxWidth: 320px)": {
       padding: "2px 10px !important"
     },
     zIndex: 2000,
