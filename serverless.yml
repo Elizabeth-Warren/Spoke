@@ -100,6 +100,7 @@ provider:
     SLACK_CLIENT_ID: ${ssm:/${self:custom.stage}/spoke/slack/CLIENT_ID~true}
     SLACK_CLIENT_SECRET: ${ssm:/${self:custom.stage}/spoke/slack/CLIENT_SECRET~true}
     SLACK_TEAM_ID: ${ssm:/${self:custom.stage}/spoke/slack/TEAM_ID~true}
+    EMBEDDED_SHIFTER_URL: ${ssm:/${self:custom.stage}/spoke/shifter_url~true}
 
 functions:
   api:

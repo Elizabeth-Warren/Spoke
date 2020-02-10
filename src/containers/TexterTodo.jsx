@@ -204,6 +204,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
             textingHoursStart
             textingHoursEnd
             textingHoursEnforced
+            shiftingConfiguration
             organization {
               id
               textingHoursEnforced

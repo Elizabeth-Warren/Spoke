@@ -1,7 +1,6 @@
 import type from "prop-types";
 import React from "react";
 import { List } from "material-ui/List";
-import { ToolbarTitle } from "material-ui/Toolbar";
 import ScriptList from "./ScriptList";
 import theme from "../styles/theme";
 
@@ -22,18 +21,10 @@ class CannedResponseMenu extends React.Component {
     onSelectCannedResponse(cannedResponse);
   };
 
-  renderCannedResponses({ scripts, subheader, showAddScriptButton }) {
-    const { customFields, campaignId, texterId } = this.props;
-
+  renderCannedResponses({ scripts }) {
     return (
       <ScriptList
-        texterId={texterId}
-        campaignId={campaignId}
         scripts={scripts}
-        showAddScriptButton={showAddScriptButton}
-        duplicateCampaignResponses
-        customFields={customFields}
-        subheader={subheader}
         onSelectCannedResponse={this.handleSelectCannedResponse}
       />
     );
@@ -43,24 +34,20 @@ class CannedResponseMenu extends React.Component {
     const { campaignCannedResponses } = this.props;
 
     return (
-      <List>
-        <ToolbarTitle text="Replies" style={styles.title} />
-        {this.renderCannedResponses({
-          scripts: campaignCannedResponses,
-          showAddScriptButton: false
-        })}
-      </List>
+      <div style={{ height: "100%", overflowY: "auto" }}>
+        <List>
+          {this.renderCannedResponses({
+            scripts: campaignCannedResponses,
+            showAddScriptButton: false
+          })}
+        </List>
+      </div>
     );
   }
 }
 
 CannedResponseMenu.propTypes = {
-  scripts: type.array,
   onSelectCannedResponse: type.func,
-  customFields: type.array,
-  texterId: type.number,
-  userCannedResponses: type.array,
-  campaignId: type.number,
   campaignCannedResponses: type.array
 };
 

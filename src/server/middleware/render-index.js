@@ -58,6 +58,7 @@ export default function renderIndex(html, css, assetMap, store) {
       window.PEOPLE_PAGE_ROW_SIZES="${process.env.PEOPLE_PAGE_ROW_SIZES || ""}"
       window.CONVERSATION_LIST_ROW_SIZES="${process.env
         .CONVERSATION_LIST_ROW_SIZES || ""}"
+      window.EMBEDDED_SHIFTER_URL="${process.env.EMBEDDED_SHIFTER_URL || ""}"
     </script>
     <script src="${assetMap["bundle.js"]}"></script>
   </body>

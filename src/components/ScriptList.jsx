@@ -27,54 +27,12 @@ export default class ScriptList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      script: props.script,
-      dialogOpen: false
+      script: props.script
     };
   }
 
-  handleOpenDialog = () => {
-    this.setState({
-      dialogOpen: true
-    });
-  };
-
-  handleCloseDialog = () => {
-    this.setState({
-      dialogOpen: false,
-      script: null
-    });
-  };
-
   render() {
-    const {
-      scripts,
-      onSelectCannedResponse,
-      showAddScriptButton,
-      customFields,
-      campaignId,
-      mutations,
-      texterId
-    } = this.props;
-    const { dialogOpen } = this.state;
-
-    // const rightIconButton = (
-    //   <IconMenu
-    //     iconButtonElement={<IconButton><MoreVertIcon /></IconButton>}
-    //     anchorOrigin={{horizontal: 'left', vertical: 'bottom'}}
-    //     targetOrigin={{horizontal: 'left', vertical: 'bottom'}}
-    //   >
-    //     <MenuItem primaryText={duplicateCampaignResponses && !script.isUserCreated ? "Duplicate and edit" : "Edit"}
-    //       onTouchTap={() => this.handleEditScript(script)}
-    //     />
-    //     {
-    //       script.isUserCreated ? (
-    //         <MenuItem primaryText="Delete"
-    //           onTouchTap={() => this.handleDeleteScript(script.id)}
-    //         />
-    //       ) : ''
-    //     }
-    //   </IconMenu>
-    // )
+    const { scripts, onSelectCannedResponse } = this.props;
 
     const rightIconButton = null;
     const listItems = scripts.map(script => {
@@ -102,17 +60,12 @@ export default class ScriptList extends React.Component {
         </List>
       );
 
-    return <div>{list}</div>;
+    return <div style={{ paddingBottom: "32px" }}>{list}</div>;
   }
 }
 
 ScriptList.propTypes = {
   script: PropTypes.object,
   scripts: PropTypes.arrayOf(PropTypes.object),
-  onSelectCannedResponse: PropTypes.func,
-  showAddScriptButton: PropTypes.bool,
-  customFields: PropTypes.array,
-  campaignId: PropTypes.number,
-  mutations: PropTypes.object,
-  texterId: PropTypes.number
+  onSelectCannedResponse: PropTypes.func
 };

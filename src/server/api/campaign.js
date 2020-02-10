@@ -242,7 +242,8 @@ export const resolvers = {
         "textingHoursEnforced",
         "textingHoursStart",
         "textingHoursEnd",
-        "timezone"
+        "timezone",
+        "shiftingConfiguration"
       ],
       Campaign
     ),

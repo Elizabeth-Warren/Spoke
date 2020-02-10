@@ -21,6 +21,7 @@ import CampaignInteractionStepsForm from "../components/CampaignInteractionSteps
 import CampaignCannedResponsesForm from "../components/CampaignCannedResponsesForm";
 import { dataTest, camelCase } from "../lib/attributes";
 import CampaignTextingHoursForm from "../components/CampaignTextingHoursForm";
+import ShiftingConfigurationForm from "src/components/ShiftingConfigurationForm";
 
 // import AdminScriptImport from "../containers/AdminScriptImport";
 import { pendingJobsGql } from "../lib/pendingJobsUtils";
@@ -44,6 +45,7 @@ const campaignInfoFragment = `
   textingHoursStart
   textingHoursEnd
   timezone
+  shiftingConfiguration
   texters {
     id
     firstName
@@ -422,6 +424,18 @@ class AdminCampaignEdit extends React.Component {
         blocksStarting: false,
         expandAfterCampaignStarts: true,
         expandableBySuperVolunteers: false
+      },
+      {
+        title: "Shifting Configuration",
+        content: ShiftingConfigurationForm,
+        keys: ["shiftingConfiguration"],
+        checkCompleted: () => true,
+        blocksStarting: false,
+        expandAfterCampaignStarts: true,
+        expandableBySuperVolunteers: false,
+        extraProps: {
+          customFields: this.props.campaignData.campaign.customFields
+        }
       }
       // Temporarily disabled, might be removed completely
       // {

@@ -3,7 +3,7 @@ import React from "react";
 import { StyleSheet, css } from "aphrodite";
 import ContactToolbar from "../../components/ContactToolbar";
 import MessageList from "../../components/MessageList";
-import CannedResponseMenu from "../../components/CannedResponseMenu";
+import ReplyTools from "../../components/ReplyTools";
 import AssignmentTexterSurveys from "../../components/AssignmentTexterSurveys";
 import RaisedButton from "material-ui/RaisedButton";
 import NavigateHomeIcon from "material-ui/svg-icons/action/home";
@@ -109,8 +109,7 @@ const styles = StyleSheet.create({
   responsesSection: {
     backgroundColor: theme.colors.EWlibertyGreen,
     height: "100%",
-    flex: "0 0 34%",
-    overflowY: "scroll"
+    flex: "0 0 34%"
   },
 
   navButtonsWrapper: {
@@ -941,20 +940,23 @@ export class AssignmentTexterContact extends React.Component {
     );
   }
 
-  renderCannedResponseMenu() {
-    const { campaign, assignment, texter } = this.props;
-    const { userCannedResponses, campaignCannedResponses } = assignment;
+  renderReplyTools() {
+    const { campaign, assignment, texter, contact } = this.props;
+    const { campaignCannedResponses } = assignment;
 
     const nonDeletedResponses = campaignCannedResponses.filter(r => !r.deleted);
 
+    const shiftingConfigurationJSON = campaign.shiftingConfiguration;
+    const shiftingConfiguration = shiftingConfigurationJSON
+      ? JSON.parse(shiftingConfigurationJSON)
+      : { enabled: false };
+
     return (
-      <CannedResponseMenu
+      <ReplyTools
         campaignCannedResponses={nonDeletedResponses}
-        userCannedResponses={userCannedResponses}
-        customFields={campaign.customFields}
-        campaignId={parseInt(campaign.id)}
-        texterId={parseInt(texter.id)}
         onSelectCannedResponse={this.handleCannedResponseChange}
+        shiftingConfiguration={shiftingConfiguration}
+        contact={contact}
       />
     );
   }
@@ -1031,7 +1033,7 @@ export class AssignmentTexterContact extends React.Component {
   render() {
     const { messageStatus } = this.props.contact;
     const { justSentNew } = this.state;
-    const shouldHideCannedResponses = !(
+    const shouldHideReplyTools = !(
       messageStatus === "needsMessage" || justSentNew
     );
 
@@ -1063,9 +1065,9 @@ export class AssignmentTexterContact extends React.Component {
                 {this.renderBottomFixedSection()}
               </div>
             </div>
-            {shouldHideCannedResponses && (
+            {shouldHideReplyTools && (
               <div className={css(styles.responsesSection)}>
-                {this.renderCannedResponseMenu()}
+                {this.renderReplyTools()}
               </div>
             )}
           </div>
