@@ -397,7 +397,7 @@ class AdminCampaignEdit extends React.Component {
         }
       },
       {
-        title: "Canned Responses",
+        title: "Script Responses",
         content: CampaignCannedResponsesForm,
         keys: ["cannedResponses"],
         checkCompleted: () => {
