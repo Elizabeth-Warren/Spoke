@@ -264,7 +264,7 @@ export default class CampaignInteractionStepsForm extends React.Component {
     );
   }
 
-  doRender = () => {
+  render() {
     const tree = makeTree(this.state.interactionSteps);
 
     return (
@@ -282,13 +282,6 @@ export default class CampaignInteractionStepsForm extends React.Component {
         />
       </div>
     );
-  };
-
-  render() {
-    console.log("render", Date.now());
-    const rendered = this.doRender();
-    console.log("rendered", Date.now());
-    return rendered;
   }
 }
 

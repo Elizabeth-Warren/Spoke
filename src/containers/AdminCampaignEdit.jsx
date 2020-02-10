@@ -17,13 +17,13 @@ import RaisedButton from "material-ui/RaisedButton";
 import CampaignBasicsForm from "../components/CampaignBasicsForm";
 import CampaignContactsForm from "../components/CampaignContactsForm";
 import CampaignTextersForm from "../components/CampaignTextersForm";
+import CampaignPhoneNumbersForm from "../components/CampaignPhoneNumbersForm";
 import CampaignInteractionStepsForm from "../components/CampaignInteractionStepsForm";
 import CampaignCannedResponsesForm from "../components/CampaignCannedResponsesForm";
 import { dataTest, camelCase } from "../lib/attributes";
 import CampaignTextingHoursForm from "../components/CampaignTextingHoursForm";
 import ShiftingConfigurationForm from "src/components/ShiftingConfigurationForm";
 
-// import AdminScriptImport from "../containers/AdminScriptImport";
 import { pendingJobsGql } from "../lib/pendingJobsUtils";
 
 const campaignInfoFragment = `
@@ -81,7 +81,10 @@ class AdminCampaignEdit extends React.Component {
     const isNew = props.location.query.new;
     this.state = {
       expandedSection: isNew ? 0 : null,
-      campaignFormValues: props.campaignData.campaign,
+      campaignFormValues: {
+        ...props.campaignData.campaign,
+        messagingServices: []
+      },
       startingCampaign: false
     };
   }
@@ -437,19 +440,18 @@ class AdminCampaignEdit extends React.Component {
           customFields: this.props.campaignData.campaign.customFields
         }
       }
-      // Temporarily disabled, might be removed completely
       // {
-      //   title: "Script Import",
-      //   content: AdminScriptImport,
-      //   keys: [],
-      //   checkCompleted: () => true,
-      //   blocksStarting: false,
-      //   expandAfterCampaignStarts: false,
-      //   expandableBySuperVolunteers: false,
+      //   title: "Phone Numbers",
+      //   content: CampaignPhoneNumbersForm,
+      //   keys: ["phoneNumbers"],
+      //   checkCompleted: () =>
+      //     this.props.organizationData.campaignPhoneNumbersEnabled,
+      //   blocksStarting: true,
+      //   expandAfterCampaignStarts: true,
+      //   expandableBySuperVolunteers: true,
       //   extraProps: {
-      //     campaignData: this.props.campaignData
-      //   },
-      //   doNotSaveAfterSubmit: true
+      //     phoneNumbers: this.props.organizationData.phoneNumbersByAreaCode
+      //   }
       // }
     ];
   }
@@ -754,7 +756,6 @@ AdminCampaignEdit.propTypes = {
   pendingJobsData: PropTypes.object,
   availableActionsData: PropTypes.object
 };
-
 const mapQueriesToProps = ({ ownProps }) => ({
   pendingJobsData: pendingJobsGql(ownProps.params.campaignId),
   campaignData: {
@@ -777,6 +778,11 @@ const mapQueriesToProps = ({ ownProps }) => ({
         organization(id: $organizationId) {
           id
           uuid
+          campaignPhoneNumbersEnabled
+          availablePhoneNumbers {
+            areaCode
+            count
+          }
           texters: people(sortBy: $sortBy) {
             id
             firstName

@@ -3,11 +3,19 @@ import { getFormattedPhoneNumber } from "../../../lib/phone-format";
 import { Message, Campaign, r } from "../../models";
 import log from "src/server/log";
 import { getLastMessage, saveNewIncomingMessage } from "./message-sending";
+import urlJoin from "url-join";
+import _ from "lodash";
+import preconditions from "src/server/preconditions";
 
 let twilio = null;
 const MAX_SEND_ATTEMPTS = 5;
 const MESSAGE_VALIDITY_PADDING_SECONDS = 30;
 const MAX_TWILIO_MESSAGE_VALIDITY = 14400;
+const MAX_NUMBERS_PER_MESSAGING_SERVICE = 400;
+const BULK_REQUEST_CONCURRENCY = 10;
+
+const baseCallbackUrl =
+  process.env.TWILIO_BASE_CALLBACK_URL || process.env.BASE_URL;
 
 if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
   // eslint-disable-next-line new-cap
@@ -52,13 +60,12 @@ function parseMessageText(message) {
 }
 
 async function messagingServiceForContact(contact) {
+  // TODO[matteo]: cache this
   const campaign = await Campaign.get(contact.campaign_id);
-  const service = campaign.messaging_service_sid;
-  if (service) {
-    return service;
-  }
-  log.warn("Using default messaging service for campaign", campaign.id);
-  return process.env.TWILIO_MESSAGE_SERVICE_SID;
+  return preconditions.check(
+    campaign.messaging_service_sid,
+    `Unable to find messaging service for campaign ${contact.campaign_id}`
+  );
 }
 
 async function sendMessage(message, contact, trx) {
@@ -359,7 +366,81 @@ async function handleIncomingMessage(twilioMessage) {
 //   return partId;
 // }
 
+async function createMessagingService(friendlyName) {
+  return await twilio.messaging.services.create({
+    friendlyName,
+    statusCallback: urlJoin(baseCallbackUrl, "/twilio-message-report"),
+    inboundRequestUrl: urlJoin(baseCallbackUrl, "/twilio")
+  });
+}
+
+async function buyNumber(phoneNumber, opts) {
+  return twilio.incomingPhoneNumbers.create({
+    phoneNumber,
+    friendlyName:
+      opts.friendlyName || `Spoke [${process.env.BASE_URL}] ${phoneNumber}`,
+    voiceUrl: process.env.TWILIO_VOICE_URL // will use default twilio recording if undefined
+  });
+}
+
+async function bulkRequest(array, fn) {
+  const chunks = _.chunk(array, BULK_REQUEST_CONCURRENCY);
+  const results = [];
+  for (const chunk of chunks) {
+    results.push(...(await Promise.all(chunk.map(fn))));
+  }
+  return results;
+}
+
+/**
+ * Bulk remove numbers from a Messaging Service.
+ *
+ * This operation keeps numbers in the Account's inventory and makes them available to
+ * other Messaging Services.
+ *
+ * Failures can be ignored with 'ignoreFailures', which is useful if you aren't sure
+ * which numbers are part of the messaging service, e.g. when rolling back after
+ * a failure in addNumbersToMessagingService.
+ */
+async function removeNumbersFromMessagingService(
+  phoneSids,
+  messagingServiceSid,
+  ignoreFailure = true
+) {
+  return await bulkRequest(phoneSids, async phoneNumberSid => {
+    try {
+      return await twilio.messaging
+        .services(messagingServiceSid)
+        .phoneNumbers(phoneNumberSid)
+        .remove();
+    } catch (e) {
+      log.warn({
+        msg: "Error removing numbers from a Messaging Service",
+        error: e,
+        ignoreFailure
+      });
+      if (ignoreFailure) {
+        return e;
+      }
+      throw e;
+    }
+  });
+}
+
+async function addNumbersToMessagingService(phoneSids, messagingServiceSid) {
+  return await bulkRequest(phoneSids, async phoneNumberSid => {
+    return twilio.messaging
+      .services(messagingServiceSid)
+      .phoneNumbers.create({ phoneNumberSid });
+  });
+}
+
+async function deleteMessagingService(messagingServiceSid) {
+  return twilio.messaging.services(messagingServiceSid).remove();
+}
+
 export default {
+  MAX_NUMBERS_PER_MESSAGING_SERVICE,
   syncMessagePartProcessing: true,
   // Warren fork, async message processing not supported:
   // syncMessagePartProcessing: !!process.env.JOBS_SAME_PROCESS,
@@ -368,5 +449,9 @@ export default {
   sendMessage,
   handleDeliveryReport,
   handleIncomingMessage,
-  parseMessageText
+  parseMessageText,
+  createMessagingService,
+  deleteMessagingService,
+  removeNumbersFromMessagingService,
+  addNumbersToMessagingService
 };

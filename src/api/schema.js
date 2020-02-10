@@ -13,6 +13,7 @@ import { schema as messageSchema } from "./message";
 import { schema as campaignContactSchema } from "./campaign-contact";
 import { schema as cannedResponseSchema } from "./canned-response";
 import { schema as inviteSchema } from "./invite";
+import { schema as twilioPhoneNumberSchema } from "./twilio-phone-number";
 
 const rootSchema = gql`
   input CampaignContactInput {
@@ -61,6 +62,11 @@ const rootSchema = gql`
     contactsCount: Int
   }
 
+  input CampaignPhoneNumberInput {
+    areaCode: String
+    count: Int
+  }
+
   input CampaignInput {
     title: String
     description: String
@@ -76,6 +82,7 @@ const rootSchema = gql`
     interactionSteps: InteractionStepInput
     cannedResponses: [CannedResponseInput]
     overrideOrganizationTextingHours: Boolean
+    phoneNumbers: CampaignPhoneNumberInput
     textingHoursEnforced: Boolean
     textingHoursStart: Int
     textingHoursEnd: Int
@@ -259,6 +266,7 @@ const rootSchema = gql`
       organizationId: String!
       optOutMessage: String!
     ): Organization
+    enableCampaignPhoneNumbers(organizationId: String!): Organization
     bulkSendMessages(assignmentId: Int!): [CampaignContact]
     sendMessage(
       message: MessageInput!
@@ -349,5 +357,6 @@ export const schema = [
   questionResponseSchema,
   questionSchema,
   inviteSchema,
-  conversationSchema
+  conversationSchema,
+  twilioPhoneNumberSchema
 ];

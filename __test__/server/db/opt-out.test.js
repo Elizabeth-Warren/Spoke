@@ -65,7 +65,7 @@ async function isOptedOut(fixture) {
   });
 }
 
-describe("opt outs synced from external sources", async () => {
+describe("opt outs synced from external sources", () => {
   test("are respected", async () => {
     await db.OptOut.create({
       cell: fixture1.contact.cell,
@@ -76,7 +76,7 @@ describe("opt outs synced from external sources", async () => {
   });
 });
 
-describe("with OPTOUTS_SHARE_ALL_ORGS turned on", async () => {
+describe("with OPTOUTS_SHARE_ALL_ORGS turned on", () => {
   const previousValue = config.OPTOUTS_SHARE_ALL_ORGS;
   beforeAll(() => (config.OPTOUTS_SHARE_ALL_ORGS = true));
   afterAll(() => (config.OPTOUTS_SHARE_ALL_ORGS = previousValue));
@@ -92,7 +92,7 @@ describe("with OPTOUTS_SHARE_ALL_ORGS turned on", async () => {
   });
 });
 
-describe("with OPTOUTS_SHARE_ALL_ORGS turned off", async () => {
+describe("with OPTOUTS_SHARE_ALL_ORGS turned off", () => {
   const previousValue = config.OPTOUTS_SHARE_ALL_ORGS;
   beforeAll(() => (config.OPTOUTS_SHARE_ALL_ORGS = false));
   afterAll(() => (config.OPTOUTS_SHARE_ALL_ORGS = previousValue));

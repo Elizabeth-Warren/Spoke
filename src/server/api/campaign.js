@@ -1,10 +1,19 @@
 import { accessRequired } from "./errors";
 import { mapFieldsToModel } from "./lib/utils";
 import { Campaign, JobRequest, r, cacheableData } from "../models";
-import { currentEditors } from "../models/cacheable_queries";
 import { getUsers } from "./user";
+import { campaignPhoneNumbersEnabled } from "./organization";
+import db from "src/server/db";
+
+const Status = db.TwilioPhoneNumber.Status;
 
 const title = 'lower("campaign"."title")';
+
+async function getOrganization(campaign, loaders) {
+  return (
+    campaign.organization || loaders.organization.load(campaign.organization_id)
+  );
+}
 
 export function addCampaignsFilterToQuery(queryParam, campaignsFilter) {
   let query = queryParam;
@@ -252,8 +261,7 @@ export const resolvers = {
         ? campaign.due_by || null
         : new Date(campaign.due_by),
     organization: async (campaign, _, { loaders }) =>
-      campaign.organization ||
-      loaders.organization.load(campaign.organization_id),
+      getOrganization(campaign, loaders),
     datawarehouseAvailable: (campaign, _, { user }) =>
       user.is_superadmin && !!process.env.WAREHOUSE_DB_HOST,
     pendingJobs: async (campaign, _, { user }) => {
@@ -381,6 +389,7 @@ export const resolvers = {
       campaign.customFields ||
       cacheableData.campaign.dbCustomFields(campaign.id),
     stats: async campaign => campaign,
+    // ???
     cacheable: (campaign, _, { user }) => Boolean(r.redis),
     editors: async (campaign, _, { user }) => {
       await accessRequired(
@@ -395,6 +404,17 @@ export const resolvers = {
       return "";
     },
     creator: async (campaign, _, { loaders }) =>
-      campaign.creator_id ? loaders.user.load(campaign.creator_id) : null
+      campaign.creator_id ? loaders.user.load(campaign.creator_id) : null,
+    phoneNumbers: async (campaign, _, { loaders }) => {
+      const org = await getOrganization(campaign, loaders);
+      if (!campaignPhoneNumbersEnabled(org)) {
+        return null;
+      }
+
+      const status = campaign.isStarted ? Status.RESERVED : Status.ASSIGNED;
+      return await db.TwilioPhoneNumber.countByAreaCode({
+        campaignId: campaign.id
+      });
+    }
   }
 };

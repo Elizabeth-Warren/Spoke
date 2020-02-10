@@ -51,5 +51,15 @@ export default {
   SES_CONFIGURATION_SET_NAME:
     process.env.SES_CONFIGURATION_SET_NAME || "organizing_emails",
   JOB_EXECUTOR: getJobExecutor(),
-  JOB_LAMBDA_WORKER_FUNCTION_NAME: lambdaWorkerFunction
+  JOB_LAMBDA_WORKER_FUNCTION_NAME: lambdaWorkerFunction,
+  KNEX_CONFIG: {
+    client: "pg",
+    connection: {
+      host: process.env.DB_HOST,
+      port: process.env.DB_PORT,
+      database: process.env.DB_NAME,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD
+    }
+  }
 };

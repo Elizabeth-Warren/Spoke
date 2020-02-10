@@ -4,6 +4,7 @@ module.exports = {
   testEnvironment: "node",
   globals: {
     SUPPRESS_DATABASE_AUTOCREATE: "1",
+    SUPPRESS_PHONE_VALIDATION: "1",
     DB_JSON: JSON.stringify({
       client: "pg",
       connection: {

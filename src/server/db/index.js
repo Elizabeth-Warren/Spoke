@@ -1,16 +1,20 @@
 import OptOut from "./opt-out";
-import { r } from "../models";
+import TwilioPhoneNumber from "./twilio-phone-number";
+import { knex, Table, transaction } from "./common";
 import log from "src/server/log";
 
 let tracingEnabled = false;
 function enableTracing() {
   if (!tracingEnabled) {
-    r.knex.on("query", ({ sql, bindings }) => log.trace(sql, bindings));
+    knex.on("query", ({ sql, bindings }) => log.trace(sql, bindings));
   }
   tracingEnabled = true;
 }
 
 export default {
   enableTracing,
-  OptOut
+  transaction,
+  Table,
+  OptOut,
+  TwilioPhoneNumber
 };

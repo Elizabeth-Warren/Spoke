@@ -1,38 +1,22 @@
 import _ from "lodash";
 import { createLoaders, User, CampaignContact, r } from "../src/server/models/";
 import { graphql } from "graphql";
+import db from "src/server/db";
+import faker from "faker";
 
-// TODO: create and drop a fresh schema for every test suite instead
 const ALL_TABLES = [
-  "assignment",
-  "campaign",
-  "campaign_contact",
-  "canned_response",
-  "interaction_step",
-  "invite",
-  "job_request",
   "knex_migrations",
   "knex_migrations_lock",
-  "message",
-  "opt_out",
-  "organization",
-  "pending_message_part",
-  "question_response",
-  "tag",
-  "user",
-  "user_cell",
-  "user_organization",
-  "zip_code"
+  ...Object.values(db.Table)
 ];
-const QUOTED_TABLES = ALL_TABLES.map(t => `"${t}"`);
-
+// TODO: create and drop a fresh schema for every test suite instead
 export async function setupTest() {
   await r.knex.migrate.latest();
 }
 
 export async function cleanupTest() {
-  for (const table of QUOTED_TABLES) {
-    await r.knex.raw(`DROP TABLE IF EXISTS ${table} CASCADE`);
+  for (const table of ALL_TABLES) {
+    await r.knex.raw(`DROP TABLE IF EXISTS "${table}" CASCADE`);
   }
 }
 
@@ -184,6 +168,19 @@ export async function createCampaign(user, organization) {
     variables
   );
   return ret.data.createCampaign;
+}
+
+export async function setupCampaignFixture() {
+  const user = await createUser({
+    auth0_id: faker.random.uuid(),
+    first_name: faker.name.firstName(),
+    last_name: faker.name.lastName(),
+    cell: faker.phone.phoneNumber("+1##########"),
+    email: faker.internet.email()
+  });
+  const organization = await createOrganization(user, await createInvite());
+  const campaign = await createCampaign(user, organization);
+  return { user, organization, campaign };
 }
 
 export async function createTexter(organization) {

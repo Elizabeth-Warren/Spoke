@@ -3,6 +3,16 @@ import { r, Organization } from "../models";
 import { accessRequired } from "./errors";
 import { getCampaigns } from "./campaign";
 import { buildSortedUserOrganizationQuery } from "./user";
+import db from "src/server/db";
+
+const Status = db.TwilioPhoneNumber.Status;
+
+export function campaignPhoneNumbersEnabled(organization) {
+  return (
+    organization.features &&
+    !!JSON.parse(organization.features).campaignPhoneNumbersEnabled
+  );
+}
 
 export const resolvers = {
   Organization: {
@@ -49,6 +59,19 @@ export const resolvers = {
         : process.env.OPT_OUT_MESSAGE) ||
       "I'm opting you out of texts immediately. Have a great day.",
     textingHoursStart: organization => organization.texting_hours_start,
-    textingHoursEnd: organization => organization.texting_hours_end
+    textingHoursEnd: organization => organization.texting_hours_end,
+    campaignPhoneNumbersEnabled: organization =>
+      campaignPhoneNumbersEnabled(organization),
+    availablePhoneNumbers: async (organization, _, { user }) => {
+      await accessRequired(user, organization.id, "ADMIN");
+      if (!campaignPhoneNumbersEnabled(organization)) {
+        return [];
+      }
+      // Note: phone numbers are currently shared across organizations, so this doesn't
+      // actually filter by the current organization. This behavior may change in the future.
+      return await db.TwilioPhoneNumber.countByAreaCode({
+        status: Status.AVAILABLE
+      });
+    }
   }
 };

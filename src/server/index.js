@@ -177,6 +177,7 @@ app.use(
     schema: executableSchema,
     debug: !!process.env.DEBUG_APOLLO,
     context: {
+      // TODO[matteo]: add request logger
       loaders: createLoaders(),
       user: request.user,
       awsContext: request.awsContext || null,

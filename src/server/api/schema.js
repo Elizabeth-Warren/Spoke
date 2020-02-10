@@ -2,11 +2,8 @@ import GraphQLDate from "graphql-date";
 import GraphQLJSON from "graphql-type-json";
 import { GraphQLError } from "graphql/error";
 import isUrl from "is-url";
-import { organizationCache } from "../models/cacheable_queries/organization";
-import db from "../db";
 import { gzip, makeTree } from "src/lib";
 import log from "src/server/log";
-import { applyScript } from "../../lib/scripts";
 import {
   Assignment,
   Campaign,
@@ -17,15 +14,14 @@ import {
   Message,
   Organization,
   QuestionResponse,
-  User,
   UserOrganization,
   r,
   cacheableData
 } from "../models";
 // import { isBetweenTextingHours } from '../../lib/timezones'
-import { Notifications, sendUserNotification } from "../notifications";
 import { resolvers as assignmentResolvers } from "./assignment";
 import { getCampaigns, resolvers as campaignResolvers } from "./campaign";
+import { mutations as campaignMutations } from "./mutations/campaign";
 import { resolvers as campaignContactResolvers } from "./campaign-contact";
 import { resolvers as cannedResponseResolvers } from "./canned-response";
 import {
@@ -48,23 +44,75 @@ import { saveNewIncomingMessage } from "./lib/message-sending";
 import serviceMap from "./lib/services";
 import { resolvers as messageResolvers } from "./message";
 import { resolvers as optOutResolvers } from "./opt-out";
-import { resolvers as organizationResolvers } from "./organization";
+import {
+  resolvers as organizationResolvers,
+  campaignPhoneNumbersEnabled
+} from "./organization";
+import { mutations as organizationMutations } from "./mutations/organization";
 import { GraphQLPhone } from "./phone";
 import { resolvers as questionResolvers } from "./question";
 import { resolvers as questionResponseResolvers } from "./question-response";
 import { getUsers, resolvers as userResolvers } from "./user";
 import { change } from "../local-auth-helpers";
 import { getSendBeforeTimeUtc } from "../../lib/timezones";
-
 import { dispatchJob } from "../workers";
 
 import request from "request";
 import { flatten, get } from "lodash";
 import humps from "humps";
+import twilio from "./lib/twilio";
+import db from "src/server/db";
+import preconditions from "src/server/preconditions";
 
 const uuidv4 = require("uuid").v4;
 
+// TODO[matteo]: move to ./mutations
+async function updateCampaignPhoneNumbers(
+  id,
+  organization,
+  campaignInput,
+  origCampaignRecord
+) {
+  preconditions.check(
+    !origCampaignRecord.isStarted,
+    "Phone numbers can't be edited after a campaign has started"
+  );
+  preconditions.check(
+    campaignPhoneNumbersEnabled(organization),
+    "Campaign phone numbers feature not enabled"
+  );
+  const cfg = campaignInput.phoneNumbers;
+
+  // clear all campaign numbers
+  if (!cfg.amount) {
+    await db.TwilioPhoneNumber.releaseAllCampaignNumbers(id);
+    return;
+  }
+
+  await db.transaction(async transaction => {
+    await db.TwilioPhoneNumber.releaseAllCampaignNumbers(id, { transaction });
+    const success = await db.TwilioPhoneNumber.reserveForCampaign(
+      {
+        campaignId: id,
+        limit: Math.min(cfg.amount, twilio.MAX_NUMBERS_PER_MESSAGING_SERVICE),
+        areaCode: cfg.areaCode
+      },
+      { transaction }
+    );
+
+    if (!success) {
+      throw Error("Failed to find sufficient phone numbers");
+    }
+  });
+}
+
 async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
+  log.debug({
+    msg: "editCampaign mutation",
+    campaign,
+    origCampaignRecord,
+    userId: user.id
+  });
   const {
     title,
     description,
@@ -169,6 +217,17 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
     await updateInteractionSteps(
       id,
       [campaign.interactionSteps],
+      origCampaignRecord
+    );
+  }
+
+  if (campaign.hasOwnProperty("phoneNumbers")) {
+    await accessRequired(user, organizationId, "ADMIN", /* superadmin*/ true);
+    const organization = await Organization.get(organizationId);
+    await updateCampaignPhoneNumbers(
+      id,
+      organization,
+      campaign,
       origCampaignRecord
     );
   }
@@ -293,6 +352,8 @@ const includeTags = info => {
 
 const rootMutations = {
   RootMutation: {
+    ...campaignMutations,
+    ...organizationMutations,
     userAgreeTerms: async (_, _unused, { user, loaders }) => {
       const currentUser = await r
         .table("user")
@@ -644,23 +705,6 @@ const rootMutations = {
 
       return await loaders.organization.load(organizationId);
     },
-    updateOptOutMessage: async (
-      _,
-      { organizationId, optOutMessage },
-      { user }
-    ) => {
-      await accessRequired(user, organizationId, "OWNER");
-
-      const organization = await Organization.get(organizationId);
-      const featuresJSON = JSON.parse(organization.features || "{}");
-      featuresJSON.opt_out_message = optOutMessage;
-      organization.features = JSON.stringify(featuresJSON);
-
-      await organization.save();
-      await organizationCache.clear(organizationId);
-
-      return await Organization.get(organizationId);
-    },
     createInvite: async (_, { user }) => {
       if ((user && user.is_superadmin) || !process.env.SUPPRESS_SELF_INVITE) {
         const inviteInstance = new Invite({
@@ -678,8 +722,6 @@ const rootMutations = {
         "ADMIN",
         /* allowSuperadmin=*/ true
       );
-      const organization = await Organization.get(campaign.organizationId);
-      const orgFeatures = JSON.parse(organization.features || "{}");
       const campaignInstance = new Campaign({
         organization_id: campaign.organizationId,
         creator_id: user.id,
@@ -687,10 +729,7 @@ const rootMutations = {
         description: campaign.description,
         due_by: campaign.dueBy,
         is_started: false,
-        is_archived: false,
-        messaging_service_sid:
-          orgFeatures.messaging_service_sid ||
-          process.env.TWILIO_MESSAGE_SERVICE_SID
+        is_archived: false
       });
       const newCampaign = await campaignInstance.save();
       return editCampaign(newCampaign.id, campaign, loaders, user);
@@ -801,19 +840,6 @@ const rootMutations = {
       await Promise.all(campaigns.map(campaign => campaign.save()));
       return campaigns;
     },
-    startCampaign: async (_, { id }, { user, loaders }) => {
-      const campaign = await loaders.campaign.load(id);
-      await accessRequired(user, campaign.organization_id, "ADMIN");
-      campaign.is_started = true;
-
-      await campaign.save();
-      cacheableData.campaign.reload(id);
-      await sendUserNotification({
-        type: Notifications.CAMPAIGN_STARTED,
-        campaignId: id
-      });
-      return campaign;
-    },
     editCampaign: async (_, { id, campaign }, { user, loaders }) => {
       const origCampaign = await Campaign.get(id);
       if (campaign.organizationId) {
@@ -833,6 +859,18 @@ const rootMutations = {
         throw new GraphQLError({
           status: 400,
           message: "Not allowed to add contacts after the campaign starts"
+        });
+      }
+      // TODO[matteo]: DRY
+      if (
+        origCampaign.is_started &&
+        campaign.hasOwnProperty("phoneNumberConfig") &&
+        campaign.phoneNumberConfig
+      ) {
+        throw new GraphQLError({
+          status: 400,
+          message:
+            "Not allowed to edit phone numbers after the campaign has started"
         });
       }
       return editCampaign(id, campaign, loaders, user, origCampaign);

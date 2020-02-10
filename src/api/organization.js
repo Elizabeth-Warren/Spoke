@@ -17,5 +17,7 @@ export const schema = gql`
     textingHoursEnforced: Boolean
     textingHoursStart: Int
     textingHoursEnd: Int
+    campaignPhoneNumbersEnabled: Boolean!
+    availablePhoneNumbers: [PhoneNumbersByAreaCode]
   }
 `;
