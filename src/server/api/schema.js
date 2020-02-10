@@ -391,9 +391,12 @@ const rootMutations = {
       currentRoles.forEach(async curRole => {
         if (roles.indexOf(curRole) === -1) {
           await r
-            .table("user_organization")
-            .getAll([organizationId, userId], { index: "organization_user" })
-            .filter({ role: curRole })
+            .knex("user_organization")
+            .where({
+              organization_id: organizationId,
+              user_id: userId,
+              role: curRole
+            })
             .delete();
         }
       });
