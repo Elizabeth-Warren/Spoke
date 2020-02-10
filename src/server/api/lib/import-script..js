@@ -110,7 +110,7 @@ const getSectionParagraphs = (sections, heading) =>
   ).paragraphs;
 
 const getInteractions = sections =>
-  getSectionParagraphs(sections, "Interactions");
+  getSectionParagraphs(sections, "Initial Outbound");
 const getCannedResponses = sections =>
   getSectionParagraphs(sections, "Canned Responses");
 

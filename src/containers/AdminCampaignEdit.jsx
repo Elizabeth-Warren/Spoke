@@ -380,7 +380,7 @@ class AdminCampaignEdit extends React.Component {
         }
       },
       {
-        title: "Interactions",
+        title: "Initial Outbound",
         content: CampaignInteractionStepsForm,
         keys: ["interactionSteps"],
         checkCompleted: () =>
@@ -473,7 +473,7 @@ class AdminCampaignEdit extends React.Component {
         relatedJob = pendingJobs.filter(
           job => job.jobType === "assign_texters"
         )[0];
-      } else if (section.title === "Interactions") {
+      } else if (section.title === "Initial Outbound") {
         relatedJob = pendingJobs.filter(
           job => job.jobType === "create_interaction_steps"
         )[0];

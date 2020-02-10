@@ -233,7 +233,7 @@ export default class CampaignInteractionStepsForm extends React.Component {
           </CardText>
         </Card>
         <div style={styles.answerContainer}>
-          {interactionStep.questionText &&
+          {/* {interactionStep.questionText &&
           interactionStep.script &&
           (!interactionStep.parentInteractionId ||
             interactionStep.answerOption) ? (
@@ -247,7 +247,7 @@ export default class CampaignInteractionStepsForm extends React.Component {
             </div>
           ) : (
             ""
-          )}
+          )} */}
           {this.state.displayAllSteps &&
             interactionStep.interactionSteps
               .filter(is => !is.isDeleted)
