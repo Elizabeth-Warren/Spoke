@@ -249,10 +249,13 @@ export class AssignmentTexter extends React.Component {
     return this.state.currentContactIndex < this.contactCount() - 1;
   }
 
-  handleFinishContact = contactId => {
+  handleFinishContact = (contactId, autoAdvance = true) => {
     if (this.hasNext()) {
-      this.handleNavigateNext();
       this.clearContactIdOldData(contactId);
+
+      if (autoAdvance) {
+        this.handleNavigateNext();
+      }
     } else {
       // Will look async and then redirect to todo page if not
       console.log(
@@ -276,7 +279,11 @@ export class AssignmentTexter extends React.Component {
             giveUpAction
           );
           // If we still don't have a next item (contacts haven't updated), then give up
-          if (!self.hasNext() && typeof giveUpAction === "function") {
+          if (
+            autoAdvance &&
+            !self.hasNext() &&
+            typeof giveUpAction === "function"
+          ) {
             giveUpAction();
           }
         });

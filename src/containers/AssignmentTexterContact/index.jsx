@@ -424,6 +424,8 @@ export class AssignmentTexterContact extends React.Component {
   handleMessageFormSubmit = async ({ messageText }) => {
     try {
       const { contact } = this.props;
+      const { messages } = contact;
+
       const message = this.createMessageToContact(
         messageText,
         this.state.cannedResponseId
@@ -444,7 +446,10 @@ export class AssignmentTexterContact extends React.Component {
       }
 
       await this.handleSubmitSurveys();
-      this.props.onFinishContact(contact.id);
+      const autoAdvance = messages.length === 0;
+      console.log("autoadvance", autoAdvance);
+
+      this.props.onFinishContact(contact.id, autoAdvance);
     } catch (e) {
       this.handleSendMessageError(e);
     }
