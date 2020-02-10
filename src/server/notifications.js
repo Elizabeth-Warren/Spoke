@@ -53,7 +53,6 @@ const sendAssignmentUserNotification = async (assignment, type) => {
   try {
     await sendTemplatedEmail({
       to: user.email,
-      replyTo: orgOwner.email,
       template: SES_TEMPLATE_NAMES[type],
       templateData: {
         first_name: user.first_name,
@@ -103,7 +102,6 @@ export const sendUserNotification = async notification => {
       try {
         await sendTemplatedEmail({
           to: user.email,
-          replyTo: orgOwner.email,
           template: SES_TEMPLATE_NAMES[type],
           templateData: {
             first_name: user.first_name,
