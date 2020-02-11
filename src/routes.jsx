@@ -161,6 +161,15 @@ export default function makeRoutes(requireAuth = () => {}) {
                   topNav: null
                 }}
               />
+              <Route
+                path="active"
+                components={{
+                  fullScreen: props => (
+                    <TexterTodo {...props} messageStatus="allActiveContacts" />
+                  ),
+                  topNav: null
+                }}
+              />
             </Route>
           </Route>
         </Route>

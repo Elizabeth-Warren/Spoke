@@ -61,7 +61,7 @@ class CannedResponseMenu extends React.Component {
   }
 
   render() {
-    const { campaignCannedResponses } = this.props;
+    const { campaignCannedResponses, shouldShowReplies } = this.props;
 
     return (
       <div style={{ height: "100%", overflowY: "auto" }}>

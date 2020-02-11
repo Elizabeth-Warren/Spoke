@@ -138,7 +138,7 @@ describe("AssignmentSummary actions inUSA and NOT AllowSendAll", () => {
 
   it('renders a "past messages" badge after messaged contacts', () => {
     const actions = create(0, 0, 0, 1, 0, false);
-    expect(actions.find(RaisedButton).length).toBe(1);
+    expect(actions.find(RaisedButton).length).toBe(2);
   });
 
   it("renders two buttons with unmessaged and unreplied", () => {
@@ -205,7 +205,7 @@ describe("AssignmentSummary NOT inUSA and AllowSendAll", () => {
         .find(RaisedButton)
         .at(0)
         .prop("label")
-    ).toBe("Send messages");
+    ).toBe("All");
   });
 });
 
@@ -224,7 +224,7 @@ it('renders "Send later" when there is a badTimezoneCount', () => {
   expect(
     actions
       .find(Badge)
-      .at(1)
+      .at(2)
       .prop("badgeContent")
   ).toBe(4);
   expect(
@@ -238,7 +238,7 @@ it('renders "Send later" when there is a badTimezoneCount', () => {
       .find(RaisedButton)
       .at(1)
       .prop("label")
-  ).toBe("Send messages");
+  ).toBe("All");
 });
 
 describe("contacts filters", () => {

@@ -114,6 +114,7 @@ export class AssignmentSummary extends Component {
       unrepliedCount,
       badTimezoneCount,
       totalMessagedCount,
+      allActiveContactsCount,
       pastMessagesCount,
       skippedMessagesCount
     } = this.props;
@@ -186,6 +187,19 @@ export class AssignmentSummary extends Component {
               contactsFilter: "stale",
               hideIfZero: true
             })}
+
+            {unmessagedCount === 0 &&
+              this.renderBadgedButton({
+                assignment,
+                title: "All",
+                count: allActiveContactsCount,
+                style: inlineStyles.pastMsgStyle,
+                primary: false,
+                disabled: false,
+                contactsFilter: "active",
+                hideIfZero: true
+              })}
+
             {this.renderBadgedButton({
               assignment,
               title: "Skipped Messages",
@@ -230,8 +244,8 @@ AssignmentSummary.propTypes = {
   unmessagedCount: PropTypes.number,
   unrepliedCount: PropTypes.number,
   badTimezoneCount: PropTypes.number,
-  totalMessagedCount: PropTypes.number,
   pastMessagesCount: PropTypes.number,
+  allActiveContactsCount: PropTypes.number,
   skippedMessagesCount: PropTypes.number,
   data: PropTypes.object,
   mutations: PropTypes.object

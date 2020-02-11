@@ -4,6 +4,7 @@ import { StyleSheet, css } from "aphrodite";
 import ContactToolbar from "../../components/ContactToolbar";
 import MessageList from "../../components/MessageList";
 import ReplyTools from "../../components/ReplyTools";
+import ConversationsMenu from "../../components/ConversationsMenu";
 import AssignmentTexterSurveys from "../../components/AssignmentTexterSurveys";
 import RaisedButton from "material-ui/RaisedButton";
 import NavigateHomeIcon from "material-ui/svg-icons/action/home";
@@ -92,7 +93,8 @@ const styles = StyleSheet.create({
     top: 5
   },
   topFixedSection: {
-    flex: "0 0 auto"
+    flex: "0 0 auto",
+    borderBottom: `2px solid ${theme.colors.white}`
   },
   mainSectionContainer: {
     height: "100%",
@@ -100,7 +102,7 @@ const styles = StyleSheet.create({
     flexDirection: "row"
   },
   messageSection: {
-    flex: "0 0 66%",
+    flex: "0 0 50%",
     height: "100%",
     display: "flex",
     flexDirection: "column"
@@ -109,7 +111,15 @@ const styles = StyleSheet.create({
   responsesSection: {
     backgroundColor: theme.colors.EWlibertyGreen,
     height: "100%",
-    flex: "0 0 34%"
+    flex: "0 0 30%",
+    overflowY: "scroll"
+  },
+
+  contactsSection: {
+    backgroundColor: theme.colors.EWnavy,
+    color: "white",
+    flex: "0 0 20%",
+    overflowY: "scroll"
   },
 
   navButtonsWrapper: {
@@ -121,6 +131,7 @@ const styles = StyleSheet.create({
 
   middleScrollingSection: {
     flex: "1 1 auto",
+    flexGrow: "1",
     overflowY: "scroll",
     overflow: "-moz-scrollbars-vertical"
   },
@@ -966,6 +977,16 @@ export class AssignmentTexterContact extends React.Component {
     );
   }
 
+  renderContactsSection() {
+    const { conversationList, onSelectConversation } = this.props;
+    return (
+      <ConversationsMenu
+        conversations={conversationList}
+        onSelectConversation={onSelectConversation}
+      />
+    );
+  }
+
   renderCorrectSendButton() {
     const { campaign } = this.props;
     const { contact } = this.props;
@@ -1042,6 +1063,8 @@ export class AssignmentTexterContact extends React.Component {
       messageStatus === "needsMessage" || justSentNew
     );
 
+    const shouldShowContacts = true;
+
     return (
       <div>
         {this.state.errorModalOpen && this.renderErrorModal()}
@@ -1058,6 +1081,9 @@ export class AssignmentTexterContact extends React.Component {
             {this.renderTopFixedSection()}
           </div>
           <div className={css(styles.mainSectionContainer)}>
+            <div className={css(styles.contactsSection)}>
+              {this.renderContactsSection()}
+            </div>
             <div className={css(styles.messageSection)}>
               <div
                 {...dataTest("messageList")}
@@ -1100,7 +1126,9 @@ AssignmentTexterContact.propTypes = {
   mutations: PropTypes.object,
   refreshData: PropTypes.func,
   onExitTexter: PropTypes.func,
-  forceDisabledDisplayIfNotSendable: PropTypes.bool
+  forceDisabledDisplayIfNotSendable: PropTypes.bool,
+  conversationList: PropTypes.array,
+  onSelectConversation: PropTypes.func
 };
 
 const mapMutationsToProps = () => ({

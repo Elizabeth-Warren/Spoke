@@ -41,9 +41,9 @@ class TexterTodoList extends React.Component {
               unmessagedCount={assignment.unmessagedCount}
               unrepliedCount={assignment.unrepliedCount}
               badTimezoneCount={assignment.badTimezoneCount}
-              totalMessagedCount={assignment.totalMessagedCount}
               pastMessagesCount={assignment.pastMessagesCount}
               skippedMessagesCount={assignment.skippedMessagesCount}
+              allActiveContactsCount={assignment.allActiveContactsCount}
             />
           );
         }
@@ -111,9 +111,9 @@ const mapQueriesToProps = ({ ownProps }) => ({
         $needsMessageFilter: ContactsFilter
         $needsResponseFilter: ContactsFilter
         $badTimezoneFilter: ContactsFilter
-        $completedConvosFilter: ContactsFilter
         $pastMessagesFilter: ContactsFilter
         $skippedMessagesFilter: ContactsFilter
+        $allActiveContactsFilter: ContactsFilter
       ) {
         currentUser {
           id
@@ -135,14 +135,15 @@ const mapQueriesToProps = ({ ownProps }) => ({
             unmessagedCount: contactsCount(contactsFilter: $needsMessageFilter)
             unrepliedCount: contactsCount(contactsFilter: $needsResponseFilter)
             badTimezoneCount: contactsCount(contactsFilter: $badTimezoneFilter)
-            totalMessagedCount: contactsCount(
-              contactsFilter: $completedConvosFilter
-            )
             pastMessagesCount: contactsCount(
               contactsFilter: $pastMessagesFilter
             )
             skippedMessagesCount: contactsCount(
               contactsFilter: $skippedMessagesFilter
+            )
+
+            allActiveContactsCount: contactsCount(
+              contactsFilter: $allActiveContactsFilter
             )
           }
         }
@@ -164,11 +165,6 @@ const mapQueriesToProps = ({ ownProps }) => ({
         isOptedOut: false,
         validTimezone: false
       },
-      completedConvosFilter: {
-        isOptedOut: false,
-        validTimezone: true,
-        messageStatus: "messaged"
-      },
       pastMessagesFilter: {
         messageStatus: "convo",
         isOptedOut: false,
@@ -176,6 +172,12 @@ const mapQueriesToProps = ({ ownProps }) => ({
       },
       skippedMessagesFilter: {
         messageStatus: "closed",
+        isOptedOut: false,
+        validTimezone: true
+      },
+
+      allActiveContactsFilter: {
+        messageStatus: "allActiveContacts",
         isOptedOut: false,
         validTimezone: true
       }

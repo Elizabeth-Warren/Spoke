@@ -41,7 +41,8 @@ export class AssignmentTexter extends React.Component {
       contactCache: {},
       loading: false,
       direction: "right",
-      reloadDelay: 200
+      reloadDelay: 200,
+      conversationList: []
     };
   }
 
@@ -206,8 +207,27 @@ export class AssignmentTexter extends React.Component {
           newContactData,
           getAssignmentContacts
         );
+        const conversationList = Object.values(newContactData)
+          .map(contact => {
+            const { id, firstName, messageStatus, lastName } = contact;
+            return {
+              id,
+              firstName,
+              messageStatus,
+              lastName
+            };
+          })
+          .sort((a, b) =>
+            a.messageStatus === b.messageStatus
+              ? 0
+              : a.messageStatus === "needsResponse"
+              ? -1
+              : 1
+          );
+
         this.setState({
           contactDataErrors: undefined,
+          conversationList,
           loading: false,
           contactCache: { ...this.state.contactCache, ...newContactData }
         });
@@ -240,6 +260,13 @@ export class AssignmentTexter extends React.Component {
     this.setState(updateState);
     this.getContactData(newIndex);
   }
+
+  onSelectConversation = contactId => {
+    const { contacts } = this.props;
+    const newActiveContact = contacts.find(contact => contact.id === contactId);
+    const newIndex = contacts.indexOf(newActiveContact);
+    return this.updateCurrentContactIndex(newIndex);
+  };
 
   hasPrevious() {
     return this.state.currentContactIndex > 0;
@@ -456,6 +483,8 @@ export class AssignmentTexter extends React.Component {
         refreshData={this.props.refreshData}
         onExitTexter={this.handleExitTexter}
         forceDisabledDisplayIfNotSendable={this.props.reviewMode}
+        onSelectConversation={this.onSelectConversation}
+        conversationList={this.state.conversationList}
       />
     );
   }
