@@ -125,7 +125,7 @@ const Campaign = props => {
         {creatorName ? <span> &mdash; Created by {creatorName}</span> : null}
         <br />
         {dueByMoment.isValid()
-          ? dueByMoment.format("MMM D, YYYY")
+          ? dueByMoment.utc().format("MMM D, YYYY")
           : "No due date set"}
       </span>
     </span>
