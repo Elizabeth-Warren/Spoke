@@ -2,7 +2,6 @@ import DataLoader from "dataloader";
 
 // Import models in order that creates referenced tables before foreign keys
 import User from "./user";
-import PendingMessagePart from "./pending-message-part";
 import Organization from "./organization";
 import Campaign from "./campaign";
 import Assignment from "./assignment";
@@ -14,7 +13,6 @@ import JobRequest from "./job-request";
 import Invite from "./invite";
 import CannedResponse from "./canned-response";
 import UserOrganization from "./user-organization";
-import UserCell from "./user-cell";
 import Message from "./message";
 import ZipCode from "./zip-code";
 import Tag from "./tag";
@@ -54,10 +52,8 @@ const createLoaders = () => ({
   jobRequest: createLoader(JobRequest),
   message: createLoader(Message),
   optOut: createLoader(OptOut),
-  pendingMessagePart: createLoader(PendingMessagePart),
   tag: createLoader(Tag),
   questionResponse: createLoader(QuestionResponse),
-  userCell: createLoader(UserCell),
   userOrganization: createLoader(UserOrganization)
 });
 
@@ -77,11 +73,9 @@ export {
   Message,
   OptOut,
   Organization,
-  PendingMessagePart,
   CannedResponse,
   QuestionResponse,
   Tag,
-  UserCell,
   UserOrganization,
   User,
   ZipCode

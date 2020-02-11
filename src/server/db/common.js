@@ -56,14 +56,12 @@ const Table = {
   MESSAGE: "message",
   OPT_OUT: "opt_out",
   ORGANIZATION: "organization",
-  PENDING_MESSAGE_PART: "pending_message_part", // unused
   QUESTION_RESPONSE: "question_response",
   TAG: "tag",
   TWILIO_PHONE_NUMBER: "twilio_phone_number",
   USER: "user",
-  USER_CELL: "user_cell", // unused, i think
   USER_ORGANIZATION: "user_organization",
-  ZIP_CODE: "zip_code" // unused
+  ZIP_CODE: "zip_code" // unused but will take some work to get rid of
 };
 
 export {

@@ -23,8 +23,5 @@ exports.up = async knex => {
 };
 
 exports.down = async knex => {
-  if (process.env.NODE_ENV === "production") {
-    throw Error("Down migrations not supported");
-  }
-  await knex.schema.dropTable("twilio_phone_number");
+  throw Error("Down migrations not supported");
 };

@@ -1,5 +1,4 @@
-import { getLastMessage } from "./message-sending";
-import { Message, PendingMessagePart, r } from "../../models";
+import { Message, r } from "../../models";
 import log from "src/server/log";
 
 // This 'fakeservice' allows for fake-sending messages
@@ -44,55 +43,6 @@ async function sendMessage(message, contact, trx) {
   return newMessage;
 }
 
-// None of the rest of this is even used for fake-service
-// but *would* be used if it was actually an outside service.
-
-async function convertMessagePartsToMessage(messageParts) {
-  const firstPart = messageParts[0];
-  const userNumber = firstPart.user_number;
-  const contactNumber = firstPart.contact_number;
-  const text = firstPart.service_message;
-
-  const lastMessage = await getLastMessage({
-    contactNumber
-  });
-
-  const service_id =
-    firstPart.service_id ||
-    `fakeservice_${Math.random()
-      .toString(36)
-      .replace(/[^a-zA-Z1-9]+/g, "")}`;
-  return new Message({
-    contact_number: contactNumber,
-    user_number: userNumber,
-    is_from_contact: true,
-    text,
-    service_response: JSON.stringify(messageParts),
-    service_id,
-    assignment_id: lastMessage.assignment_id,
-    service: "fakeservice",
-    send_status: "DELIVERED"
-  });
-}
-
-async function handleIncomingMessage(message) {
-  const { contact_number, user_number, service_id, text } = message;
-  const pendingMessagePart = new PendingMessagePart({
-    service: "fakeservice",
-    service_id,
-    parent_id: null,
-    service_message: text,
-    user_number,
-    contact_number
-  });
-
-  const part = await pendingMessagePart.save();
-  return part.id;
-}
-
 export default {
-  sendMessage,
-  // useless unused stubs
-  convertMessagePartsToMessage,
-  handleIncomingMessage
+  sendMessage
 };
