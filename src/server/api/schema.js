@@ -738,18 +738,22 @@ const rootMutations = {
         {}
       );
 
-      await r
+      const oldCannedResponses = await r
         .knex("canned_response")
-        .where({ campaign_id: oldCampaignId })
-        .then(function(res) {
-          res.forEach((response, index) => {
-            const copiedCannedResponse = new CannedResponse({
-              campaign_id: newCampaignId,
-              title: response.title,
-              text: response.text
-            }).save();
+        .where({ campaign_id: oldCampaignId });
+
+      await Promise.all(
+        oldCannedResponses.map(async cr => {
+          const copied = new CannedResponse({
+            campaign_id: newCampaignId,
+            title: cr.title,
+            text: cr.text,
+            survey_question: cr.survey_question,
+            order: cr.order
           });
-        });
+          return await copied.save();
+        })
+      );
 
       return newCampaign;
     },
