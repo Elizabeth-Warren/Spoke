@@ -6,7 +6,6 @@ import {
   cleanupTest,
   getGql,
   createUser,
-  createInvite,
   createOrganization,
   createCampaign,
   createContact,
@@ -19,7 +18,6 @@ import {
 import waitForExpect from "wait-for-expect";
 
 let testAdminUser;
-let testInvite;
 let testOrganization;
 let testCampaign;
 let testTexterUser;
@@ -31,11 +29,10 @@ beforeEach(async () => {
   // Set up an entire working campaign
   await setupTest();
   testAdminUser = await createUser();
-  testInvite = await createInvite();
-  testOrganization = await createOrganization(testAdminUser, testInvite);
+  testOrganization = await createOrganization(testAdminUser);
   testCampaign = await createCampaign(testAdminUser, testOrganization);
   testContact = await createContact(testCampaign);
-  testTexterUser = await createTexter(testOrganization);
+  testTexterUser = await createTexter(testOrganization, testAdminUser);
   await assignTexter(testAdminUser, testTexterUser, testCampaign);
   const dbCampaignContact = await getCampaignContact(testContact.id);
   assignmentId = dbCampaignContact.assignment_id;

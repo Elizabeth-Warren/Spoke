@@ -13,6 +13,7 @@ const styles = StyleSheet.create({
   }
 });
 
+// TODO[matteo]: re-purpose this for our new invite flow.
 class JoinTeam extends React.Component {
   state = {
     errors: null

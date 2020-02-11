@@ -3,7 +3,6 @@ import {
   setupTest,
   cleanupTest,
   createUser,
-  createInvite,
   createOrganization,
   createCampaign,
   createContact,
@@ -13,6 +12,7 @@ import {
 } from "__test__/test_helpers";
 import { r } from "src/server/models";
 import config from "src/server/config";
+
 let fixture1;
 let fixture2;
 let testAdminUser;
@@ -22,8 +22,7 @@ beforeEach(async () => {
   testAdminUser = await createUser();
   [fixture1, fixture2] = await Promise.all(
     [1, 2].map(async () => {
-      const invite = await createInvite();
-      const org = await createOrganization(testAdminUser, invite);
+      const org = await createOrganization(testAdminUser);
       const campaign = await createCampaign(testAdminUser, org);
       // note: because these fixtures are so simple, both contacts have the same phone,
       // which is what we want for this test.

@@ -52,6 +52,7 @@ class Login extends React.Component {
       active: "login"
     };
 
+    this.displaySignUp = !window.SUPPRESS_SELF_INVITE;
     this.isLocalLogin = window.PASSPORT_STRATEGY === "local";
   }
 
@@ -65,10 +66,6 @@ class Login extends React.Component {
     if (!this.isLocalLogin) {
       window.AuthService.login(nextUrl);
       return;
-    }
-
-    if (!this.naiveVerifyInviteValid(nextUrl)) {
-      this.props.router.replace("/login");
     }
     if (nextUrl && nextUrl.includes("reset")) {
       this.setState({ active: "reset" });
@@ -95,16 +92,6 @@ class Login extends React.Component {
       router
     } = this.props;
 
-    // If nextUrl is a valid (naive RegEx only) invite or organization
-    // UUID display Sign Up section. Full validation done on backend.
-    const inviteLink =
-      nextUrl && (nextUrl.includes("join") || nextUrl.includes("invite"));
-
-    let displaySignUp;
-    if (inviteLink) {
-      displaySignUp = this.naiveVerifyInviteValid(nextUrl);
-    }
-
     const saveLabels = {
       login: "Log In",
       signup: "Sign Up",
@@ -116,7 +103,7 @@ class Login extends React.Component {
         {/* Show UserEdit component configured for login / signup */}
         <div>
           {/* Only display sign up option if there is a nextUrl */}
-          {displaySignUp && (
+          {this.displaySignUp && (
             <section>
               <button
                 className={css(styles.button)}

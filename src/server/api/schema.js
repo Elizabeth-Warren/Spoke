@@ -9,7 +9,6 @@ import {
   Campaign,
   CannedResponse,
   InteractionStep,
-  Invite,
   JobRequest,
   Message,
   Organization,
@@ -39,7 +38,6 @@ import {
   requireAuthStrategy
 } from "./errors";
 import { resolvers as interactionStepResolvers } from "./interaction-step";
-import { resolvers as inviteResolvers } from "./invite";
 import { saveNewIncomingMessage } from "./lib/message-sending";
 import serviceMap from "./lib/services";
 import { resolvers as messageResolvers } from "./message";
@@ -597,47 +595,6 @@ const rootMutations = {
       });
       return true;
     },
-    joinOrganization: async (_, { organizationUuid }, { user, loaders }) => {
-      let organization;
-      [organization] = await r
-        .knex("organization")
-        .where("uuid", organizationUuid);
-      if (organization) {
-        const userOrg = await r
-          .table("user_organization")
-          .getAll(user.id, { index: "user_id" })
-          .filter({ organization_id: organization.id })
-          .limit(1)(0)
-          .default(null);
-        if (!userOrg) {
-          await UserOrganization.save({
-            user_id: user.id,
-            organization_id: organization.id,
-            role: "TEXTER"
-          }).error(function(error) {
-            // Unexpected errors
-            log.info("error on userOrganization save", error);
-          });
-          await cacheableData.user.clearUser(user.id);
-        } else {
-          // userOrg exists
-          log.info(
-            "existing userOrg " +
-              userOrg.id +
-              " user " +
-              user.id +
-              " organizationUuid " +
-              organizationUuid
-          );
-        }
-      } else {
-        // no organization
-        log.info(
-          "no organization with id " + organizationUuid + " for user " + user.id
-        );
-      }
-      return organization;
-    },
     assignUserToCampaign: async (
       _,
       { organizationUuid, campaignId },
@@ -687,7 +644,7 @@ const rootMutations = {
         texting_hours_start: textingHoursStart,
         texting_hours_end: textingHoursEnd
       });
-      cacheableData.organization.clear(organizationId);
+      await cacheableData.organization.clear(organizationId);
 
       return await Organization.get(organizationId);
     },
@@ -704,16 +661,6 @@ const rootMutations = {
       await cacheableData.organization.clear(organizationId);
 
       return await loaders.organization.load(organizationId);
-    },
-    createInvite: async (_, { user }) => {
-      if ((user && user.is_superadmin) || !process.env.SUPPRESS_SELF_INVITE) {
-        const inviteInstance = new Invite({
-          is_valid: true,
-          hash: uuidv4()
-        });
-        const newInvite = await inviteInstance.save();
-        return newInvite;
-      }
     },
     createCampaign: async (_, { campaign }, { user, loaders }) => {
       await accessRequired(
@@ -886,39 +833,6 @@ const rootMutations = {
         })
         .delete();
       return { id };
-    },
-    createOrganization: async (
-      _,
-      { name, userId, inviteId },
-      { loaders, user }
-    ) => {
-      authRequired(user);
-      const invite = await loaders.invite.load(inviteId);
-      if (!invite || !invite.is_valid) {
-        throw new GraphQLError({
-          status: 400,
-          message: "That invitation is no longer valid"
-        });
-      }
-
-      const newOrganization = await Organization.save({
-        name,
-        uuid: uuidv4()
-      });
-      await UserOrganization.save({
-        role: "OWNER",
-        user_id: userId,
-        organization_id: newOrganization.id
-      });
-      await Invite.save(
-        {
-          id: inviteId,
-          is_valid: false
-        },
-        { conflict: "update" }
-      );
-
-      return newOrganization;
     },
     editCampaignContactMessageStatus: async (
       _,
@@ -1477,10 +1391,6 @@ const rootResolvers = {
     },
     organization: async (_, { id }, { loaders }) =>
       loaders.organization.load(id),
-    inviteByHash: async (_, { hash }, { loaders, user }) => {
-      authRequired(user);
-      return r.table("invite").filter({ hash });
-    },
     currentUser: async (_, unused_, { user }) => {
       if (!user) {
         return null;
@@ -1610,7 +1520,6 @@ export const resolvers = {
   ...campaignContactResolvers,
   ...cannedResponseResolvers,
   ...questionResponseResolvers,
-  ...inviteResolvers,
   ...{ Date: GraphQLDate },
   ...{ JSON: GraphQLJSON },
   ...{ Phone: GraphQLPhone },

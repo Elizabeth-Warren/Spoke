@@ -61,23 +61,9 @@ class Home extends React.Component {
 
   // not sure if we need this anymore -- only for new organizations
   handleOrgInviteClick = async e => {
-    if (
-      !window.SUPPRESS_SELF_INVITE ||
-      window.SUPPRESS_SELF_INVITE === "undefined"
-    ) {
+    if (!window.SUPPRESS_SELF_INVITE) {
       e.preventDefault();
-      const newInvite = await this.props.mutations.createInvite({
-        is_valid: true
-      });
-      if (newInvite.errors) {
-        alert("There was an error creating your invite");
-        throw new Error(newInvite.errors);
-      } else {
-        // alert(newInvite.data.createInvite.id)
-        this.props.router.push(
-          `/login?nextUrl=/invite/${newInvite.data.createInvite.hash}`
-        );
-      }
+      this.props.router.push(`/login?nextUrl=/createOrganization`);
     }
   };
 
@@ -92,6 +78,15 @@ class Home extends React.Component {
             If you got sent a link by somebody to start texting, ask that person
             to send you the link to join their organization. Then, come back
             here and start texting!
+            <br />
+            <br />
+            <a
+              id="login"
+              className={css(styles.link_dark_bg)}
+              href="/logout-callback"
+            >
+              Logout
+            </a>
           </div>
         </div>
       );
@@ -160,20 +155,6 @@ const mapQueriesToProps = () => ({
   }
 });
 
-const mapMutationsToProps = () => ({
-  createInvite: invite => ({
-    mutation: gql`
-      mutation createInvite($invite: InviteInput!) {
-        createInvite(invite: $invite) {
-          hash
-        }
-      }
-    `,
-    variables: { invite }
-  })
-});
-
 export default loadData(wrapMutations(withRouter(Home)), {
-  mapQueriesToProps,
-  mapMutationsToProps
+  mapQueriesToProps
 });

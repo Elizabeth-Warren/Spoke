@@ -1,9 +1,8 @@
 import AuthHasher from "passport-local-authenticate";
-import { User, Invite, Organization } from "./models";
+import { User, Organization } from "./models";
 import { capitalizeWord } from "./api/lib/utils";
 
 const errorMessages = {
-  invalidInvite: "Invalid invite code. Contact your administrator.",
   invalidCredentials: "Invalid username or password",
   emailTaken: "That email is already taken.",
   passwordsDontMatch: "Passwords don't match.",
@@ -12,19 +11,7 @@ const errorMessages = {
   noSamePassword: "Old and new password can't be the same"
 };
 
-const validUuid = async (nextUrl, uuidMatch) => {
-  if (!uuidMatch || !nextUrl) throw new Error(errorMessages.invalidInvite);
-
-  let foundUUID;
-  if (nextUrl.includes("join")) {
-    foundUUID = await Organization.filter({ uuid: uuidMatch[0] });
-  } else if (nextUrl.includes("invite")) {
-    foundUUID = await Invite.filter({ hash: uuidMatch[0] });
-  }
-  if (foundUUID.length === 0) throw new Error(errorMessages.invalidInvite);
-};
-
-const login = async ({ password, existingUser, nextUrl, uuidMatch }) => {
+const login = async ({ password, existingUser, nextUrl }) => {
   if (existingUser.length === 0) {
     throw new Error(errorMessages.invalidCredentials);
   }
@@ -46,18 +33,7 @@ const login = async ({ password, existingUser, nextUrl, uuidMatch }) => {
   });
 };
 
-const signup = async ({
-  lowerCaseEmail,
-  password,
-  existingUser,
-  nextUrl,
-  uuidMatch,
-  reqBody
-}) => {
-  // Verify UUID validity
-  // If there is an error, it will be caught on local strategy invocation
-  await validUuid(nextUrl, uuidMatch);
-
+const signup = async ({ lowerCaseEmail, password, existingUser, reqBody }) => {
   // Verify user doesn't already exist
   if (existingUser.length > 0 && existingUser[0].email === lowerCaseEmail) {
     throw new Error(errorMessages.emailTaken);

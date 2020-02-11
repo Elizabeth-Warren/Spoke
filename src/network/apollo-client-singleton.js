@@ -11,6 +11,7 @@ const responseMiddlewareNetworkInterface = new ResponseMiddlewareNetworkInterfac
 responseMiddlewareNetworkInterface.use({
   applyResponseMiddleware: (response, next) => {
     const parsedError = graphQLErrorParser(response);
+    // TODO[matteo]: use our error codes here
     if (parsedError) {
       console.debug(parsedError);
       if (parsedError.status === 401) {

@@ -1,6 +1,6 @@
 import { organizationCache } from "src/server/models/cacheable_queries/organization";
-import { Organization } from "src/server/models";
-import { accessRequired } from "src/server/api/errors";
+import { Organization, UserOrganization } from "src/server/models";
+import { accessRequired, superAdminRequired } from "src/server/api/errors";
 
 async function setOrganizationFeature(organizationId, key, value) {
   const organization = await Organization.get(organizationId);
@@ -14,6 +14,19 @@ async function setOrganizationFeature(organizationId, key, value) {
 }
 
 export const mutations = {
+  createOrganization: async (_, { name }, { user }) => {
+    if (process.env.SUPPRESS_SELF_INVITE) {
+      superAdminRequired(user);
+    }
+
+    const newOrganization = await Organization.save({ name });
+    await UserOrganization.save({
+      role: "OWNER",
+      user_id: user.id,
+      organization_id: newOrganization.id
+    });
+    return newOrganization;
+  },
   // TODO: change to setOrganizationFeature mutation
   enableCampaignPhoneNumbers: async (_, { organizationId }, { user }) => {
     await accessRequired(user, organizationId, "OWNER");

@@ -51,7 +51,6 @@ const Table = {
   CAMPAIGN_CONTACT: "campaign_contact",
   CANNED_RESPONSE: "canned_response",
   INTERACTION_STEP: "interaction_step",
-  INVITE: "invite",
   JOB_REQUEST: "job_request",
   MESSAGE: "message",
   OPT_OUT: "opt_out",

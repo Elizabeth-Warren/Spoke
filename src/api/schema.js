@@ -12,7 +12,6 @@ import { schema as optOutSchema } from "./opt-out";
 import { schema as messageSchema } from "./message";
 import { schema as campaignContactSchema } from "./campaign-contact";
 import { schema as cannedResponseSchema } from "./canned-response";
-import { schema as inviteSchema } from "./invite";
 import { schema as twilioPhoneNumberSchema } from "./twilio-phone-number";
 
 const rootSchema = gql`
@@ -96,13 +95,6 @@ const rootSchema = gql`
     assignmentId: String!
     userId: String
     cannedResponseId: Int
-  }
-
-  input InviteInput {
-    id: String
-    is_valid: Boolean
-    hash: String
-    created_at: Date
   }
 
   input UserInput {
@@ -200,7 +192,6 @@ const rootSchema = gql`
     currentUserWithAccess(organizationId: String!, role: String!): User
     organization(id: String!, utc: String): Organization
     campaign(id: String!): Campaign
-    inviteByHash(hash: String!): [Invite]
     contact(id: String!): CampaignContact
     assignment(id: String!): Assignment
     organizations: [Organization]
@@ -231,18 +222,12 @@ const rootSchema = gql`
   }
 
   type RootMutation {
-    createInvite(invite: InviteInput!): Invite
     createCampaign(campaign: CampaignInput!): Campaign
     editCampaign(id: String!, campaign: CampaignInput!): Campaign
     deleteJob(campaignId: String!, id: String!): JobRequest
     copyCampaign(id: String!): Campaign
     exportCampaign(id: String!): JobRequest
-    createOrganization(
-      name: String!
-      userId: String!
-      inviteId: String!
-    ): Organization
-    joinOrganization(organizationUuid: String!): Organization
+    createOrganization(name: String!): Organization
     editOrganizationRoles(
       organizationId: String!
       userId: String!
@@ -356,7 +341,6 @@ export const schema = [
   cannedResponseSchema,
   questionResponseSchema,
   questionSchema,
-  inviteSchema,
   conversationSchema,
   twilioPhoneNumberSchema
 ];

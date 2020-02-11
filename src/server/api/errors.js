@@ -2,12 +2,38 @@ import { GraphQLError } from "graphql/error";
 import { r, cacheableData } from "../models";
 import log from "src/server/log";
 
+// Application errors, resembling Apollo 2 errors:
+// https://www.apollographql.com/docs/apollo-server/data/errors/
+export class ApolloError extends Error {
+  constructor(message, code) {
+    super(message);
+    if (!this.name) {
+      this.name = "ApolloError";
+    }
+    this.code = code || "INTERNAL_SERVER_ERROR";
+  }
+}
+
+export class ForbiddenError extends ApolloError {
+  constructor(message) {
+    super(message, "FORBIDDEN");
+    this.name = "ForbiddenError";
+  }
+}
+
+export class UserInputError extends ApolloError {
+  constructor(message) {
+    super(message, "BAD_USER_INPUT");
+    this.name = "UserInputError";
+  }
+}
+
 export function authRequired(user) {
   if (!user) {
-    throw new GraphQLError({
-      status: 401,
-      message: "You must login to access that resource."
-    });
+    throw new ApolloError(
+      "You must login to access that resource.",
+      "UNAUTHORIZED"
+    );
   }
 }
 
@@ -19,7 +45,7 @@ export async function accessRequired(
 ) {
   authRequired(user);
   if (!orgId) {
-    throw new Error("orgId not passed correctly to accessRequired");
+    throw new ApolloError("orgId not passed correctly to accessRequired");
   }
   if (allowSuperadmin && user.is_superadmin) {
     return;
@@ -27,7 +53,7 @@ export async function accessRequired(
   // require a permission at-or-higher than the permission requested
   const hasRole = await cacheableData.user.userHasRole(user, orgId, role);
   if (!hasRole) {
-    throw new GraphQLError("You are not authorized to access that resource.");
+    throw new ForbiddenError("You are not authorized to access that resource.");
   }
 }
 
@@ -52,7 +78,7 @@ export async function assignmentRequired(user, assignmentId, assignment) {
 
   if (!userHasAssignment) {
     // undefined or null
-    throw new GraphQLError("You are not authorized to access that resource.");
+    throw new ForbiddenError("You are not authorized to access that resource.");
   }
   return true;
 }
@@ -83,12 +109,16 @@ export function superAdminRequired(user) {
   authRequired(user);
 
   if (!user.is_superadmin) {
-    throw new GraphQLError("You are not authorized to access that resource.");
+    throw new ForbiddenError(
+      "You need to be a super-administrator to do that."
+    );
   }
 }
 
 export function requireAuthStrategy(strategy) {
   if (process.env.PASSPORT_STRATEGY !== strategy) {
-    throw new GraphQLError("Password reset is only available for Auth0 login.");
+    throw new ForbiddenError(
+      "Password reset is only available for Auth0 login."
+    );
   }
 }

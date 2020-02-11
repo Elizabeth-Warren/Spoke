@@ -1,6 +1,5 @@
 import type from "prop-types";
 import React from "react";
-import orderBy from "lodash/orderBy";
 import Slider from "./Slider";
 import AutoComplete from "material-ui/AutoComplete";
 import IconButton from "material-ui/IconButton";
@@ -9,7 +8,6 @@ import Snackbar from "material-ui/Snackbar";
 import GSForm from "../components/forms/GSForm";
 import yup from "yup";
 import Form from "react-formal";
-import OrganizationJoinLink from "./OrganizationJoinLink";
 import CampaignFormSectionHeading from "./CampaignFormSectionHeading";
 import { StyleSheet, css } from "aphrodite";
 import theme from "../styles/theme";
@@ -447,18 +445,6 @@ export default class CampaignTextersForm extends React.Component {
   };
 
   render() {
-    const { organizationUuid, campaignId } = this.props;
-    const subtitle = this.state.useDynamicAssignment ? (
-      <div>
-        <OrganizationJoinLink
-          organizationUuid={organizationUuid}
-          campaignId={campaignId}
-        />
-      </div>
-    ) : (
-      ""
-    );
-
     const assignedContacts = this.formValues().texters.reduce(
       (prev, texter) => prev + texter.assignment.contactsCount,
       0
@@ -470,10 +456,7 @@ export default class CampaignTextersForm extends React.Component {
         : theme.colors.EWred;
     return (
       <div>
-        <CampaignFormSectionHeading
-          title="Who should send the texts?"
-          subtitle={subtitle}
-        />
+        <CampaignFormSectionHeading title="Who should send the texts?" />
         <div>
           <Toggle
             {...dataTest("useDynamicAssignment")}

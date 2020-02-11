@@ -2,7 +2,6 @@ import PropTypes from "prop-types";
 import React from "react";
 import { withRouter } from "react-router";
 import _ from "lodash";
-import OrganizationJoinLink from "../components/OrganizationJoinLink";
 import FlatButton from "material-ui/FlatButton";
 import FloatingActionButton from "material-ui/FloatingActionButton";
 import DropDownMenu from "material-ui/DropDownMenu";

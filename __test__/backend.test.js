@@ -3,15 +3,14 @@ import { schema } from "../src/api/schema";
 import { assignmentRequired } from "../src/server/api/errors";
 import { graphql } from "graphql";
 import {
-  User,
-  Organization,
+  Assignment,
   Campaign,
   CampaignContact,
-  Assignment,
-  r
+  Organization,
+  User
 } from "../src/server/models/";
 import { resolvers as campaignResolvers } from "../src/server/api/campaign";
-import { getContext, setupTest, cleanupTest } from "./test_helpers";
+import { cleanupTest, getContext, setupTest } from "./test_helpers";
 import { makeExecutableSchema } from "graphql-tools";
 import faker from "faker";
 
@@ -26,7 +25,6 @@ const rootValue = {};
 // data items used across tests
 
 let testAdminUser;
-let testInvite;
 let testOrganization;
 let testCampaign;
 let testTexterUser;
@@ -73,27 +71,11 @@ async function createContact(campaignId) {
   }
 }
 
-async function createInvite() {
-  const inviteQuery = `mutation {
-    createInvite(invite: {is_valid: true}) {
-      id
-    }
-  }`;
-  const context = getContext();
-  try {
-    const invite = await graphql(mySchema, inviteQuery, rootValue, context);
-    return invite;
-  } catch (err) {
-    console.error("Error creating invite");
-    return false;
-  }
-}
-
-async function createOrganization(user, name, userId, inviteId) {
+// TODO: use test helper
+async function createOrganization(user, name) {
   const context = getContext({ user });
-
-  const orgQuery = `mutation createOrganization($name: String!, $userId: String!, $inviteId: String!) {
-    createOrganization(name: $name, userId: $userId, inviteId: $inviteId) {
+  const orgQuery = `mutation createOrganization($name: String!) {
+    createOrganization(name: $name) {
       id
       uuid
       name
@@ -104,21 +86,10 @@ async function createOrganization(user, name, userId, inviteId) {
     }
   }`;
 
-  const variables = {
-    userId: userId,
-    name: name,
-    inviteId: inviteId
-  };
+  const variables = { name };
 
   try {
-    const org = await graphql(
-      mySchema,
-      orgQuery,
-      rootValue,
-      context,
-      variables
-    );
-    return org;
+    return await graphql(mySchema, orgQuery, rootValue, context, variables);
   } catch (err) {
     console.error("Error creating organization");
     return false;
@@ -186,12 +157,13 @@ it("should be undefined when user not logged in", async () => {
     }
   }`;
   const context = getContext();
-  const result = await graphql(mySchema, query, rootValue, context);
-  const data = result;
+  const data = await graphql(mySchema, query, rootValue, context);
 
   expect(typeof data.currentUser).toEqual("undefined");
 });
 
+// TODO: refactor this whole test suite so it doesn't have to run sequentially
+// TESTING CAMPAIGN CREATION FROM END TO END
 it("should return the current user when user is logged in", async () => {
   testAdminUser = await createUser();
   const query = `{
@@ -206,32 +178,16 @@ it("should return the current user when user is logged in", async () => {
   expect(data.currentUser.email).toBe(testAdminUser.email);
 });
 
-// TESTING CAMPAIGN CREATION FROM END TO END
-
-it("should create an invite", async () => {
-  testInvite = await createInvite();
-
-  expect(testInvite.data.createInvite.id).toBeTruthy();
-});
-
-it("should convert an invitation and user into a valid organization instance", async () => {
-  if (testInvite && testAdminUser) {
-    console.log("user and invite for org");
-    console.log([testAdminUser, testInvite.data]);
-
-    testOrganization = await createOrganization(
-      testAdminUser,
-      "Testy test organization",
-      testInvite.data.createInvite.id,
-      testInvite.data.createInvite.id
-    );
+it("should create an organization", async () => {
+  if (testAdminUser) {
+    const name = "Testy test organization";
+    testOrganization = await createOrganization(testAdminUser, name);
 
     expect(testOrganization.data.createOrganization.name).toBe(
       "Testy test organization"
     );
   } else {
-    console.log("Failed to create invite and/or user for organization test");
-    return false;
+    throw Error("testAdminUser not defined");
   }
 });
 
@@ -254,32 +210,34 @@ it("should create campaign contacts", async () => {
   );
 });
 
-it("should add texters to a organization", async () => {
+it("an admin can add texters to a organization by email", async () => {
   testTexterUser = await createUser({
-    auth0_id: "test456",
+    auth0_id: faker.random.uuid(),
     first_name: "TestTexterFirst",
     last_name: "TestTexterLast",
     cell: "555-555-6666",
     email: "testtexter@example.com"
   });
-  const joinQuery = `
-  mutation joinOrganization($organizationUuid: String!) {
-    joinOrganization(organizationUuid: $organizationUuid) {
-      id
-    }
+
+  const addQuery = `
+  mutation addUserToOrganizationByEmail($organizationId: String!, $email: String!, $role: String!) {
+    addUserToOrganizationByEmail(organizationId: $organizationId, email: $email, role: $role)
   }`;
   const variables = {
-    organizationUuid: testOrganization.data.createOrganization.uuid
+    organizationId: testOrganization.data.createOrganization.id,
+    email: testTexterUser.email,
+    role: "TEXTER"
   };
-  const context = getContext({ user: testTexterUser });
+  const context = getContext({ user: testAdminUser });
   const result = await graphql(
     mySchema,
-    joinQuery,
+    addQuery,
     rootValue,
     context,
     variables
   );
-  expect(result.data.joinOrganization.id).toBeTruthy();
+
+  expect(result.data.addUserToOrganizationByEmail).toBeTruthy();
 });
 
 it("should assign texters to campaign contacts", async () => {

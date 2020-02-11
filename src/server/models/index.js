@@ -10,7 +10,6 @@ import InteractionStep from "./interaction-step";
 import QuestionResponse from "./question-response";
 import OptOut from "./opt-out";
 import JobRequest from "./job-request";
-import Invite from "./invite";
 import CannedResponse from "./canned-response";
 import UserOrganization from "./user-organization";
 import Message from "./message";
@@ -40,7 +39,6 @@ function createLoader(model, opts) {
 const createLoaders = () => ({
   assignment: createLoader(Assignment),
   campaign: createLoader(Campaign, { cacheObj: cacheableData.campaign }),
-  invite: createLoader(Invite),
   organization: createLoader(Organization, {
     cacheObj: cacheableData.organization
   }),
@@ -68,7 +66,6 @@ export {
   Campaign,
   CampaignContact,
   InteractionStep,
-  Invite,
   JobRequest,
   Message,
   OptOut,

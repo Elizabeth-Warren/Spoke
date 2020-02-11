@@ -110,35 +110,17 @@ export async function runGql(query, vars, user) {
   return await graphql(mySchema, query, rootValue, context, vars);
 }
 
-export async function createInvite() {
-  const inviteQuery = `mutation {
-    createInvite(invite: {is_valid: true}) {
-      id
-    }
-  }`;
-  const context = getContext();
-  return await graphql(mySchema, inviteQuery, rootValue, context);
-}
-
-export async function createOrganization(user, invite) {
-  const name = "Testy test organization";
-  const userId = user.id;
-  const inviteId = invite.data.createInvite.id;
-
+export async function createOrganization(user, name) {
   const context = getContext({ user });
 
-  const orgQuery = `mutation createOrganization($name: String!, $userId: String!, $inviteId: String!) {
-    createOrganization(name: $name, userId: $userId, inviteId: $inviteId) {
+  const orgQuery = `mutation createOrganization($name: String!) {
+    createOrganization(name: $name) {
       id
       uuid
     }
   }`;
 
-  const variables = {
-    userId,
-    name,
-    inviteId
-  };
+  const variables = { name: name || faker.company.companyName() };
   return await graphql(mySchema, orgQuery, rootValue, context, variables);
 }
 
@@ -178,12 +160,12 @@ export async function setupCampaignFixture() {
     cell: faker.phone.phoneNumber("+1##########"),
     email: faker.internet.email()
   });
-  const organization = await createOrganization(user, await createInvite());
+  const organization = await createOrganization(user);
   const campaign = await createCampaign(user, organization);
   return { user, organization, campaign };
 }
 
-export async function createTexter(organization) {
+export async function createTexter(organization, addedBy) {
   const user = await createUser({
     auth0_id: "test456",
     first_name: "TestTexterFirst",
@@ -191,17 +173,18 @@ export async function createTexter(organization) {
     cell: "555-555-6666",
     email: "testtexter@example.com"
   });
-  const joinQuery = `
-  mutation joinOrganization($organizationUuid: String!) {
-    joinOrganization(organizationUuid: $organizationUuid) {
-      id
-    }
+  const addQuery = `
+  mutation addUserToOrganizationByEmail($organizationId: String!, $email: String!, $role: String!) {
+    addUserToOrganizationByEmail(organizationId: $organizationId, email: $email, role: $role)
   }`;
   const variables = {
-    organizationUuid: organization.data.createOrganization.uuid
+    organizationId: organization.data.createOrganization.id,
+    email: user.email,
+    role: "TEXTER"
   };
-  const context = getContext({ user });
-  await graphql(mySchema, joinQuery, rootValue, context, variables);
+
+  const context = getContext({ user: addedBy });
+  await graphql(mySchema, addQuery, rootValue, context, variables);
   return user;
 }
 

@@ -43,13 +43,6 @@ class CreateOrganization extends React.Component {
   formSchema = yup.object({
     name: yup.string().required()
   });
-  renderInvalid() {
-    return (
-      <div>
-        That invite is no longer valid. This probably means it already got used!
-      </div>
-    );
-  }
 
   renderForm() {
     return (
@@ -63,10 +56,11 @@ class CreateOrganization extends React.Component {
               schema={this.formSchema}
               onSubmit={async formValues => {
                 const newOrganization = await this.props.mutations.createOrganization(
-                  formValues.name,
-                  this.props.userData.currentUser.id,
-                  this.props.inviteData.inviteByHash[0].id
+                  formValues.name
                 );
+                if (newOrganization.errors) {
+                  throw new Error(newOrganization.errors.message);
+                }
                 this.props.router.push(
                   `/admin/${newOrganization.data.createOrganization.id}`
                 );
@@ -99,32 +93,13 @@ class CreateOrganization extends React.Component {
     return (
       <div className={css(styles.container)}>
         <div className={css(styles.bigHeader)}>Spoke</div>
-        <div className={css(styles.formContainer)}>
-          {this.props.inviteData.inviteByHash &&
-          this.props.inviteData.inviteByHash[0].isValid
-            ? this.renderForm()
-            : this.renderInvalid()}
-        </div>
+        <div className={css(styles.formContainer)}>{this.renderForm()}</div>
       </div>
     );
   }
 }
 
 const mapQueriesToProps = ({ ownProps }) => ({
-  inviteData: {
-    query: gql`
-      query getInvite($inviteId: String!) {
-        inviteByHash(hash: $inviteId) {
-          id
-          isValid
-        }
-      }
-    `,
-    variables: {
-      inviteId: ownProps.params.inviteId
-    },
-    forceFetch: true
-  },
   userData: {
     query: gql`
       query getCurrentUser {
@@ -145,19 +120,15 @@ CreateOrganization.propTypes = {
 };
 
 const mapMutationsToProps = () => ({
-  createOrganization: (name, userId, inviteId) => ({
+  createOrganization: name => ({
     mutation: gql`
-      mutation createOrganization(
-        $name: String!
-        $userId: String!
-        $inviteId: String!
-      ) {
-        createOrganization(name: $name, userId: $userId, inviteId: $inviteId) {
+      mutation createOrganization($name: String!) {
+        createOrganization(name: $name) {
           id
         }
       }
     `,
-    variables: { name, userId, inviteId }
+    variables: { name }
   })
 });
 
