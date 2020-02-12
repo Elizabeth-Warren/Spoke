@@ -269,11 +269,20 @@ async function handleIncomingMessage(twilioMessage) {
     return;
   }
 
+  const attachments = [];
+  for (let i = 0; i < Number(twilioMessage.NumMedia); i++) {
+    attachments.push({
+      url: twilioMessage[`MediaUrl${i}`],
+      contentType: twilioMessage[`MediaContentType${i}`]
+    });
+  }
+
   const messageModel = new Message({
     contact_number: contactNumber,
     user_number: userNumber,
     is_from_contact: true,
     text: twilioMessage.Body,
+    attachments: JSON.stringify(attachments),
     service_response: JSON.stringify(twilioMessage),
     service_id: MessageSid,
     messaging_service_sid: MessagingServiceSid,

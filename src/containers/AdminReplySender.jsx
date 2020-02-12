@@ -140,6 +140,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
             messages {
               text
               isFromContact
+              attachments
             }
           }
         }
@@ -160,6 +161,7 @@ const mapMutationsToProps = () => ({
           messages {
             text
             isFromContact
+            attachments
           }
         }
       }

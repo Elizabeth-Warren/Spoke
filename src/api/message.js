@@ -8,5 +8,6 @@ export const schema = `
     isFromContact: Boolean
     assignment: Assignment
     campaignId: String
+    attachments: String
   }
 `;

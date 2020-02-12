@@ -10,7 +10,8 @@ export const resolvers = {
         "userNumber",
         "contactNumber",
         "createdAt",
-        "isFromContact"
+        "isFromContact",
+        "attachments"
       ],
       Message
     ),

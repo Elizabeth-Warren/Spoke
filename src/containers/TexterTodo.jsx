@@ -35,6 +35,7 @@ const contactDataFragment = `
           createdAt
           text
           isFromContact
+          attachments
         }
 `;
 

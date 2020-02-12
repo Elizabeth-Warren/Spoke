@@ -39,10 +39,25 @@ const Message = props => {
   let itemStyle = null;
   itemStyle = isFromContact ? styles.fromContact : styles.fromTexter;
 
+  let attachments = [];
+  if (message.attachments) {
+    attachments = JSON.parse(message.attachments);
+  }
+
   return (
     <p key={index} className={css(styles.conversationRow, itemStyle)}>
       {message.text}
       <br />
+      {attachments
+        .map(attachment => [
+          <span>
+            <a href={attachment.url} target="_blank">
+              Attachment: {attachment.contentType}
+            </a>
+          </span>,
+          <br />
+        ])
+        .flat()}
       <span className={css(styles.when)}>
         {moment(message.createdAt).fromNow()}
       </span>

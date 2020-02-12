@@ -146,7 +146,8 @@ export async function getConversations(
     "message.user_number",
     "message.contact_number",
     "message.created_at",
-    "message.is_from_contact"
+    "message.is_from_contact",
+    "message.attachments"
   ];
 
   /* Query #2 -- get all the columns we need, including messages, using the
@@ -242,7 +243,8 @@ export async function getConversations(
     "user_number",
     "contact_number",
     "created_at",
-    "is_from_contact"
+    "is_from_contact",
+    "attachments"
   ];
 
   let ccId = undefined;

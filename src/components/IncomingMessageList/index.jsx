@@ -415,6 +415,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
                 id
                 text
                 isFromContact
+                attachments
                 createdAt
               }
               optOut {

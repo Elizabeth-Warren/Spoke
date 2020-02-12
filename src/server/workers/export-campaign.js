@@ -77,7 +77,8 @@ export async function exportCampaign(job) {
       isFromContact: message.is_from_contact,
       sendStatus: message.send_status,
       attemptedAt: moment(message.created_at).toISOString(),
-      text: message.text
+      text: message.text,
+      attachments: message.attachments
     }));
 
     convertedMessages = await Promise.all(convertedMessages);

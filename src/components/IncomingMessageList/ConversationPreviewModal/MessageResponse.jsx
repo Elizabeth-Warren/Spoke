@@ -165,6 +165,7 @@ const mapMutationsToProps = () => ({
             createdAt
             text
             isFromContact
+            attachments
           }
         }
       }

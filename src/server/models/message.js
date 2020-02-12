@@ -50,7 +50,8 @@ const Message = thinky.createModel(
       service_response_at: timestamp(),
       send_before: optionalTimestamp(),
       messaging_service_sid: type.string().allowNull(true),
-      canned_response_id: type.integer().allowNull(true)
+      canned_response_id: type.integer().allowNull(true),
+      attachments: type.string().allowNull(true)
     })
     .allowExtra(false),
   { noAutoCreation: true, dependencies: [User, Assignment] }
