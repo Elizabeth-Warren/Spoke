@@ -31,7 +31,8 @@ export default function EmbeddedShifter({ shiftingConfiguration, contact }) {
   }
 
   const urlParams = {
-    event: customFields.eventId || shiftingConfiguration.eventId || "",
+    event: customFields.event_id || shiftingConfiguration.eventId || "",
+    shift: customFields.timeslot_id || shiftingConfiguration.timeslotId || "",
     first_name: contact.firstName || "",
     last_name: contact.lastName || "",
     phone: cleanPhoneNumber(contact.cell || ""),
