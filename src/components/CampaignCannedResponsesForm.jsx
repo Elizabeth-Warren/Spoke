@@ -16,6 +16,18 @@ import { StyleSheet, css } from "aphrodite";
 import { dataTest } from "../lib/attributes";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import arrayMove from "array-move";
+import { parseResponsesCSV } from "../lib";
+import RaisedButton from "material-ui/RaisedButton/RaisedButton";
+
+const innerStyles = {
+  button: {
+    margin: "24px 5px 24px 0",
+    fontSize: "10px"
+  },
+  nestedItem: {
+    fontSize: "12px"
+  }
+};
 
 const styles = StyleSheet.create({
   formContainer: {
@@ -41,6 +53,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
 
   state = {
     showAddForm: false,
+    uploading: false,
     currentlyEditing: []
   };
 
@@ -157,6 +170,28 @@ export default class CampaignCannedResponsesForm extends React.Component {
     });
   };
 
+  showUploadButton() {
+    const { uploading } = this.state;
+    return (
+      <div>
+        <RaisedButton
+          {...dataTest("responseUploadButton")}
+          style={innerStyles.button}
+          label={uploading ? "Uploading..." : "Upload responses"}
+          labelPosition="before"
+          disabled={uploading}
+          onClick={() => document.querySelector("#response-upload").click()}
+        />
+        <input
+          id="response-upload"
+          type="file"
+          onChange={this.handleUpload}
+          style={{ display: "none" }}
+        />
+      </div>
+    );
+  }
+
   showAddForm() {
     if (this.state.showAddForm) {
       return (
@@ -260,6 +295,65 @@ export default class CampaignCannedResponsesForm extends React.Component {
     );
   }
 
+  handleUploadError(error) {
+    this.setState({
+      validationStats: null,
+      uploading: false,
+      responseUploadError: error,
+      responses: null
+    });
+  }
+
+  handleUploadSuccess(validationStats, responses) {
+    this.setState({
+      validationStats,
+      uploading: false,
+      responseUploadError: null
+    });
+
+    const newResponses = responses.map(response => {
+      const { Body, Title } = response;
+      const surveyQuestion = response["Data Item"];
+      const id = Math.random()
+        .toString(36)
+        .replace(/[^a-zA-Z1-9]+/g, "");
+      return {
+        id,
+        title: Title,
+        text: Body,
+        surveyQuestion,
+        isNew: true
+      };
+    });
+    this.props.onChange({
+      cannedResponses: [
+        ...newResponses,
+        ...this.props.formValues.cannedResponses
+      ]
+    });
+  }
+
+  handleUpload = event => {
+    const { customFields } = this.props;
+    event.preventDefault();
+    const file = event.target.files[0];
+    this.setState({ uploading: true }, () => {
+      parseResponsesCSV(
+        file,
+        customFields,
+        ({ responses, validationStats, error }) => {
+          if (error) {
+            this.handleUploadError(error);
+          } else if (responses.length === 0) {
+            this.handleUploadError("Upload at least one response");
+          } else if (responses.length > 0) {
+            this.handleUploadSuccess(validationStats, responses);
+          }
+        }
+      );
+    });
+  };
+
   render() {
     const { formValues } = this.props;
     const cannedResponses = formValues.cannedResponses;
@@ -278,9 +372,10 @@ export default class CampaignCannedResponsesForm extends React.Component {
         onChange={this.props.onChange}
       >
         <CampaignFormSectionHeading
-          title="Canned responses for texters"
+          title="Script responses for texters"
           subtitle="Save some scripts for your texters to use to answer additional FAQs that may come up outside of the survey questions and scripts you already set up."
         />
+        {this.showUploadButton()}
         {list}
         {this.showAddForm()}
         <Form.Button

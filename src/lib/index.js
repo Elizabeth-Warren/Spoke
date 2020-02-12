@@ -34,9 +34,20 @@ export {
   makeTree
 } from "./interaction-step-helpers";
 const requiredUploadFields = ["firstName", "lastName", "cell"];
-const topLevelUploadFields = [
+const requiredResponseFields = ["Title", "Body"];
+
+const presetFields = [
   "firstName",
   "lastName",
+  "texterFirstName",
+  "texterLastName",
+  "texterFirstName",
+  "texterLastName"
+];
+
+const topLevelUploadFields = [
+  "firstName",
+  "lastNamFe",
   "cell",
   // "zip",
   "external_id",
@@ -103,6 +114,52 @@ const getValidatedData = (data, optOuts) => {
   };
 };
 
+const getFormattedField = (field, customFields = []) => {
+  const regex = /{(.*?)}/;
+  const arr = field.trim().split(" ");
+  const allVars = arr.reduce((acc, string) => {
+    const match = string.match(regex);
+    if (match) {
+      acc.push(match[1]);
+    }
+    return acc;
+  }, []);
+
+  const validCustomFields = [...customFields, ...presetFields];
+  const isValid = allVars.every(item => validCustomFields.indexOf(item) >= 0);
+
+  if (isValid) {
+    return field;
+  }
+  return "";
+};
+
+const getValidatedResponsesData = (data, customFields) => {
+  let validatedData;
+  let result;
+  result = _.partition(data, row => !!row.Body && !!row.Title);
+  validatedData = result[0];
+  const missingFieldCount = result[1];
+
+  validatedData = _.map(validatedData, row =>
+    _.extend(row, {
+      Body: getFormattedField(row.Body, customFields)
+    })
+  );
+
+  result = _.partition(validatedData, row => !!row.Body && !!row.Title);
+  validatedData = result[0];
+  const invalidCellRows = result[1];
+
+  return {
+    validatedData,
+    validationStats: {
+      invalidCellCount: invalidCellRows.length,
+      missingFieldCount: missingFieldCount.length
+    }
+  };
+};
+
 // move to backend
 export const gzip = str =>
   new Promise((resolve, reject) => {
@@ -125,6 +182,36 @@ export const gunzip = buf =>
       }
     });
   });
+
+export const parseResponsesCSV = (file, customFields, callback) => {
+  Papa.parse(file, {
+    header: true,
+    // eslint-disable-next-line no-shadow, no-unused-vars
+    complete: ({ data, meta, errors }, file) => {
+      const fields = meta.fields;
+      const missingFields = [];
+
+      for (const field of requiredResponseFields) {
+        if (fields.indexOf(field) === -1) {
+          missingFields.push(field);
+        }
+      }
+      if (missingFields.length > 0) {
+        const error = `Missing fields: ${missingFields.join(", ")}`;
+        callback({ error });
+      } else {
+        const { validationStats, validatedData } = getValidatedResponsesData(
+          data,
+          customFields
+        );
+        callback({
+          validationStats,
+          responses: validatedData
+        });
+      }
+    }
+  });
+};
 
 export const parseCSV = (file, optOuts, callback) => {
   Papa.parse(file, {
