@@ -22,9 +22,10 @@ class ConversationsMenu extends React.Component {
     onSelectConversation(convo);
   };
 
-  renderConversations({ conversations, subheader }) {
+  renderConversations({ conversations, currentContact }) {
     return (
       <ConversationList
+        currentContact={currentContact}
         conversations={conversations}
         onSelectConversation={this.handleSelectConversation}
       />
@@ -32,12 +33,12 @@ class ConversationsMenu extends React.Component {
   }
 
   render() {
-    const { conversations } = this.props;
+    const { conversations, currentContact } = this.props;
 
     return (
       <List>
         <ToolbarTitle text="Conversations" style={styles.title} />
-        {this.renderConversations({ conversations })}
+        {this.renderConversations({ conversations, currentContact })}
       </List>
     );
   }
@@ -45,7 +46,8 @@ class ConversationsMenu extends React.Component {
 
 ConversationsMenu.propTypes = {
   conversations: type.array,
-  onSelectConversation: type.func
+  onSelectConversation: type.func,
+  currentContact: type.string
 };
 
 export default ConversationsMenu;

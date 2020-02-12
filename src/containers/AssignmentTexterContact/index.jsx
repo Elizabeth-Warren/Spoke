@@ -981,6 +981,7 @@ export class AssignmentTexterContact extends React.Component {
     const { conversationList, onSelectConversation } = this.props;
     return (
       <ConversationsMenu
+        currentContact={this.props.contact.id}
         conversations={conversationList}
         onSelectConversation={onSelectConversation}
       />

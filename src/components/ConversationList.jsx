@@ -11,6 +11,10 @@ const styles = StyleSheet.create({
       backgroundColor: "rgba(240, 242, 240, .1)"
     }
   },
+  listItemActive: {
+    color: "white",
+    backgroundColor: "rgba(240, 242, 240, .1)"
+  },
   icon: {
     backgroundColor: theme.colors.EWlibertyGreen,
     borderRadius: "50%",
@@ -42,6 +46,7 @@ export default class ScriptList extends React.Component {
 
     const listItems = conversations.map(convo => {
       const { messageStatus, id, firstName, lastName } = convo;
+      const isCurrent = this.props.currentContact === id;
       const name = `${firstName} ${lastName}`;
       const needsMessage = messageStatus === "needsResponse";
       return (
@@ -50,7 +55,7 @@ export default class ScriptList extends React.Component {
           onTouchTap={() => onSelectConversation(convo.id)}
           key={id}
           style={styles.listItem}
-          className={css(styles.listItem)}
+          className={css(isCurrent ? styles.listItemActive : styles.listItem)}
         >
           <div className={css(styles.itemRow)}>
             {needsMessage && <div className={css(styles.icon)} />}
@@ -71,5 +76,6 @@ export default class ScriptList extends React.Component {
 ScriptList.propTypes = {
   conversation: PropTypes.object,
   conversations: PropTypes.arrayOf(PropTypes.object),
-  onSelectConversation: PropTypes.func
+  onSelectConversation: PropTypes.func,
+  currentContact: PropTypes.string
 };
