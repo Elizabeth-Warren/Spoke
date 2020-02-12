@@ -97,12 +97,11 @@ const styles = StyleSheet.create({
     borderBottom: `2px solid ${theme.colors.white}`
   },
   mainSectionContainer: {
-    height: "100%",
-    display: "flex",
-    flexDirection: "row"
+    height: "100%"
   },
   messageSection: {
-    flex: "0 0 50%",
+    float: "left",
+    width: "calc(100% - 650px)",
     height: "100%",
     display: "flex",
     flexDirection: "column"
@@ -111,14 +110,17 @@ const styles = StyleSheet.create({
   responsesSection: {
     backgroundColor: theme.colors.EWlibertyGreen,
     height: "100%",
-    flex: "0 0 30%",
+    float: "left",
+    width: "400px",
     overflowY: "scroll"
   },
 
   contactsSection: {
     backgroundColor: theme.colors.EWnavy,
     color: "white",
-    flex: "0 0 20%",
+    float: "left",
+    height: "100%",
+    width: "250px",
     overflowY: "scroll"
   },
 
