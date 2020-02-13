@@ -5,6 +5,7 @@ import Papa from "papaparse";
 import moment from "moment";
 import { sendEmail } from "../mail";
 import BackgroundJob from "src/server/db/background-job";
+import s3bucket from "src/server/s3";
 
 const EXPORT_S3_PATH = "campaign-exports/";
 
@@ -146,9 +147,6 @@ export async function exportCampaign(job) {
       return;
     }
     try {
-      const s3bucket = new AWS.S3({
-        params: { Bucket: process.env.AWS_S3_BUCKET_NAME }
-      });
       const campaignTitle = campaign.title
         .replace(/ /g, "_")
         .replace(/\//g, "_");
