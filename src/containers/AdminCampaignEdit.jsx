@@ -2,10 +2,10 @@ import PropTypes from "prop-types";
 import React from "react";
 import _ from "lodash";
 
+import { Dialog } from "material-ui";
 import WarningIcon from "material-ui/svg-icons/alert/warning";
 import DoneIcon from "material-ui/svg-icons/action/done";
 import CancelIcon from "material-ui/svg-icons/navigation/cancel";
-
 import Avatar from "material-ui/Avatar";
 import theme from "../styles/theme";
 import CircularProgress from "material-ui/CircularProgress";
@@ -25,6 +25,7 @@ import CampaignTextingHoursForm from "../components/CampaignTextingHoursForm";
 import ShiftingConfigurationForm from "src/components/ShiftingConfigurationForm";
 
 import { pendingJobsGql } from "../lib/pendingJobsUtils";
+import DisplayLink from "src/components/DisplayLink";
 
 const campaignInfoFragment = `
   id
@@ -46,6 +47,7 @@ const campaignInfoFragment = `
   textingHoursEnd
   timezone
   shiftingConfiguration
+  joinUrl
   texters {
     id
     firstName
@@ -85,7 +87,8 @@ class AdminCampaignEdit extends React.Component {
         ...props.campaignData.campaign,
         messagingServices: []
       },
-      startingCampaign: false
+      startingCampaign: false,
+      showJoinDialog: false
     };
   }
 
@@ -197,7 +200,7 @@ class AdminCampaignEdit extends React.Component {
           ? null
           : this.state.expandedSection + 1
     }); // currently throws an unmounted component error in the console
-    this.props.campaignData.refetch();
+    await this.props.campaignData.refetch();
   };
 
   handleSave = async () => {
@@ -281,6 +284,14 @@ class AdminCampaignEdit extends React.Component {
     } else {
       await this.props.campaignData.refetch();
     }
+  }
+
+  openJoinDialog() {
+    this.setState({ showJoinDialog: true });
+  }
+
+  closeJoinDialog() {
+    this.setState({ showJoinDialog: false });
   }
 
   checkSectionSaved(section) {
@@ -521,16 +532,43 @@ class AdminCampaignEdit extends React.Component {
   }
 
   renderHeader() {
+    const useStaticAssign = !this.props.campaignData.campaign
+      .useDynamicAssignment;
     const notStarting = this.props.campaignData.campaign.isStarted ? (
       <div
-        {...dataTest("campaignIsStarted")}
         style={{
-          color: theme.colors.EWnavy,
-          fontWeight: 800
+          ...theme.layouts.multiColumn.container,
+          justifyContent: "space-around",
+          flexWrap: "wrap"
         }}
       >
-        This campaign is running!
-        {this.renderCurrentEditors()}
+        {/* TODO vertically align text in both Contact Upload and Campaign Edit screens*/}
+        <div
+          {...dataTest("campaignIsStarted")}
+          style={{
+            color: theme.colors.EWnavy,
+            fontWeight: 800
+          }}
+        >
+          This campaign is running!
+          {this.renderCurrentEditors()}
+        </div>
+        {useStaticAssign ? (
+          ""
+        ) : (
+          <div
+            style={{
+              marginLeft: "auto",
+              marginRight: 0
+            }}
+          >
+            <RaisedButton
+              {...dataTest("inviteLink")}
+              onTouchTap={() => this.openJoinDialog()}
+              label="Invite"
+            />
+          </div>
+        )}
       </div>
     ) : (
       this.renderStartButton()
@@ -564,6 +602,22 @@ class AdminCampaignEdit extends React.Component {
         )}
       </div>
     );
+  }
+
+  async handleStartCampaign() {
+    this.setState({
+      startingCampaign: true
+    });
+    await this.props.mutations.startCampaign(
+      this.props.campaignData.campaign.id
+    );
+    await this.props.campaignData.refetch();
+    const showJoinDialog = !!this.props.campaignData.campaign
+      .useDynamicAssignment;
+    this.setState({
+      showJoinDialog,
+      startingCampaign: false
+    });
   }
 
   renderStartButton() {
@@ -625,22 +679,13 @@ class AdminCampaignEdit extends React.Component {
             primary
             label="Start This Campaign!"
             disabled={!isCompleted}
-            onTouchTap={async () => {
-              this.setState({
-                startingCampaign: true
-              });
-              await this.props.mutations.startCampaign(
-                this.props.campaignData.campaign.id
-              );
-              this.setState({
-                startingCampaign: false
-              });
-            }}
+            onTouchTap={async () => this.handleStartCampaign()}
           />
         </div>
       </div>
     );
   }
+
   render() {
     const sections = this.sections();
     const { expandedSection } = this.state;
@@ -742,6 +787,19 @@ class AdminCampaignEdit extends React.Component {
             </Card>
           );
         })}
+        <Dialog
+          title="Invite texters to this campaign"
+          modal={false}
+          open={this.state.showJoinDialog}
+          onRequestClose={() => this.closeJoinDialog()}
+          onBackdropClick={() => this.closeJoinDialog()}
+          onEscapeKeyDown={() => this.closeJoinDialog()}
+        >
+          <DisplayLink
+            url={this.props.campaignData.campaign.joinUrl}
+            textContent={"Share this link"}
+          />
+        </Dialog>
       </div>
     );
   }

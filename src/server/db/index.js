@@ -1,5 +1,9 @@
+import Assignment from "./assignment";
+import Campaign from "./campaign";
 import OptOut from "./opt-out";
 import TwilioPhoneNumber from "./twilio-phone-number";
+import User from "./user";
+
 import { knex, Table, transaction } from "./common";
 import log from "src/server/log";
 
@@ -12,9 +16,14 @@ function enableTracing() {
 }
 
 export default {
+  // Utils
   enableTracing,
   transaction,
   Table,
+  // Queries
+  Assignment,
+  Campaign,
   OptOut,
-  TwilioPhoneNumber
+  TwilioPhoneNumber,
+  User
 };

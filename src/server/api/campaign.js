@@ -4,6 +4,8 @@ import { Campaign, JobRequest, r, cacheableData } from "../models";
 import { getUsers } from "./user";
 import { campaignPhoneNumbersEnabled } from "./organization";
 import db from "src/server/db";
+import config from "src/server/config";
+import urlJoin from "url-join";
 
 const Status = db.TwilioPhoneNumber.Status;
 
@@ -415,6 +417,18 @@ export const resolvers = {
       return await db.TwilioPhoneNumber.countByAreaCode({
         campaignId: campaign.id
       });
+    },
+    joinUrl: async (campaign, _, { user }) => {
+      await accessRequired(
+        user,
+        campaign.organization_id,
+        "SUPERVOLUNTEER",
+        true
+      );
+      if (campaign.join_token) {
+        return urlJoin(config.BASE_URL, "join-campaign", campaign.join_token);
+      }
+      return null;
     }
   }
 };

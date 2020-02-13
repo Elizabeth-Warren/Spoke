@@ -59,6 +59,7 @@ export const schema = gql`
     timezone: String
     shiftingConfiguration: String
     phoneNumbers: [PhoneNumbersByAreaCode]
+    joinUrl: String
   }
 
   type CampaignsList {

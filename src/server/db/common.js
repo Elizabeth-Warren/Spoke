@@ -38,11 +38,12 @@ function decamelize(obj) {
 }
 
 // Generic get function
-async function getAny(tableName, fieldName, fieldValue, opts) {
+async function getAny(tableName, fieldName, fieldValue, opts = {}) {
   const result = await queryBuilder(tableName, opts)
     .where(fieldName, fieldValue)
     .first();
-  return camelize(result);
+
+  return opts.snakeCase ? result : camelize(result);
 }
 
 const Table = {

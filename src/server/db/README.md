@@ -51,3 +51,9 @@ await db.transaction(async (transaction) =>
   await db.SomeOtherModel.delete(someOtherModelId, { transaction });
 );
 ```
+
+### opts.snakeCase
+
+Functions may accept the `snakeCase` option to return keys in snake case rather than
+camel case. The main use case for this is to pass the value to a resolver that expects
+snake case.

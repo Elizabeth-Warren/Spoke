@@ -4,6 +4,7 @@ import { Notifications, sendUserNotification } from "src/server/notifications";
 import twilio from "src/server/api/lib/twilio";
 import db from "src/server/db";
 import log from "src/server/log";
+import { secureRandomString } from "src/server/crypto";
 
 const Status = db.TwilioPhoneNumber.Status;
 
@@ -78,6 +79,9 @@ export const mutations = {
 
     campaign.is_started = true;
     campaign.messaging_service_sid = messagingServiceSid;
+    if (campaign.use_dynamic_assignment) {
+      campaign.join_token = secureRandomString(32);
+    }
     await campaign.save();
     await cacheableData.campaign.reload(id);
     try {

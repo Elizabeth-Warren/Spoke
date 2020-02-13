@@ -35,7 +35,8 @@ import {
   assignmentAndNotSuspended,
   authRequired,
   superAdminRequired,
-  requireAuthStrategy
+  requireAuthStrategy,
+  ForbiddenError
 } from "./errors";
 import { resolvers as interactionStepResolvers } from "./interaction-step";
 import { saveNewIncomingMessage } from "./lib/message-sending";
@@ -595,37 +596,32 @@ const rootMutations = {
       });
       return true;
     },
-    assignUserToCampaign: async (
-      _,
-      { organizationUuid, campaignId },
-      { user, loaders }
-    ) => {
-      const campaign = await r
-        .knex("campaign")
-        .leftJoin("organization", "campaign.organization_id", "organization.id")
-        .where({
-          "campaign.id": campaignId,
-          "campaign.use_dynamic_assignment": true,
-          "organization.uuid": organizationUuid
-        })
-        .select("campaign.*")
-        .first();
-      if (!campaign) {
-        throw new GraphQLError({
-          status: 403,
-          message: "Invalid join request"
+    assignUserToCampaign: async (_, { token }, { user }) => {
+      // needs to be snake case to pass through the resolver
+      const campaign = await db.Campaign.getByJoinToken(token, {
+        snakeCase: true
+      });
+      if (!campaign || campaign.is_archived) {
+        throw new ForbiddenError("Invalid join request");
+      }
+      const isMember = await db.User.isMemberOfOrganization(
+        user.id,
+        campaign.organization_id
+      );
+      if (!isMember) {
+        await db.User.addToOrganization({
+          userId: user.id,
+          organizationId: campaign.organization_id,
+          role: "TEXTER"
         });
       }
-      const assignment = await r
-        .table("assignment")
-        .getAll(user.id, { index: "user_id" })
-        .filter({ campaign_id: campaign.id })
-        .limit(1)(0)
-        .default(null);
-      if (!assignment) {
-        await Assignment.save({
+
+      const assigned = await db.Assignment.isAssigned(user.id, campaign.id);
+      if (!assigned) {
+        const assignment = await Assignment.save({
           user_id: user.id,
           campaign_id: campaign.id,
+          // TODO: consider making this a property of the campaign
           max_contacts: process.env.MAX_CONTACTS_PER_TEXTER
             ? parseInt(process.env.MAX_CONTACTS_PER_TEXTER, 10)
             : null
@@ -812,11 +808,10 @@ const rootMutations = {
           message: "Not allowed to add contacts after the campaign starts"
         });
       }
-      // TODO[matteo]: DRY
       if (
         origCampaign.is_started &&
-        campaign.hasOwnProperty("phoneNumberConfig") &&
-        campaign.phoneNumberConfig
+        campaign.hasOwnProperty("phoneNumbers") &&
+        campaign.phoneNumbers
       ) {
         throw new GraphQLError({
           status: 400,
@@ -1323,34 +1318,23 @@ const rootMutations = {
       const roleRequired = role === "OWNER" ? "OWNER" : "ADMIN";
       await accessRequired(user, organizationId, roleRequired);
 
-      const userRes = await r.knex
-        .select("id")
-        .from("user")
-        .where({ email })
-        .limit(1);
+      const userRes = await db.User.getByEmail(email);
 
-      if (userRes.length === 0) {
+      if (!userRes) {
         return "NO_USER_WITH_EMAIL";
       }
 
-      const userId = userRes[0].id;
+      const userId = userRes.id;
+      const isMember = await db.User.isMemberOfOrganization(
+        userId,
+        organizationId
+      );
 
-      const membershipRes = await r.knex
-        .select("id")
-        .from("user_organization")
-        .where({ user_id: userId, organization_id: organizationId });
-
-      if (membershipRes.length > 0) {
+      if (isMember) {
         return "USER_ALREADY_IN_ORG";
       }
 
-      await UserOrganization.save({
-        user_id: userId,
-        organization_id: organizationId,
-        role
-      });
-
-      cacheableData.user.clearUser(userId);
+      await db.User.addToOrganization({ userId, organizationId, role });
 
       return "USER_ADDED";
     }

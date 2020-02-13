@@ -53,7 +53,8 @@ const Campaign = thinky.createModel(
         .required()
         .default("US/Eastern"),
       messaging_service_sid: type.string().allowNull(true),
-      shifting_configuration: type.string().allowNull(true)
+      shifting_configuration: type.string().allowNull(true),
+      join_token: type.string().allowNull(true)
     })
     .allowExtra(false),
   { noAutoCreation: true }

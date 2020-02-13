@@ -12,6 +12,8 @@ import gql from "graphql-tag";
 import theme from "../styles/theme";
 import wrapMutations from "./hoc/wrap-mutations";
 import { dataTest } from "../lib/attributes";
+import DisplayLink from "src/components/DisplayLink";
+import { Dialog } from "material-ui";
 
 const inlineStyles = {
   stat: {
@@ -47,6 +49,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginBottom: "20px"
   },
+
   header: {
     ...theme.text.header
   },
@@ -88,10 +91,14 @@ Stat.propTypes = {
 };
 
 class AdminCampaignStats extends React.Component {
-  state = {
-    exportMessageOpen: false,
-    disableExportButton: false
-  };
+  constructor(props) {
+    super(props);
+    this.state = {
+      exportMessageOpen: false,
+      disableExportButton: false,
+      showJoinDialog: false
+    };
+  }
 
   renderSurveyStats() {
     const { interactionSteps } = this.props.data.campaign;
@@ -134,6 +141,14 @@ class AdminCampaignStats extends React.Component {
     });
   }
 
+  openJoinDialog() {
+    this.setState({ showJoinDialog: true });
+  }
+
+  closeJoinDialog() {
+    this.setState({ showJoinDialog: false });
+  }
+
   render() {
     const { data, params } = this.props;
     const { organizationId, campaignId } = params;
@@ -149,6 +164,8 @@ class AdminCampaignStats extends React.Component {
       ? `Exporting (${currentExportJob.status}%)`
       : "Export Data";
 
+    const showInviteLink =
+      !campaign.isArchived && campaign.useDynamicAssignment;
     return (
       <div>
         <div className={css(styles.container)}>
@@ -169,6 +186,15 @@ class AdminCampaignStats extends React.Component {
             <div className={css(styles.rightAlign)}>
               <div className={css(styles.inline)}>
                 <div className={css(styles.inline)}>
+                  {showInviteLink ? (
+                    <RaisedButton
+                      {...dataTest("inviteLink")}
+                      onTouchTap={() => this.openJoinDialog()}
+                      label="Invite"
+                    />
+                  ) : (
+                    ""
+                  )}
                   {!campaign.isArchived ? (
                     // edit
                     <RaisedButton
@@ -279,6 +305,16 @@ class AdminCampaignStats extends React.Component {
             this.setState({ exportMessageOpen: false });
           }}
         />
+        <Dialog
+          title="Invite texters to this campaign"
+          modal={false}
+          open={this.state.showJoinDialog}
+          onRequestClose={() => this.closeJoinDialog()}
+          onBackdropClick={() => this.closeJoinDialog()}
+          onEscapeKeyDown={() => this.closeJoinDialog()}
+        >
+          <DisplayLink url={campaign.joinUrl} textContent={"Share this link"} />
+        </Dialog>
       </div>
     );
   }
@@ -335,6 +371,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
             receivedMessagesCount
             optOutsCount
           }
+          joinUrl
         }
       }
     `,

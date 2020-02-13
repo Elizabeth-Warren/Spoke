@@ -44,6 +44,7 @@ function getJobExecutor() {
 }
 
 export default {
+  BASE_URL: process.env.BASE_URL,
   DEFAULT_CACHE_TTL: optionalInt(process.env.DEFAULT_CACHE_TTL, 3600), // 1 hour
   CACHE_PREFIX: process.env.CACHE_PREFIX || "",
   OPTOUTS_SHARE_ALL_ORGS: !!process.env.OPTOUTS_SHARE_ALL_ORGS,

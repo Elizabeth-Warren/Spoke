@@ -18,7 +18,7 @@ import Login from "./components/Login";
 import Terms from "./containers/Terms";
 import React from "react";
 import CreateOrganization from "./containers/CreateOrganization";
-import JoinTeam from "./containers/JoinTeam";
+import JoinCampaign from "./containers/JoinCampaign";
 import Home from "./containers/Home";
 import Settings from "./containers/Settings";
 import UserEdit from "./containers/UserEdit";
@@ -180,6 +180,11 @@ export default function makeRoutes(requireAuth = () => {}) {
       <Route
         path="createOrganization"
         component={CreateOrganization}
+        onEnter={requireAuth}
+      />
+      <Route
+        path="join-campaign/:token"
+        component={JoinCampaign}
         onEnter={requireAuth}
       />
     </Route>
