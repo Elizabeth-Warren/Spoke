@@ -414,6 +414,7 @@ export const resolvers = {
     },
     contactImportJob: async campaign =>
       campaign.contactImportJob ||
-      cacheableData.campaign.dbContactImportJob(campaign.id)
+      (await cacheableData.campaign.dbContactImportJob(campaign.id)) ||
+      null
   }
 };

@@ -42,7 +42,8 @@ export default class AdminCampaignCreateComponent extends Component {
     initialError: types.string,
     organizationId: types.string.isRequired,
     updateCampaign: types.string,
-    copiedCampaign: types.object
+    copiedCampaign: types.object,
+    organization: types.object
   };
 
   constructor(props) {
@@ -93,7 +94,10 @@ export default class AdminCampaignCreateComponent extends Component {
 
     parseCSV(
       acceptedFiles[0],
-      [],
+      {
+        optOuts: [],
+        maxContacts: this.props.organization.organization.maxContacts
+      },
       ({ contacts, fields, validationStats, error }) => {
         if (error) {
           this.setState({

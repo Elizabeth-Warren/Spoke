@@ -51,6 +51,16 @@ export const resolvers = {
     },
     threeClickEnabled: organization =>
       organization.features.indexOf("threeClick") !== -1,
+    maxContacts: organization => {
+      const orgFeatures = JSON.parse(organization.features || "{}");
+
+      return parseInt(
+        orgFeatures.hasOwnProperty("maxContacts")
+          ? orgFeatures.maxContacts
+          : process.env.MAX_CONTACTS || 60000,
+        10
+      );
+    },
     textingHoursEnforced: organization => organization.texting_hours_enforced,
     optOutMessage: organization =>
       (organization.features &&

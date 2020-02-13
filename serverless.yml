@@ -101,6 +101,7 @@ provider:
     SLACK_CLIENT_SECRET: ${ssm:/${self:custom.stage}/spoke/slack/CLIENT_SECRET~true}
     SLACK_TEAM_ID: ${ssm:/${self:custom.stage}/spoke/slack/TEAM_ID~true}
     EMBEDDED_SHIFTER_URL: ${ssm:/${self:custom.stage}/spoke/shifter/URL~true}
+    MAX_CONTACTS: 60000
 
 functions:
   api:

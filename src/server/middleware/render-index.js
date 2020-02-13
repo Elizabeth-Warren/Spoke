@@ -59,6 +59,8 @@ export default function renderIndex(html, css, assetMap, store) {
       window.CONVERSATION_LIST_ROW_SIZES="${process.env
         .CONVERSATION_LIST_ROW_SIZES || ""}"
       window.EMBEDDED_SHIFTER_URL="${process.env.EMBEDDED_SHIFTER_URL || ""}"
+      window.SUPPRESS_PHONE_VALIDATION=${process.env
+        .SUPPRESS_PHONE_VALIDATION === "1"}
     </script>
     <script src="${assetMap["bundle.js"]}"></script>
   </body>

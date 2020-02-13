@@ -1473,6 +1473,7 @@ const rootResolvers = {
     },
     backgroundJob: async (_, { jobId }, { user }) => {
       const job = await BackgroundJob.get(jobId);
+      console.log("JOB", job);
       if (!job) {
         return null;
       }

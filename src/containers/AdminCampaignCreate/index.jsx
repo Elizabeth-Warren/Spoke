@@ -94,12 +94,24 @@ const mapMutationsToProps = ({ ownProps }) => ({
 });
 
 const mapQueriesToProps = ({ ownProps }) => {
-  if (!ownProps.copyFrom) {
-    return {};
-  }
+  const queries = {
+    organization: {
+      query: gql`
+        query getOrganization($organizationId: String!) {
+          organization(id: $organizationId) {
+            id
+            maxContacts
+          }
+        }
+      `,
+      variables: {
+        organizationId: ownProps.organizationId
+      }
+    }
+  };
 
-  return {
-    copiedCampaign: {
+  if (ownProps.copyFrom) {
+    queries.copiedCampaign = {
       query: gql`
         query getCampaign($campaignId: String!) {
           campaign(id: $campaignId) {
@@ -112,8 +124,10 @@ const mapQueriesToProps = ({ ownProps }) => {
       variables: {
         campaignId: ownProps.copyFrom
       }
-    }
-  };
+    };
+  }
+
+  return queries;
 };
 
 export const CreateContainer = loadData(wrapMutations(Component), {

@@ -207,7 +207,11 @@ export const convertRowToContact = row => {
   return contact;
 };
 
-export const parseCSV = (file, optOuts, callback) => {
+export const parseCSV = (
+  file,
+  { optOuts = [], maxContacts } = {},
+  callback
+) => {
   Papa.parse(file, {
     skipEmptyLines: true,
     header: true,
@@ -224,6 +228,14 @@ export const parseCSV = (file, optOuts, callback) => {
 
         callback({
           error: errorsHuman.join("; ")
+        });
+
+        return;
+      }
+
+      if (data.length > maxContacts) {
+        callback({
+          error: `You can only have ${maxContacts} contacts in a single campaign. You uploaded a CSV with ${data.length} contacts.`
         });
 
         return;
