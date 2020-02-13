@@ -6,17 +6,15 @@ import theme from "../styles/theme";
 
 const styles = StyleSheet.create({
   listItem: {
-    color: "white",
     ":hover": {
       backgroundColor: "rgba(240, 242, 240, .1)"
     }
   },
   listItemActive: {
-    color: "white",
     backgroundColor: "rgba(240, 242, 240, .1)"
   },
   icon: {
-    backgroundColor: theme.colors.EWlibertyGreen,
+    backgroundColor: theme.colors.EWnavy,
     borderRadius: "50%",
     height: 12,
     width: 12,

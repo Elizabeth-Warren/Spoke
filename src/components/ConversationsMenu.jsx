@@ -1,20 +1,46 @@
 import type from "prop-types";
 import React from "react";
-import { List } from "material-ui/List";
-import { ToolbarTitle } from "material-ui/Toolbar";
+import { Tabs, Tab } from "material-ui";
 import ConversationList from "./ConversationList";
 import theme from "../styles/theme";
+import { StyleSheet, css } from "aphrodite";
 
-const styles = {
-  title: {
-    color: theme.colors.white,
-    paddingLeft: 16
+const styles = StyleSheet.create({
+  wrapper: {
+    backgroundColor: theme.colors.EWlibertyGreen,
+    height: "100%"
+  },
+  componentWrapper: {
+    height: "calc(100% - 60px)"
   }
-};
+});
 
 class ConversationsMenu extends React.Component {
   constructor(props) {
     super(props);
+    const { conversations, currentContact } = this.props;
+    const initialContact = conversations.find(
+      item => item.id === currentContact
+    );
+    const tab =
+      initialContact && initialContact.messageStatus === "closed"
+        ? "skipped"
+        : "active";
+    this.state = { tab };
+  }
+
+  getTabs() {
+    const tabs = [
+      {
+        name: "active",
+        label: "Active"
+      },
+      {
+        name: "skipped",
+        label: "Skipped"
+      }
+    ];
+    return tabs;
   }
 
   handleSelectConversation = convo => {
@@ -23,10 +49,14 @@ class ConversationsMenu extends React.Component {
   };
 
   renderConversations({ conversations, currentContact }) {
+    const displayedConversations =
+      this.state.tab === "active"
+        ? conversations.filter(item => item.messageStatus !== "closed")
+        : conversations.filter(item => item.messageStatus === "closed");
     return (
       <ConversationList
         currentContact={currentContact}
-        conversations={conversations}
+        conversations={displayedConversations}
         onSelectConversation={this.handleSelectConversation}
       />
     );
@@ -34,12 +64,24 @@ class ConversationsMenu extends React.Component {
 
   render() {
     const { conversations, currentContact } = this.props;
+    const tabs = this.getTabs();
 
     return (
-      <List>
-        <ToolbarTitle text="Conversations" style={styles.title} />
-        {this.renderConversations({ conversations, currentContact })}
-      </List>
+      <div className={css(styles.wrapper)}>
+        <Tabs
+          value={this.state.tab}
+          onChange={newVal => {
+            this.setState({ tab: newVal });
+          }}
+        >
+          {tabs.map(tab => (
+            <Tab key={tab.name} value={tab.name} label={tab.label} />
+          ))}
+        </Tabs>
+        <div className={css(styles.componentWrapper)}>
+          {this.renderConversations({ conversations, currentContact })}
+        </div>
+      </div>
     );
   }
 }

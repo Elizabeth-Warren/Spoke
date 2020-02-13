@@ -116,8 +116,6 @@ const styles = StyleSheet.create({
   },
 
   contactsSection: {
-    backgroundColor: theme.colors.EWnavy,
-    color: "white",
     float: "left",
     height: "100%",
     width: "250px",
@@ -959,7 +957,7 @@ export class AssignmentTexterContact extends React.Component {
   }
 
   renderReplyTools() {
-    const { campaign, assignment, texter, contact } = this.props;
+    const { campaign, assignment, contact } = this.props;
     const { campaignCannedResponses } = assignment;
 
     const nonDeletedResponses = campaignCannedResponses.filter(r => !r.deleted);
@@ -984,7 +982,7 @@ export class AssignmentTexterContact extends React.Component {
     return (
       <ConversationsMenu
         currentContact={this.props.contact.id}
-        conversations={conversationList}
+        conversations={conversationList || []}
         onSelectConversation={onSelectConversation}
       />
     );
@@ -1058,16 +1056,8 @@ export class AssignmentTexterContact extends React.Component {
     );
   }
 
-  //todo middle scrolling section needs to be 800px and then next to it needs to
+  // todo middle scrolling section needs to be 800px and then next to it needs to
   render() {
-    const { messageStatus } = this.props.contact;
-    const { justSentNew } = this.state;
-    const shouldHideReplyTools = !(
-      messageStatus === "needsMessage" || justSentNew
-    );
-
-    const shouldShowContacts = true;
-
     return (
       <div>
         {this.state.errorModalOpen && this.renderErrorModal()}
@@ -1099,11 +1089,9 @@ export class AssignmentTexterContact extends React.Component {
                 {this.renderBottomFixedSection()}
               </div>
             </div>
-            {shouldHideReplyTools && (
-              <div className={css(styles.responsesSection)}>
-                {this.renderReplyTools()}
-              </div>
-            )}
+            <div className={css(styles.responsesSection)}>
+              {this.renderReplyTools()}
+            </div>
           </div>
         </div>
         <Snackbar

@@ -31,7 +31,7 @@ export default class ReplyTools extends Component {
     const tabs = [
       {
         name: "cannedResponses",
-        label: "Replies",
+        label: "Script",
         component: CannedResponseMenu
       }
     ];
