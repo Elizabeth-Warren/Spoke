@@ -53,7 +53,7 @@ function getConversationsJoinsAndWhereClause(
     }
 
     if ("tags" in contactsFilter) {
-      if (contactsFilter.tags.length === 0) {
+      if (!contactsFilter.tags || contactsFilter.tags.length === 0) {
         query.where({ has_unresolved_tags: false });
       } else {
         let subQuery = r.knex

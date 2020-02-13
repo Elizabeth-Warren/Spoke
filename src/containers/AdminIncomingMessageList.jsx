@@ -14,7 +14,7 @@ import loadData from "./hoc/load-data";
 import { withRouter } from "react-router";
 import wrapMutations from "./hoc/wrap-mutations";
 import PaginatedUsersRetriever from "./PaginatedUsersRetriever";
-import { ANY_TAG_FILTER } from "../lib/tags";
+import { ANY_TAG_FILTER, IGNORE_TAGS_FILTER } from "../lib/tags";
 
 const CONVERSATION_LIST_ROW_SIZES = (typeof window !== "undefined" &&
   window.CONVERSATION_LIST_ROW_SIZES &&
@@ -86,7 +86,7 @@ export class AdminIncomingMessageList extends Component {
         isOptedOut: false,
         includeResolvedTags: true,
         tags: AdminIncomingMessageList.tagsFilterStateFromTagsFilter(
-          ANY_TAG_FILTER
+          IGNORE_TAGS_FILTER
         )
       },
       assignmentsFilter: {},
@@ -417,7 +417,7 @@ export class AdminIncomingMessageList extends Component {
               includeOptedOutConversations={
                 this.state.includeOptedOutConversations
               }
-              defaultTagsFilter={ANY_TAG_FILTER}
+              defaultTagsFilter={IGNORE_TAGS_FILTER}
             />
             <br />
             <IncomingMessageActions
