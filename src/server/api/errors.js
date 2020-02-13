@@ -21,6 +21,13 @@ export class ForbiddenError extends ApolloError {
   }
 }
 
+export class SuspendedError extends ApolloError {
+  constructor(message) {
+    super(message, "SUSPENDED");
+    this.name = "SuspendedError";
+  }
+}
+
 export class UserInputError extends ApolloError {
   constructor(message) {
     super(message, "BAD_USER_INPUT");
@@ -53,7 +60,21 @@ export async function accessRequired(
   // require a permission at-or-higher than the permission requested
   const hasRole = await cacheableData.user.userHasRole(user, orgId, role);
   if (!hasRole) {
-    throw new ForbiddenError("You are not authorized to access that resource.");
+    const isSuspended = await cacheableData.user.userHasRole(
+      user,
+      orgId,
+      "SUSPENDED"
+    );
+
+    if (isSuspended) {
+      throw new SuspendedError(
+        "Your account has been suspended. Please contact a Text Team Leader in the Slack."
+      );
+    } else {
+      throw new ForbiddenError(
+        "You are not authorized to access that resource."
+      );
+    }
   }
 }
 
@@ -109,9 +130,7 @@ export function superAdminRequired(user) {
   authRequired(user);
 
   if (!user.is_superadmin) {
-    throw new ForbiddenError(
-      "You need to be a super-administrator to do that."
-    );
+    throw new ForbiddenError("You need to be a super-adminstrator to do that.");
   }
 }
 
