@@ -13,6 +13,7 @@ import { schema as messageSchema } from "./message";
 import { schema as campaignContactSchema } from "./campaign-contact";
 import { schema as cannedResponseSchema } from "./canned-response";
 import { schema as twilioPhoneNumberSchema } from "./twilio-phone-number";
+import { schema as backgroundJobSchema } from "./background-job";
 
 const rootSchema = gql`
   input CampaignContactInput {
@@ -74,8 +75,6 @@ const rootSchema = gql`
     primaryColor: String
     introHtml: String
     useDynamicAssignment: Boolean
-    contacts: [CampaignContactInput]
-    contactSql: String
     organizationId: String
     texters: [TexterInput]
     interactionSteps: InteractionStepInput
@@ -219,14 +218,18 @@ const rootSchema = gql`
       filterString: String
       filterBy: FilterPeopleBy
     ): UsersReturn
+    backgroundJob(jobId: ID!): BackgroundJob
   }
 
   type RootMutation {
-    createCampaign(campaign: CampaignInput!): Campaign
+    createCampaign(campaign: CampaignInput!, contactsS3Key: String!): Campaign
     editCampaign(id: String!, campaign: CampaignInput!): Campaign
-    deleteJob(campaignId: String!, id: String!): JobRequest
-    copyCampaign(id: String!): Campaign
-    exportCampaign(id: String!): JobRequest
+    copyCampaign(
+      id: String!
+      contactsS3Key: String!
+      shiftingConfiguration: String
+    ): Campaign
+    exportCampaign(id: String!): BackgroundJob
     createOrganization(name: String!): Organization
     editOrganizationRoles(
       organizationId: String!
@@ -314,6 +317,8 @@ const rootSchema = gql`
       email: String!
       role: String!
     ): AddUserByEmailResult
+    createPresignedUploadUrl(organizationId: ID!): String
+    uploadContacts(campaignId: String!, s3Key: String!): Int
   }
 
   schema {
@@ -330,6 +335,7 @@ export const schema = [
   "scalar JSON",
   "scalar Phone",
   campaignSchema,
+
   assignmentSchema,
   interactionStepSchema,
   optOutSchema,
@@ -339,5 +345,6 @@ export const schema = [
   questionResponseSchema,
   questionSchema,
   conversationSchema,
-  twilioPhoneNumberSchema
+  twilioPhoneNumberSchema,
+  backgroundJobSchema
 ];

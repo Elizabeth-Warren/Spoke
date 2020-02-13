@@ -1,16 +1,16 @@
 import { r, Campaign, User } from "../models";
 import log from "src/server/log";
-import { updateJob } from "./lib";
 import AWS from "aws-sdk";
 import Papa from "papaparse";
 import moment from "moment";
 import { sendEmail } from "../mail";
+import BackgroundJob from "src/server/db/background-job";
 
 const EXPORT_S3_PATH = "campaign-exports/";
 
 export async function exportCampaign(job) {
-  const payload = JSON.parse(job.payload);
-  const id = job.campaign_id;
+  const payload = JSON.parse(job.config);
+  const id = job.campaignId;
   const campaign = await Campaign.get(id);
   const requester = payload.requester;
   const user = await User.get(requester);
@@ -129,7 +129,10 @@ export async function exportCampaign(job) {
     });
     convertedContacts = await Promise.all(convertedContacts);
     finalCampaignResults = finalCampaignResults.concat(convertedContacts);
-    await updateJob(job, Math.round((index / assignmentCount) * 100));
+    await BackgroundJob.updateStatus(job.id, {
+      progress: index / assignmentCount,
+      status: BackgroundJob.STATUS.RUNNING
+    });
   }
   const campaignCsv = Papa.unparse(finalCampaignResults);
   const messageCsv = Papa.unparse(finalCampaignMessages);
@@ -195,6 +198,4 @@ export async function exportCampaign(job) {
     log.debug(campaignCsv);
     log.debug(messageCsv);
   }
-
-  await defensivelyDeleteJob(job);
 }

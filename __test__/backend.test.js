@@ -96,31 +96,28 @@ async function createOrganization(user, name) {
   }
 }
 
-async function createCampaign(
-  user,
-  title,
-  description,
-  organizationId,
-  contacts = []
-) {
+async function createCampaign(user, title, description, organizationId) {
   const context = getContext({ user });
 
-  const campaignQuery = `mutation createCampaign($input: CampaignInput!) {
-    createCampaign(campaign: $input) {
+  const campaignInstance = new Campaign({
+    organization_id: organizationId,
+    creator_id: user.id
+  });
+
+  await campaignInstance.save();
+
+  const campaignQuery = `mutation editCampaign($id: String!, $input: CampaignInput!) {
+    editCampaign(id: $id, campaign: $input) {
       id
       title
-      contacts {
-        firstName
-        lastName
-      }
     }
   }`;
   const variables = {
+    id: campaignInstance.id,
     input: {
-      title: title,
-      description: description,
-      organizationId: organizationId,
-      contacts: contacts
+      title,
+      description,
+      organizationId
     }
   };
 
@@ -132,6 +129,12 @@ async function createCampaign(
       context,
       variables
     );
+
+    if (campaign.errors) {
+      console.error(campaign.errors);
+    }
+    console.log(campaign);
+
     return campaign;
   } catch (err) {
     console.error("Error creating campaign");
@@ -200,14 +203,13 @@ it("should create a test campaign", async () => {
     testOrganization.data.createOrganization.id
   );
 
-  expect(testCampaign.data.createCampaign.title).toBe(campaignTitle);
+  expect(testCampaign.data.editCampaign.title).toBe(campaignTitle);
 });
 
+// TODO[fuzzy]: rewrite this to test the s3 upload contact flow
 it("should create campaign contacts", async () => {
-  const contact = await createContact(testCampaign.data.createCampaign.id);
-  expect(contact.campaign_id).toBe(
-    parseInt(testCampaign.data.createCampaign.id)
-  );
+  const contact = await createContact(testCampaign.data.editCampaign.id);
+  expect(contact.campaign_id).toBe(parseInt(testCampaign.data.editCampaign.id));
 });
 
 it("an admin can add texters to a organization by email", async () => {
@@ -278,11 +280,12 @@ it("should assign texters to campaign contacts", async () => {
     }
   }`;
   const context = getContext({ user: testAdminUser });
-  const updateCampaign = Object.assign({}, testCampaign.data.createCampaign);
+  const updateCampaign = Object.assign({}, testCampaign.data.editCampaign);
   const campaignId = updateCampaign.id;
   updateCampaign.texters = [
     {
-      id: testTexterUser.id
+      id: testTexterUser.id,
+      needsMessageCount: 1
     }
   ];
   delete updateCampaign.id;
@@ -291,6 +294,7 @@ it("should assign texters to campaign contacts", async () => {
     campaignId: campaignId,
     campaign: updateCampaign
   };
+
   const result = await graphql(
     mySchema,
     campaignEditQuery,
@@ -298,6 +302,7 @@ it("should assign texters to campaign contacts", async () => {
     context,
     variables
   );
+
   expect(result.data.editCampaign.texters.length).toBe(1);
   expect(result.data.editCampaign.texters[0].assignment.contactsCount).toBe(1);
 });

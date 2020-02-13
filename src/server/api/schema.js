@@ -2,14 +2,13 @@ import GraphQLDate from "graphql-date";
 import GraphQLJSON from "graphql-type-json";
 import { GraphQLError } from "graphql/error";
 import isUrl from "is-url";
-import { gzip, makeTree } from "src/lib";
+import { makeTree } from "src/lib";
 import log from "src/server/log";
 import {
   Assignment,
   Campaign,
   CannedResponse,
   InteractionStep,
-  JobRequest,
   Message,
   Organization,
   QuestionResponse,
@@ -54,14 +53,19 @@ import { resolvers as questionResponseResolvers } from "./question-response";
 import { getUsers, resolvers as userResolvers } from "./user";
 import { change } from "../local-auth-helpers";
 import { getSendBeforeTimeUtc } from "../../lib/timezones";
+
+import { mutations as uploadContactMutations } from "./mutations/upload-contacts";
+
 import { dispatchJob } from "../workers";
 
 import request from "request";
-import { flatten, get } from "lodash";
+import _, { flatten, get } from "lodash";
 import humps from "humps";
 import twilio from "./lib/twilio";
 import db from "src/server/db";
 import preconditions from "src/server/preconditions";
+import BackgroundJob from "../db/background-job";
+import { assignTexters } from "src/server/workers/assign-texters";
 
 const uuidv4 = require("uuid").v4;
 
@@ -160,53 +164,22 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
     }
   });
 
-  if (campaign.hasOwnProperty("contacts") && campaign.contacts) {
-    await accessRequired(user, organizationId, "ADMIN", /* superadmin*/ true);
-    const contactsToSave = campaign.contacts.map(datum => {
-      const modelData = {
-        campaign_id: datum.campaignId,
-        first_name: datum.firstName,
-        last_name: datum.lastName,
-        cell: datum.cell,
-        external_id: datum.external_id,
-        external_id_type: datum.external_id_type,
-        state_code: datum.state_code,
-        custom_fields: datum.customFields
-      };
-      modelData.campaign_id = id;
-      return modelData;
-    });
-
-    // avoid unnecessary gzip + base64 roundtrip and save less data to the db
-    const compressedString = await gzip(JSON.stringify(contactsToSave));
-    const job = await JobRequest.save({
-      queue_name: `${id}:edit_campaign`,
-      job_type: "upload_contacts",
-      locks_queue: true,
-      assigned: true,
-      campaign_id: id,
-      // NOTE: stringifying because compressedString is a binary buffer
-      payload: compressedString.toString("base64")
-    });
-    await dispatchJob(job);
-  }
   // Warren fork: removed contactSql option to load from data warehouse
-  if (campaign.hasOwnProperty("texters")) {
-    const job = await JobRequest.save({
-      queue_name: `${id}:edit_campaign`,
-      locks_queue: true,
-      assigned: true,
-      job_type: "assign_texters",
-      campaign_id: id,
-      payload: JSON.stringify({
+  // We use _.has instead of hasOwnProperty because sometimes we're working with
+  // a model returned via humps.decamelize(), and humps returns an object with no
+  // prototype so hasOwnProperty may not exist.
+  if (_.has(campaign, "texters")) {
+    // XXX: either delete this or move it back to a background job
+    await assignTexters({
+      campaignId: id,
+      config: JSON.stringify({
         id,
         texters: campaign.texters
       })
     });
-    await dispatchJob(job);
   }
 
-  if (campaign.hasOwnProperty("interactionSteps")) {
+  if (_.has(campaign, "interactionSteps")) {
     await accessRequired(
       user,
       organizationId,
@@ -220,7 +193,7 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
     );
   }
 
-  if (campaign.hasOwnProperty("phoneNumbers")) {
+  if (_.has(campaign, "phoneNumbers")) {
     await accessRequired(user, organizationId, "ADMIN", /* superadmin*/ true);
     const organization = await Organization.get(organizationId);
     await updateCampaignPhoneNumbers(
@@ -231,7 +204,7 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
     );
   }
 
-  if (campaign.hasOwnProperty("cannedResponses")) {
+  if (_.has(campaign, "cannedResponses")) {
     const cannedResponses = campaign.cannedResponses;
 
     const newResponses = [];
@@ -353,6 +326,7 @@ const rootMutations = {
   RootMutation: {
     ...campaignMutations,
     ...organizationMutations,
+    ...uploadContactMutations,
     userAgreeTerms: async (_, _unused, { user, loaders }) => {
       const currentUser = await r
         .table("user")
@@ -413,13 +387,13 @@ const rootMutations = {
       const campaign = await loaders.campaign.load(id);
       const organizationId = campaign.organization_id;
       await accessRequired(user, organizationId, "ADMIN");
-      const newJob = await JobRequest.save({
-        queue_name: `${id}:export`,
-        job_type: "export",
-        locks_queue: false,
-        assigned: true,
-        campaign_id: id,
-        payload: JSON.stringify({
+
+      const newJob = await BackgroundJob.create({
+        type: "export",
+        campaignId: id,
+        organizationId,
+        userId: user.id,
+        config: JSON.stringify({
           id,
           requester: user.id
         })
@@ -658,13 +632,18 @@ const rootMutations = {
 
       return await loaders.organization.load(organizationId);
     },
-    createCampaign: async (_, { campaign }, { user, loaders }) => {
+    createCampaign: async (
+      _,
+      { campaign, contactsS3Key },
+      { user, loaders }
+    ) => {
       await accessRequired(
         user,
         campaign.organizationId,
         "ADMIN",
         /* allowSuperadmin=*/ true
       );
+
       const campaignInstance = new Campaign({
         organization_id: campaign.organizationId,
         creator_id: user.id,
@@ -674,10 +653,23 @@ const rootMutations = {
         is_started: false,
         is_archived: false
       });
+
       const newCampaign = await campaignInstance.save();
-      return editCampaign(newCampaign.id, campaign, loaders, user);
+
+      await editCampaign(newCampaign.id, campaign, loaders, user);
+      await uploadContactMutations.uploadContacts(
+        null,
+        { campaignId: newCampaign.id, s3Key: contactsS3Key },
+        { user }
+      );
+
+      return newCampaign;
     },
-    copyCampaign: async (_, { id }, { user, loaders }) => {
+    copyCampaign: async (
+      _,
+      { id, contactsS3Key, shiftingConfiguration },
+      { user, loaders }
+    ) => {
       const campaign = await loaders.campaign.load(id);
       await accessRequired(user, campaign.organization_id, "ADMIN");
 
@@ -688,7 +680,8 @@ const rootMutations = {
         description: campaign.description,
         due_by: campaign.dueBy,
         is_started: false,
-        is_archived: false
+        is_archived: false,
+        shifting_configuration: shiftingConfiguration
       });
       const newCampaign = await campaignInstance.save();
       const newCampaignId = newCampaign.id;
@@ -751,6 +744,12 @@ const rootMutations = {
         })
       );
 
+      await uploadContactMutations.uploadContacts(
+        null,
+        { campaignId: newCampaign.id, s3Key: contactsS3Key },
+        { user }
+      );
+
       return newCampaign;
     },
     unarchiveCampaign: async (_, { id }, { user, loaders }) => {
@@ -798,16 +797,7 @@ const rootMutations = {
           "SUPERVOLUNTEER"
         );
       }
-      if (
-        origCampaign.is_started &&
-        campaign.hasOwnProperty("contacts") &&
-        campaign.contacts
-      ) {
-        throw new GraphQLError({
-          status: 400,
-          message: "Not allowed to add contacts after the campaign starts"
-        });
-      }
+
       if (
         origCampaign.is_started &&
         campaign.hasOwnProperty("phoneNumbers") &&
@@ -820,18 +810,6 @@ const rootMutations = {
         });
       }
       return editCampaign(id, campaign, loaders, user, origCampaign);
-    },
-    deleteJob: async (_, { campaignId, id }, { user, loaders }) => {
-      const campaign = await Campaign.get(campaignId);
-      await accessRequired(user, campaign.organization_id, "ADMIN");
-      const res = await r
-        .knex("job_request")
-        .where({
-          id,
-          campaign_id: campaignId
-        })
-        .delete();
-      return { id };
     },
     editCampaignContactMessageStatus: async (
       _,
@@ -1492,6 +1470,18 @@ const rootResolvers = {
         filterString,
         filterBy
       );
+    },
+    backgroundJob: async (_, { jobId }, { user }) => {
+      const job = await BackgroundJob.get(jobId);
+      if (!job) {
+        return null;
+      }
+
+      if (job.userId !== user.id) {
+        await accessRequired(user, job.organizationId, "SUPERVOLUNTEER");
+      }
+
+      return job;
     }
   }
 };

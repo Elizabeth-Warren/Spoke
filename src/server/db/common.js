@@ -1,4 +1,4 @@
-import { r } from "src/server/models";
+import { r } from "src/server/models/thinky";
 import humps from "humps";
 // Knex instance used by the db package, just an alias for thinky's connection
 // for now.
@@ -33,6 +33,14 @@ function camelize(obj) {
   return humps.camelizeKeys(obj, { separator: "_" });
 }
 
+function camelizeFirst(aryOfObj) {
+  if (aryOfObj.length === 0) {
+    return null;
+  }
+
+  return camelize(aryOfObj[0]);
+}
+
 function decamelize(obj) {
   return humps.decamelizeKeys(obj, { separator: "_" });
 }
@@ -46,8 +54,28 @@ async function getAny(tableName, fieldName, fieldValue, opts = {}) {
   return opts.snakeCase ? result : camelize(result);
 }
 
+async function insertAndReturn(tableName, fields, opts) {
+  return camelizeFirst(
+    await queryBuilder(tableName, opts)
+      .insert(decamelize(fields))
+      .returning("*")
+  );
+}
+
+async function updateAndReturn(tableName, id, fields, opts) {
+  return camelizeFirst(
+    await queryBuilder(tableName, opts)
+      .where({
+        id
+      })
+      .update(decamelize(fields))
+      .returning("*")
+  );
+}
+
 const Table = {
   ASSIGNMENT: "assignment",
+  BACKGROUND_JOB: "background_job",
   CAMPAIGN: "campaign",
   CAMPAIGN_CONTACT: "campaign_contact",
   CANNED_RESPONSE: "canned_response",
@@ -70,7 +98,10 @@ export {
   knex,
   getAny,
   camelize,
+  camelizeFirst,
   decamelize,
   transaction,
-  withTransaction
+  withTransaction,
+  insertAndReturn,
+  updateAndReturn
 };

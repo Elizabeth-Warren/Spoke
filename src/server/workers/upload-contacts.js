@@ -1,13 +1,8 @@
-import {
-  r,
-  cacheableData,
-  Campaign,
-  CampaignContact,
-  Organization
-} from "../models";
-import { gunzip } from "../../lib";
-import { sleep, updateJob } from "./lib";
+import { r, cacheableData, Campaign, Organization } from "../models";
 import log from "src/server/log";
+import s3 from "src/server/s3";
+import BackgroundJob from "../db/background-job";
+import humps from "humps";
 
 function optOutsByOrgId(orgId) {
   return r.knex
@@ -26,13 +21,22 @@ function getOptOutSubQuery(orgId) {
     : optOutsByOrgId(orgId);
 }
 
-const unzipPayload = async job =>
-  JSON.parse(await gunzip(Buffer.from(job.payload, "base64")));
+async function fetchContacts(payloadJSON) {
+  const { s3Key } = JSON.parse(payloadJSON);
+
+  const contactsJSON = await s3
+    .getObject({
+      Key: s3Key
+    })
+    .promise();
+
+  return JSON.parse(contactsJSON.Body.toString());
+}
 
 // Note: Unlike some other forks, the Warren fork does not support using
 // contact zip to enforce texting hours.
 export async function uploadContacts(job) {
-  const campaignId = job.campaign_id;
+  const campaignId = job.campaignId;
   // We do this deletion in schema.js but we do it again here just in case the the queue broke and we had a backlog of contact uploads for one campaign
   const campaign = await Campaign.get(campaignId);
   const organization = await Organization.get(campaign.organization_id);
@@ -44,9 +48,12 @@ export async function uploadContacts(job) {
     .table("campaign_contact")
     .getAll(campaignId, { index: "campaign_id" })
     .delete();
-  const maxPercentage = 100;
 
-  let contacts = await unzipPayload(job);
+  let contacts = await fetchContacts(job.config);
+  contacts.forEach(c => {
+    c.campaign_id = campaignId;
+  });
+
   const chunkSize = 1000;
 
   const maxContacts = parseInt(
@@ -64,12 +71,17 @@ export async function uploadContacts(job) {
   const numChunks = Math.ceil(contacts.length / chunkSize);
 
   for (let index = 0; index < numChunks; index++) {
-    await updateJob(job, Math.round((maxPercentage / numChunks) * index));
-    const savePortion = contacts.slice(
-      index * chunkSize,
-      (index + 1) * chunkSize
-    );
-    await CampaignContact.save(savePortion);
+    await BackgroundJob.updateStatus(job.id, {
+      status: BackgroundJob.STATUS.RUNNING,
+      progress: index / numChunks
+    });
+
+    const savePortion = contacts
+      .slice(index * chunkSize, (index + 1) * chunkSize)
+      .map(c => humps.decamelizeKeys(c, { separator: "_" }));
+
+    await r.knex("campaign_contact").insert(savePortion);
+
     log.info(
       `Campaign ${campaignId}: processed ${(index + 1) * chunkSize} of ${
         contacts.length
@@ -100,18 +112,7 @@ export async function uploadContacts(job) {
     );
   }
 
-  if (job.id) {
-    if (jobMessages.length) {
-      await r
-        .knex("job_request")
-        .where("id", job.id)
-        .update({ result_message: jobMessages.join("\n") });
-    } else {
-      await r
-        .table("job_request")
-        .get(job.id)
-        .delete();
-    }
-  }
   await cacheableData.campaign.reload(campaignId);
+
+  return jobMessages.join("\n");
 }

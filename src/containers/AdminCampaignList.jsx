@@ -49,25 +49,7 @@ class AdminCampaignList extends React.Component {
 
   handleClickNewButton = async () => {
     const { organizationId } = this.props.params;
-    this.setState({ isLoading: true });
-    const newCampaign = await this.props.mutations.createCampaign({
-      title: "New Campaign",
-      description: "",
-      dueBy: null,
-      organizationId,
-      interactionSteps: {
-        script: "",
-        id: "new"
-      }
-    });
-    if (newCampaign.errors) {
-      alert("There was an error creating your campaign");
-      throw new Error(newCampaign.errors);
-    }
-
-    this.props.router.push(
-      `/admin/${organizationId}/campaigns/${newCampaign.data.createCampaign.id}/edit?new=true`
-    );
+    this.props.router.push(`/admin/${organizationId}/campaigns/new`);
   };
 
   handleClickArchiveButton = async keys => {
@@ -263,23 +245,12 @@ class AdminCampaignList extends React.Component {
 AdminCampaignList.propTypes = {
   params: PropTypes.object,
   mutations: PropTypes.exact({
-    createCampaign: PropTypes.func,
     archiveCampaigns: PropTypes.func
   }),
   router: PropTypes.object
 };
 
 const mapMutationsToProps = () => ({
-  createCampaign: campaign => ({
-    mutation: gql`
-      mutation createBlankCampaign($campaign: CampaignInput!) {
-        createCampaign(campaign: $campaign) {
-          id
-        }
-      }
-    `,
-    variables: { campaign }
-  }),
   archiveCampaigns: ids => ({
     mutation: gql`
       mutation archiveCampaigns($ids: [String!]) {

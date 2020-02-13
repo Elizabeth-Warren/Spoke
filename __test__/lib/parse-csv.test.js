@@ -6,7 +6,7 @@ describe("parseCSV", () => {
     afterEach(() => delete process.env.PHONE_NUMBER_COUNTRY);
 
     it("should consider phone numbers from that country as valid", () => {
-      const csv = "firstName,lastName,cell\ntest,test,61468511000";
+      const csv = "firstName,lastName,phone_number\ntest,test,61468511000";
       parseCSV(
         csv,
         [],

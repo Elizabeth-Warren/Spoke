@@ -23,9 +23,9 @@ import CampaignCannedResponsesForm from "../components/CampaignCannedResponsesFo
 import { dataTest, camelCase } from "../lib/attributes";
 import CampaignTextingHoursForm from "../components/CampaignTextingHoursForm";
 import ShiftingConfigurationForm from "src/components/ShiftingConfigurationForm";
-
-import { pendingJobsGql } from "../lib/pendingJobsUtils";
 import DisplayLink from "src/components/DisplayLink";
+import { CreateContainer } from "./AdminCampaignCreate";
+import JobProgress from "./JobProgress";
 
 const campaignInfoFragment = `
   id
@@ -75,6 +75,12 @@ const campaignInfoFragment = `
     deleted
   }
   editors
+  contactImportJob {
+    id
+    resultMessage
+    progress
+    status
+  }
 `;
 
 class AdminCampaignEdit extends React.Component {
@@ -127,17 +133,6 @@ class AdminCampaignEdit extends React.Component {
       ...this.state.campaignFormValues,
       ...campaignDataCopy
     };
-    // contacts and contactSql need to be *deleted*
-    // when contacts are done on backend so that Contacts section
-    // can be marked saved, but only when user is NOT editing Contacts
-    if (campaignDataCopy.contactsCount > 0) {
-      const specialCases = ["contacts", "contactSql"];
-      specialCases.forEach(key => {
-        if (expandedKeys.indexOf(key) === -1) {
-          delete pushToFormValues[key];
-        }
-      });
-    }
 
     this.setState({
       campaignFormValues: pushToFormValues
@@ -164,19 +159,6 @@ class AdminCampaignEdit extends React.Component {
 
   isNew() {
     return this.props.location.query.new;
-  }
-
-  async handleDeleteJob(jobId) {
-    if (
-      confirm(
-        "Discarding the job will not necessarily stop it from running." +
-          " However, if the job failed, discarding will let you try again." +
-          " Are you sure you want to discard the job?"
-      )
-    ) {
-      await this.props.mutations.deleteJob(jobId);
-      await this.props.pendingJobsData.refetch();
-    }
   }
 
   handleChange = formValues => {
@@ -224,30 +206,6 @@ class AdminCampaignEdit extends React.Component {
       // Transform the campaign into an input understood by the server
       delete newCampaign.customFields;
       delete newCampaign.contactsCount;
-      if (newCampaign.hasOwnProperty("contacts") && newCampaign.contacts) {
-        const contactData = newCampaign.contacts.map(contact => {
-          const customFields = {};
-          const contactInput = {
-            cell: contact.cell,
-            firstName: contact.firstName,
-            lastName: contact.lastName,
-            // zip: contact.zip || "",
-            external_id: contact.external_id,
-            external_id_type: contact.external_id_type,
-            state_code: contact.state_code
-          };
-          Object.keys(contact).forEach(key => {
-            if (!contactInput.hasOwnProperty(key)) {
-              customFields[key] = contact[key];
-            }
-          });
-          contactInput.customFields = JSON.stringify(customFields);
-          return contactInput;
-        });
-        newCampaign.contacts = contactData;
-      } else {
-        newCampaign.contacts = null;
-      }
       if (newCampaign.hasOwnProperty("texters")) {
         newCampaign.texters = newCampaign.texters.map(texter => ({
           id: texter.id,
@@ -266,25 +224,8 @@ class AdminCampaignEdit extends React.Component {
         this.props.campaignData.campaign.id,
         newCampaign
       );
-
-      this.pollDuringActiveJobs();
     }
   };
-
-  async pollDuringActiveJobs() {
-    const response = await this.props.pendingJobsData.refetch();
-
-    const pendingJobs = response.data.campaign.pendingJobs;
-    if (pendingJobs.length) {
-      const self = this;
-      setTimeout(() => {
-        // run it once more after there are no more jobs
-        self.pollDuringActiveJobs();
-      }, 1000);
-    } else {
-      await this.props.campaignData.refetch();
-    }
-  }
 
   openJoinDialog() {
     this.setState({ showJoinDialog: true });
@@ -360,13 +301,7 @@ class AdminCampaignEdit extends React.Component {
         extraProps: {
           optOuts: [], // this.props.organizationData.organization.optOuts, // <= doesn't scale
           datawarehouseAvailable: this.props.campaignData.campaign
-            .datawarehouseAvailable,
-          jobResultMessage:
-            (
-              this.props.pendingJobsData.campaign.pendingJobs.filter(job =>
-                /contacts/.test(job.jobType)
-              )[0] || {}
-            ).resultMessage || ""
+            .datawarehouseAvailable
         }
       },
       {
@@ -467,44 +402,6 @@ class AdminCampaignEdit extends React.Component {
     ];
   }
 
-  sectionSaveStatus(section) {
-    const pendingJobs = this.props.pendingJobsData.campaign.pendingJobs;
-    let sectionIsSaving = false;
-    let relatedJob = null;
-    let savePercent = 0;
-    let jobMessage = null;
-    let jobId = null;
-    if (pendingJobs.length > 0) {
-      if (section.title === "Contacts") {
-        relatedJob = pendingJobs.filter(
-          job =>
-            job.jobType === "upload_contacts" || job.jobType === "contact_sql"
-        )[0];
-      } else if (section.title === "Texters") {
-        relatedJob = pendingJobs.filter(
-          job => job.jobType === "assign_texters"
-        )[0];
-      } else if (section.title === "Initial Outbound") {
-        relatedJob = pendingJobs.filter(
-          job => job.jobType === "create_interaction_steps"
-        )[0];
-      }
-    }
-
-    if (relatedJob) {
-      sectionIsSaving = !relatedJob.resultMessage;
-      savePercent = relatedJob.status;
-      jobMessage = relatedJob.resultMessage;
-      jobId = relatedJob.id;
-    }
-    return {
-      sectionIsSaving,
-      savePercent,
-      jobMessage,
-      jobId
-    };
-  }
-
   renderCurrentEditors() {
     const { editors } = this.props.campaignData.campaign;
     if (editors) {
@@ -513,9 +410,8 @@ class AdminCampaignEdit extends React.Component {
     return "";
   }
 
-  renderCampaignFormSection(section, forceDisable) {
-    let shouldDisable =
-      forceDisable || (!this.isNew() && this.checkSectionSaved(section));
+  renderCampaignFormSection(section) {
+    let shouldDisable = !this.isNew() && this.checkSectionSaved(section);
     const ContentComponent = section.content;
     const formValues = this.getSectionState(section);
     return (
@@ -625,10 +521,7 @@ class AdminCampaignEdit extends React.Component {
       // Supervolunteers don't have access to start the campaign or un/archive it
       return null;
     }
-    let isCompleted =
-      this.props.pendingJobsData.campaign.pendingJobs.filter(job =>
-        /Error/.test(job.resultMessage || "")
-      ).length === 0;
+    let isCompleted = true;
     this.sections().forEach(section => {
       if (
         (section.blocksStarting && !this.checkSectionCompleted(section)) ||
@@ -707,22 +600,12 @@ class AdminCampaignEdit extends React.Component {
             verticalAlign: "middle"
           };
 
-          const {
-            sectionIsSaving,
-            savePercent,
-            jobMessage,
-            jobId
-          } = this.sectionSaveStatus(section);
           const sectionCanExpandOrCollapse =
             (section.expandAfterCampaignStarts ||
               !this.props.campaignData.campaign.isStarted) &&
             (adminPerms || section.expandableBySuperVolunteers);
 
-          if (sectionIsSaving) {
-            avatar = <CircularProgress style={avatarStyle} size={25} />;
-            cardHeaderStyle.background = theme.colors.lightGray;
-            cardHeaderStyle.width = `${savePercent}%`;
-          } else if (sectionIsExpanded && sectionCanExpandOrCollapse) {
+          if (sectionIsExpanded && sectionCanExpandOrCollapse) {
             cardHeaderStyle.backgroundColor = theme.colors.EWlightLibertyGreen;
           } else if (!sectionCanExpandOrCollapse) {
             cardHeaderStyle.backgroundColor = theme.colors.lightGray;
@@ -764,26 +647,13 @@ class AdminCampaignEdit extends React.Component {
                   width: "100%"
                 }}
                 style={cardHeaderStyle}
-                actAsExpander={!sectionIsSaving && sectionCanExpandOrCollapse}
-                showExpandableButton={
-                  !sectionIsSaving && sectionCanExpandOrCollapse
-                }
+                actAsExpander={sectionCanExpandOrCollapse}
+                showExpandableButton={sectionCanExpandOrCollapse}
                 avatar={avatar}
               />
               <CardText expandable>
-                {this.renderCampaignFormSection(section, sectionIsSaving)}
+                {this.renderCampaignFormSection(section)}
               </CardText>
-              {sectionIsSaving && adminPerms ? (
-                <CardActions>
-                  <div>Current Status: {savePercent}% complete</div>
-                  {jobMessage ? <div>Message: {jobMessage}</div> : null}
-                  <RaisedButton
-                    label="Discard Job"
-                    icon={<CancelIcon />}
-                    onTouchTap={() => this.handleDeleteJob(jobId)}
-                  />
-                </CardActions>
-              ) : null}
             </Card>
           );
         })}
@@ -811,11 +681,9 @@ AdminCampaignEdit.propTypes = {
   organizationData: PropTypes.object,
   params: PropTypes.object,
   location: PropTypes.object,
-  pendingJobsData: PropTypes.object,
   availableActionsData: PropTypes.object
 };
 const mapQueriesToProps = ({ ownProps }) => ({
-  pendingJobsData: pendingJobsGql(ownProps.params.campaignId),
   campaignData: {
     query: gql`query getCampaign($campaignId: String!) {
       campaign(id: $campaignId) {
@@ -911,23 +779,45 @@ const mapMutationsToProps = ({ ownProps }) => ({
       campaignId,
       campaign
     }
-  }),
-  deleteJob: jobId => ({
-    mutation: gql`
-      mutation deleteJob($campaignId: String!, $id: String!) {
-        deleteJob(campaignId: $campaignId, id: $id) {
-          id
-        }
-      }
-    `,
-    variables: {
-      campaignId: ownProps.params.campaignId,
-      id: jobId
-    }
   })
 });
 
-export default loadData(wrapMutations(AdminCampaignEdit), {
+// Based on the status of the contact import job, renders the in-progress
+// screen, the job create screen (to retry an error), or the actual edit
+// screen
+function AdminCampaignEditRouter(props) {
+  if (!props.campaignData.campaign.contactImportJob) {
+    // This shouldn't happen
+    console.warn("Campaign has no contact import job");
+    return <AdminCampaignEdit {...props} />;
+  }
+
+  const job = props.campaignData.campaign.contactImportJob;
+  const jobStatus = job.status;
+
+  if (jobStatus === "PENDING" || jobStatus === "RUNNING") {
+    return (
+      <JobProgress
+        jobId={job.id}
+        onJobComplete={() => props.campaignData.refetch()}
+      />
+    );
+  }
+
+  if (jobStatus === "FAILED") {
+    return (
+      <CreateContainer
+        initialError={job.resultMessage}
+        organizationId={props.organizationData.organization.id}
+        updateCampaign={props.campaignData.campaign.id}
+      />
+    );
+  }
+
+  return <AdminCampaignEdit {...props} />;
+}
+
+export default loadData(wrapMutations(AdminCampaignEditRouter), {
   mapQueriesToProps,
   mapMutationsToProps
 });

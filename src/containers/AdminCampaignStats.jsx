@@ -154,9 +154,10 @@ class AdminCampaignStats extends React.Component {
     const { organizationId, campaignId } = params;
     const campaign = data.campaign;
     const { adminPerms } = this.props.params;
-    const currentExportJob = this.props.data.campaign.pendingJobs.filter(
-      job => job.jobType === "export"
-    )[0];
+
+    // TODO[fuzzy]: load from new jobs API (right now it
+    // won't give feedback on job progress)
+    const currentExportJob = null;
     const shouldDisableExport =
       this.state.disableExportButton || currentExportJob;
 
@@ -256,11 +257,8 @@ class AdminCampaignStats extends React.Component {
                           {...dataTest("copyCampaign")}
                           label="Copy Campaign"
                           onTouchTap={async () => {
-                            await this.props.mutations.copyCampaign(
-                              this.props.params.campaignId
-                            );
                             this.props.router.push(
-                              `/admin/${organizationId}/campaigns/`
+                              `/admin/${organizationId}/campaigns/new?copy=${this.props.params.campaignId}`
                             );
                           }}
                         />
@@ -348,12 +346,6 @@ const mapQueriesToProps = ({ ownProps }) => ({
             }
             unmessagedCount: contactsCount(contactsFilter: $contactsFilter)
             contactsCount
-          }
-          pendingJobs {
-            id
-            jobType
-            assigned
-            status
           }
           interactionSteps {
             id

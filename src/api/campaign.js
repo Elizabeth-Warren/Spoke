@@ -16,14 +16,6 @@ export const schema = gql`
     optOutsCount: Int
   }
 
-  type JobRequest {
-    id: String
-    jobType: String
-    assigned: Boolean
-    status: Int
-    resultMessage: String
-  }
-
   type Campaign {
     id: ID
     organization: Organization
@@ -44,7 +36,6 @@ export const schema = gql`
     customFields: [String]
     cannedResponses(userId: String): [CannedResponse]
     stats: CampaignStats
-    pendingJobs: [JobRequest]
     datawarehouseAvailable: Boolean
     useDynamicAssignment: Boolean
     introHtml: String
@@ -60,6 +51,7 @@ export const schema = gql`
     shiftingConfiguration: String
     phoneNumbers: [PhoneNumbersByAreaCode]
     joinUrl: String
+    contactImportJob: BackgroundJob
   }
 
   type CampaignsList {

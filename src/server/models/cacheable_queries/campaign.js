@@ -1,6 +1,8 @@
 import { r, Campaign } from "../../models";
 import { organizationCache } from "./organization";
 import config from "../../config";
+import BackgroundJob from "src/server/db/background-job";
+import { JobType } from "src/server/workers";
 
 // This should be cached data for a campaign that will not change
 // based on assignments or texter actions
@@ -38,6 +40,10 @@ const dbInteractionSteps = async id => {
     .getAll(id, { index: "campaign_id" })
     .filter({ is_deleted: false })
     .orderBy("id");
+};
+
+const dbContactImportJob = async id => {
+  return BackgroundJob.getByTypeAndCampaign(JobType.UPLOAD_CONTACTS, id);
 };
 
 const clear = async id => {
@@ -105,12 +111,18 @@ export const campaignCache = {
       }
       if (campaignData) {
         const campaignObj = JSON.parse(campaignData);
-        const { customFields, interactionSteps } = campaignObj;
+        const {
+          customFields,
+          interactionSteps,
+          contactImportJob
+        } = campaignObj;
         delete campaignObj.customFields;
         delete campaignObj.interactionSteps;
+        delete campaignObj.contactImportJob;
         const campaign = new Campaign(campaignObj);
         campaign.customFields = customFields;
         campaign.interactionSteps = interactionSteps;
+        campaign.contactImportJob = contactImportJob;
         return campaign;
       }
     }
@@ -119,5 +131,6 @@ export const campaignCache = {
   reload: loadDeep,
   currentEditors,
   dbCustomFields,
-  dbInteractionSteps
+  dbInteractionSteps,
+  dbContactImportJob
 };

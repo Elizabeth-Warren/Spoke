@@ -24,6 +24,7 @@ import Settings from "./containers/Settings";
 import UserEdit from "./containers/UserEdit";
 import TexterFaqs from "./components/TexterFrequentlyAskedQuestions";
 import FAQs from "./lib/faqs";
+import AdminCampaignCreate from "./containers/AdminCampaignCreate";
 
 export default function makeRoutes(requireAuth = () => {}) {
   return (
@@ -35,6 +36,7 @@ export default function makeRoutes(requireAuth = () => {}) {
           <IndexRedirect to="campaigns" />
           <Route path="campaigns">
             <IndexRoute component={AdminCampaignList} />
+            <Route path="new" component={AdminCampaignCreate} />
             <Route path=":campaignId">
               <IndexRoute component={AdminCampaignStats} />
               <Route path="edit" component={AdminCampaignEdit} />

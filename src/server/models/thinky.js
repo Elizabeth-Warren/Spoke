@@ -63,3 +63,4 @@ if (REDIS_URL) {
 }
 
 export default thinkyConn;
+export const r = thinkyConn.r;

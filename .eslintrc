@@ -11,6 +11,14 @@
     "semi": ["error", "always"],
     "react/require-extension": "off",
     "quotes": ["error", "double"],
+    "camelcase": "off"
   },
-  "env": { "jest": true, "node": true, "browser": true, "jasmine": true }
+  "env": { "jest": true, "node": true, "browser": true, "jasmine": true },
+  "settings": {
+    "import/resolver": {
+      "babel-module": {
+        "root": ["."]
+      }
+    }
+  }
 }

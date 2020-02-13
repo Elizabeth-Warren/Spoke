@@ -9,7 +9,6 @@ import CampaignContact from "./campaign-contact";
 import InteractionStep from "./interaction-step";
 import QuestionResponse from "./question-response";
 import OptOut from "./opt-out";
-import JobRequest from "./job-request";
 import CannedResponse from "./canned-response";
 import UserOrganization from "./user-organization";
 import Message from "./message";
@@ -47,7 +46,6 @@ const createLoaders = () => ({
   campaignContact: createLoader(CampaignContact),
   zipCode: createLoader(ZipCode, { idKey: "zip" }),
   cannedResponse: createLoader(CannedResponse),
-  jobRequest: createLoader(JobRequest),
   message: createLoader(Message),
   optOut: createLoader(OptOut),
   tag: createLoader(Tag),
@@ -66,7 +64,6 @@ export {
   Campaign,
   CampaignContact,
   InteractionStep,
-  JobRequest,
   Message,
   OptOut,
   Organization,

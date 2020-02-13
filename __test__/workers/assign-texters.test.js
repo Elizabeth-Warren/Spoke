@@ -3,11 +3,11 @@ import {
   r,
   Campaign,
   CampaignContact,
-  JobRequest,
   Organization,
   User
 } from "src/server/models";
 import { setupTest, cleanupTest } from "__test__/test_helpers";
+import BackgroundJob from "src/server/db/background-job";
 
 describe("test texter assignment in dynamic mode", () => {
   beforeAll(
@@ -78,11 +78,10 @@ describe("test texter assignment in dynamic mode", () => {
     });
     const payload =
       '{"id": "3","texters":[{"id":"1","needsMessageCount":5,"maxContacts":"","contactsCount":0},{"id":"2","needsMessageCount":5,"maxContacts":"0","contactsCount":0}]}';
-    const job = new JobRequest({
-      campaign_id: testCampaign.id,
-      payload: payload,
-      queue_name: "3:edit_campaign",
-      job_type: "assign_texters"
+    const job = await BackgroundJob.create({
+      campaignId: testCampaign.id,
+      config: payload,
+      type: "assign_texters"
     });
     await dispatchJob(job);
     const result = await r
@@ -112,11 +111,10 @@ describe("test texter assignment in dynamic mode", () => {
   it("updates max contacts when nothing else changes", async () => {
     const payload =
       '{"id": "3","texters":[{"id":"1","needsMessageCount":0,"maxContacts":"10","contactsCount":0},{"id":"2","needsMessageCount":5,"maxContacts":"15","contactsCount":0}]}';
-    const job = new JobRequest({
-      campaign_id: testCampaign.id,
-      payload: payload,
-      queue_name: "4:edit_campaign",
-      job_type: "assign_texters"
+    const job = await BackgroundJob.create({
+      campaignId: testCampaign.id,
+      config: payload,
+      type: "assign_texters"
     });
     await dispatchJob(job);
     const ten = await r

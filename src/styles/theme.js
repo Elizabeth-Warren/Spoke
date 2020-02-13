@@ -12,9 +12,11 @@ const colors = {
   //remove unused colors and remove EW from color names
   EWlibertyGreen: "rgb(183,228,207)",
   EWlightLibertyGreen: "rgb(227,244,236)",
+  EWdarkLibertyGreen: "rgb(118,203,163)",
   EWnavy: "rgb(35,36,68)",
   EWlightGrey: "rgb(247,247,247)",
-  EWred: "rgb(182,27,40)"
+  EWred: "rgb(182,27,40)",
+  EWlightRed: "rgb(235,126,135)"
 };
 
 const defaultFont = "Poppins";

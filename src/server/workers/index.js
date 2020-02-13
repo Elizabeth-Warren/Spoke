@@ -4,6 +4,7 @@ import { uploadContacts } from "./upload-contacts";
 import { exportCampaign } from "./export-campaign";
 import log from "src/server/log";
 import config, { JobExecutor } from "../config";
+import BackgroundJob from "../db/background-job";
 
 export const JobType = {
   ASSIGN_TEXTERS: "assign_texters",
@@ -11,10 +12,35 @@ export const JobType = {
   EXPORT_CAMPAIGN: "export"
 };
 
+function wrapJob(jobFn) {
+  return async job => {
+    try {
+      await BackgroundJob.updateStatus(job.id, {
+        progress: 0,
+        status: BackgroundJob.STATUS.RUNNING
+      });
+
+      const resultMessage = await jobFn(job);
+
+      await BackgroundJob.updateStatus(job.id, {
+        progress: 1,
+        status: BackgroundJob.STATUS.DONE,
+        resultMessage: resultMessage || "Done"
+      });
+    } catch (e) {
+      await BackgroundJob.updateStatus(job.id, {
+        status: BackgroundJob.STATUS.FAILED,
+        resultMessage: e.message
+      });
+      throw e;
+    }
+  };
+}
+
 export const WORKER_MAP = {
-  [JobType.ASSIGN_TEXTERS]: assignTexters,
-  [JobType.UPLOAD_CONTACTS]: uploadContacts,
-  [JobType.EXPORT_CAMPAIGN]: exportCampaign
+  [JobType.ASSIGN_TEXTERS]: wrapJob(assignTexters),
+  [JobType.UPLOAD_CONTACTS]: wrapJob(uploadContacts),
+  [JobType.EXPORT_CAMPAIGN]: wrapJob(exportCampaign)
 };
 
 let lambdaClient;
@@ -48,17 +74,25 @@ export async function dispatchJob(job) {
   log.debug({
     msg: "Dispatching Job",
     jobId: job.id,
-    type: job.job_type,
+    type: job.type,
     executor: config.JOB_EXECUTOR
   });
-  const jobFn = WORKER_MAP[job.job_type];
+  const jobFn = WORKER_MAP[job.type];
   if (config.JOB_EXECUTOR === JobExecutor.IN_PROCESS) {
     await jobFn(job);
   } else if (config.JOB_EXECUTOR === JobExecutor.IN_PROCESS_ASYNC) {
     // missing await is intentional here
     jobFn(job);
   } else if (config.JOB_EXECUTOR === JobExecutor.LAMBDA) {
-    await invokeLambdaWorker(job);
+    try {
+      await invokeLambdaWorker(job);
+    } catch (e) {
+      await BackgroundJob.updateStatus(job.id, {
+        status: BackgroundJob.STATUS.FAILED,
+        resultMessage: e.message
+      });
+      throw e;
+    }
   } else {
     log.error(`Unknown job executor: ${config.JOB_EXECUTOR}`);
   }

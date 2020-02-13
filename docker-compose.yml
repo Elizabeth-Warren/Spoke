@@ -18,8 +18,21 @@ services:
       - redis:/data
     ports:
       - 6379:6379
+  minio:
+    image: minio/minio
+    restart: always
+    ports:
+      - 19000:9000
+    volumes:
+      - minio:/data
+    command: server /data
+    environment:
+      MINIO_ACCESS_KEY: DEVACCESSKEY
+      MINIO_SECRET_KEY: DEVSECRETKEY
 volumes:
   postgres:
     external: false
   redis:
+    external: false
+  minio:
     external: false

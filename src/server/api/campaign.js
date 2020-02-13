@@ -1,6 +1,6 @@
 import { accessRequired } from "./errors";
 import { mapFieldsToModel } from "./lib/utils";
-import { Campaign, JobRequest, r, cacheableData } from "../models";
+import { Campaign, r, cacheableData } from "../models";
 import { getUsers } from "./user";
 import { campaignPhoneNumbersEnabled } from "./organization";
 import db from "src/server/db";
@@ -159,12 +159,6 @@ export async function getCampaigns(
 }
 
 export const resolvers = {
-  JobRequest: {
-    ...mapFieldsToModel(
-      ["id", "assigned", "status", "jobType", "resultMessage"],
-      JobRequest
-    )
-  },
   CampaignStats: {
     sentMessagesCount: async (campaign, _, { user }) => {
       await accessRequired(
@@ -266,18 +260,6 @@ export const resolvers = {
       getOrganization(campaign, loaders),
     datawarehouseAvailable: (campaign, _, { user }) =>
       user.is_superadmin && !!process.env.WAREHOUSE_DB_HOST,
-    pendingJobs: async (campaign, _, { user }) => {
-      await accessRequired(
-        user,
-        campaign.organization_id,
-        "SUPERVOLUNTEER",
-        true
-      );
-      return r
-        .table("job_request")
-        .filter({ campaign_id: campaign.id })
-        .orderBy("updated_at", "desc");
-    },
     texters: async (campaign, _, { user }) => {
       await accessRequired(
         user,
@@ -429,6 +411,9 @@ export const resolvers = {
         return urlJoin(config.BASE_URL, "join-campaign", campaign.join_token);
       }
       return null;
-    }
+    },
+    contactImportJob: async campaign =>
+      campaign.contactImportJob ||
+      cacheableData.campaign.dbContactImportJob(campaign.id)
   }
 };

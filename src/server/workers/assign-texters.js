@@ -1,6 +1,5 @@
 import { r, Assignment } from "../models";
 import log from "src/server/log";
-import { updateJob } from "./lib";
 import { Notifications, sendUserNotification } from "../notifications";
 
 export async function assignTexters(job) {
@@ -79,8 +78,8 @@ export async function assignTexters(job) {
 
   TODO: what happens when we switch modes? Do we allow it?
   */
-  const payload = JSON.parse(job.payload);
-  const cid = job.campaign_id;
+  const payload = JSON.parse(job.config);
+  const cid = job.campaignId;
   const campaign = (await r.knex("campaign").where({ id: cid }))[0];
   const texters = payload.texters;
   const currentAssignments = await r
@@ -172,7 +171,7 @@ export async function assignTexters(job) {
       .catch(log.error);
   }
 
-  await updateJob(job, 20);
+  // await updateJob(job, 20);
 
   let availableContacts = await r
     .table("campaign_contact")
@@ -264,7 +263,7 @@ export async function assignTexters(job) {
       }
     }
 
-    await updateJob(job, Math.floor((75 / texterCount) * (index + 1)) + 20);
+    // await updateJob(job, Math.floor((75 / texterCount) * (index + 1)) + 20);
   } // endfor
 
   if (!campaign.use_dynamic_assignment) {
@@ -288,10 +287,10 @@ export async function assignTexters(job) {
       .catch(log.error);
   }
 
-  if (job.id) {
-    await r
-      .table("job_request")
-      .get(job.id)
-      .delete();
-  }
+  // if (job.id) {
+  //   await r
+  //     .table("job_request")
+  //     .get(job.id)
+  //     .delete();
+  // }
 }

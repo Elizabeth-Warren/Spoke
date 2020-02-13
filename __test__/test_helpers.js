@@ -1,5 +1,11 @@
 import _ from "lodash";
-import { createLoaders, User, CampaignContact, r } from "../src/server/models/";
+import {
+  createLoaders,
+  Campaign,
+  User,
+  CampaignContact,
+  r
+} from "../src/server/models/";
 import { graphql } from "graphql";
 import db from "src/server/db";
 import faker from "faker";
@@ -130,12 +136,25 @@ export async function createCampaign(user, organization) {
   const organizationId = organization.data.createOrganization.id;
   const context = getContext({ user });
 
-  const campaignQuery = `mutation createCampaign($input: CampaignInput!) {
-    createCampaign(campaign: $input) {
+  const campaignInstance = new Campaign({
+    organization_id: organizationId,
+    creator_id: user.id,
+    title,
+    description,
+    due_by: null,
+    is_started: false,
+    is_archived: false
+  });
+
+  await campaignInstance.save();
+
+  const campaignQuery = `mutation editCampaign($id: String!, $input: CampaignInput!) {
+    editCampaign(id: $id, campaign: $input) {
       id
     }
   }`;
   const variables = {
+    id: campaignInstance.id,
     input: {
       title,
       description,
@@ -149,7 +168,8 @@ export async function createCampaign(user, organization) {
     context,
     variables
   );
-  return ret.data.createCampaign;
+  console.log(ret);
+  return ret.data.editCampaign;
 }
 
 export async function setupCampaignFixture() {

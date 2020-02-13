@@ -21,7 +21,7 @@ export const sendEmail = ({ to, subject, text, replyTo }) => {
   log.info(`Sending e-mail to ${to} with subject ${subject}.`);
   if (!ses) {
     log.debug(`Would send e-mail with subject ${subject} and text ${text}.`);
-    return null;
+    return Promise.resolve();
   }
 
   const params = {
