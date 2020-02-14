@@ -1142,7 +1142,7 @@ const rootMutations = {
         await service.sendMessage(messageInstance, contact);
       } catch (e) {
         // TODO[matteo]: investigate how to get apollo to log stacktraces, at least in dev
-        log.error(`Exception when sending message ${messageInstance.id}`, e);
+        log.error(e, `Exception when sending message ${messageInstance.id}`);
         throw e;
       }
       return contact;

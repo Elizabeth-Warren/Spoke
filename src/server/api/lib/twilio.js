@@ -6,6 +6,8 @@ import { getLastMessage, saveNewIncomingMessage } from "./message-sending";
 import urlJoin from "url-join";
 import _ from "lodash";
 import preconditions from "src/server/preconditions";
+import crypto from "crypto";
+import randomSecret from "src/server/random-secret";
 
 let twilio = null;
 const MAX_SEND_ATTEMPTS = 5;
@@ -36,27 +38,52 @@ if (!process.env.TWILIO_MESSAGE_SERVICE_SID) {
 function webhook() {
   if (twilio) {
     return Twilio.webhook();
-  } else {
-    log.warn("NO TWILIO WEB VALIDATION");
-    return function noopTwilioWebhookValidator(req, res, next) {
-      next();
-    };
   }
+
+  log.warn("NO TWILIO WEB VALIDATION");
+  return function noopTwilioWebhookValidator(req, res, next) {
+    next();
+  };
 }
 
-const mediaExtractor = new RegExp(/\[\s*(http[^\]\s]*)\s*\]/);
+function shouldDropMessage(origTo) {
+  if (process.env.DROP_MESSAGE_RATIO) {
+    const ratio = Number(process.env.DROP_MESSAGE_RATIO);
+    if (Number.isNaN(ratio)) {
+      log.error(
+        `Invalid DROP_MESSAGE_RATIO: ${process.env.DROP_MESSAGE_RATIO} -- must be a number. All messages will be dropped`
+      );
+      return true;
+    }
 
-function parseMessageText(message) {
-  const text = message.text || "";
-  const params = {
-    body: text.replace(mediaExtractor, "")
-  };
-  // Image extraction
-  const results = text.match(mediaExtractor);
-  if (results) {
-    params.mediaUrl = results[1];
+    if (ratio < 0 || ratio > 1) {
+      log.error(
+        `Invalid DROP_MESSAGE_RATIO: ${process.env.DROP_MESSAGE_RATIO} -- must be between 0 and 1. All messages will be dropped`
+      );
+      return true;
+    }
+
+    // rather than randomly dropping, we base it on a hash of the phone number. That way,
+    // we get roughly the correct response ratio but the simulated responders keep
+    // responding consistently
+    const hash = crypto.createHash("sha256");
+    hash.update(origTo);
+    const hexDigest = hash.digest("hex");
+
+    const hashInt = parseInt(hexDigest.slice(0, 8), 16);
+    const normalizedValue = hashInt / 16 ** 8;
+
+    if (normalizedValue < ratio) {
+      log.info(
+        `Dropping message to ${origTo} (hash value: ${normalizedValue.toFixed(
+          4
+        )}) due to DROP_MESSAGE_RATIO of ${ratio}`
+      );
+      return true;
+    }
   }
-  return params;
+
+  return false;
 }
 
 async function messagingServiceForContact(contact) {
@@ -84,117 +111,181 @@ async function sendMessage(message, contact, trx) {
     return "test_message_uuid";
   }
 
+  // Construct the outgoing message
   const messagingServiceSid = await messagingServiceForContact(contact);
 
-  return new Promise((resolve, reject) => {
-    if (message.service !== "twilio") {
-      log.warn("Message not marked as a twilio message", message.id);
-    }
+  if (message.service !== "twilio") {
+    log.warn("Message not marked as a twilio message", message.id);
+  }
 
-    const messageParams = Object.assign(
-      {
-        to: message.contact_number,
-        body: message.text,
-        messagingServiceSid
-      },
-      parseMessageText(message)
-    );
+  const messageParams = {
+    to: message.contact_number,
+    body: message.text,
+    messagingServiceSid
+  };
 
-    let twilioValidityPeriod = process.env.TWILIO_MESSAGE_VALIDITY_PERIOD;
+  // Allow us to set OVERRIDE_RECIPIENT to send all texts to a single number for
+  // development.
+  if (process.env.OVERRIDE_RECIPIENT) {
+    messageParams.body = `[${messageParams.to}] ${messageParams.body}`;
+    messageParams.to = process.env.OVERRIDE_RECIPIENT;
+  }
 
-    if (message.send_before) {
-      // the message is valid no longer than the time between now and
-      // the send_before time, less 30 seconds
-      // we subtract the MESSAGE_VALIDITY_PADDING_SECONDS seconds to allow time for the message to be sent by
-      // a downstream service
-      const messageValidityPeriod =
-        Math.ceil((message.send_before - Date.now()) / 1000) -
-        MESSAGE_VALIDITY_PADDING_SECONDS;
+  let twilioValidityPeriod = process.env.TWILIO_MESSAGE_VALIDITY_PERIOD;
 
-      if (messageValidityPeriod < 0) {
-        // this is an edge case
-        // it means the message arrived in this function already too late to be sent
-        // pass the negative validity period to twilio, and let twilio respond with an error
-      }
+  if (message.send_before) {
+    // the message is valid no longer than the time between now and
+    // the send_before time, less 30 seconds
+    // we subtract the MESSAGE_VALIDITY_PADDING_SECONDS seconds to allow time for the message to be sent by
+    // a downstream service
+    const messageValidityPeriod =
+      Math.ceil((message.send_before - Date.now()) / 1000) -
+      MESSAGE_VALIDITY_PADDING_SECONDS;
 
-      if (twilioValidityPeriod) {
-        twilioValidityPeriod = Math.min(
-          twilioValidityPeriod,
-          messageValidityPeriod,
-          MAX_TWILIO_MESSAGE_VALIDITY
-        );
-      } else {
-        twilioValidityPeriod = Math.min(
-          messageValidityPeriod,
-          MAX_TWILIO_MESSAGE_VALIDITY
-        );
-      }
+    if (messageValidityPeriod < 0) {
+      // this is an edge case
+      // it means the message arrived in this function already too late to be sent
+      // pass the negative validity period to twilio, and let twilio respond with an error
     }
 
     if (twilioValidityPeriod) {
-      messageParams.validityPeriod = twilioValidityPeriod;
+      twilioValidityPeriod = Math.min(
+        twilioValidityPeriod,
+        messageValidityPeriod,
+        MAX_TWILIO_MESSAGE_VALIDITY
+      );
+    } else {
+      twilioValidityPeriod = Math.min(
+        messageValidityPeriod,
+        MAX_TWILIO_MESSAGE_VALIDITY
+      );
+    }
+  }
+
+  if (twilioValidityPeriod) {
+    messageParams.validityPeriod = twilioValidityPeriod;
+  }
+
+  // Allow us to drop a fixed % of texts for development and testing of large
+  // volume sends
+  if (shouldDropMessage(message.contact_number)) {
+    return await Message.save(
+      {
+        ...message,
+        messaging_service_sid: messagingServiceSid,
+        service_id: randomSecret(),
+        service_response: "xxxfakexxx",
+        send_status: "SENT",
+        service: "twilio",
+        sent_at: new Date()
+      },
+      { conflict: "update" }
+    );
+  }
+
+  // Allow us to completely skip twilio and just autoreply in development
+  if (process.env.SKIP_TWILIO_AND_AUTOREPLY === "1") {
+    log.info("Skipping twilio and simulating a reply");
+    const messageSid = randomSecret();
+
+    const sentMessage = await Message.save(
+      {
+        ...message,
+        messaging_service_sid: messagingServiceSid,
+        service_id: messageSid,
+        service_response: "xxxfakexxx",
+        send_status: "SENT",
+        service: "twilio",
+        sent_at: new Date()
+      },
+      { conflict: "update" }
+    );
+
+    setTimeout(async () => {
+      // after 250ms, submit a delivery report
+      await handleDeliveryReport({
+        MessageSid: messageSid,
+        MessageStatus: "delivered"
+      });
+
+      // after another 250ms, simulate a response
+      await new Promise(res => setTimeout(res, 250));
+      await handleIncomingMessage({
+        From: messageParams.to,
+        To: "+15555555555",
+        Body: messageParams.body + " (autoreply)",
+        MessageSid: randomSecret(),
+        MessagingServiceSid: messageParams.messagingServiceSid,
+        NumMedia: 0
+      });
+    }, 250);
+
+    return sentMessage;
+  }
+
+  let hasError = false;
+  let err;
+  let response;
+  try {
+    response = await twilio.messages.create(messageParams);
+  } catch (e) {
+    log.info(e, "Error sending message");
+
+    err = e;
+    hasError = true;
+  }
+
+  const messageToSave = {
+    ...message,
+    messaging_service_sid: messagingServiceSid
+  };
+
+  if (err) {
+    hasError = true;
+    log.info("Error sending message", err);
+    messageToSave.service_response = JSON.stringify(err);
+  }
+
+  if (response) {
+    messageToSave.service_id = response.sid;
+    hasError = !!response.error_code;
+    messageToSave.service_response = JSON.stringify(response);
+  }
+
+  if (hasError) {
+    const SENT_STRING = '"status"'; // will appear in responses
+    if (
+      messageToSave.service_response.split(SENT_STRING).length >=
+      MAX_SEND_ATTEMPTS + 1
+    ) {
+      messageToSave.send_status = "ERROR";
+    }
+    const options = { conflict: "update" };
+    if (trx) {
+      options.transaction = trx;
     }
 
-    // TODO[matteo]: switch to promises now that the twilio sdk supports them
-    twilio.messages.create(messageParams, (err, response) => {
-      const messageToSave = {
-        ...message,
-        messaging_service_sid: messagingServiceSid
-      };
-      log.debug("messageToSave", messageToSave);
-      let hasError = false;
-      if (err) {
-        hasError = true;
-        log.info("Error sending message", err);
-        messageToSave.service_response += JSON.stringify(err);
-      }
-      if (response) {
-        messageToSave.service_id = response.sid;
-        hasError = !!response.error_code;
-        messageToSave.service_response += JSON.stringify(response);
-      }
+    log.debug("messageToSave", messageToSave);
+    await Message.save(messageToSave, options);
 
-      if (hasError) {
-        const SENT_STRING = '"status"'; // will appear in responses
-        if (
-          messageToSave.service_response.split(SENT_STRING).length >=
-          MAX_SEND_ATTEMPTS + 1
-        ) {
-          messageToSave.send_status = "ERROR";
-        }
-        let options = { conflict: "update" };
-        if (trx) {
-          options.transaction = trx;
-        }
-        Message.save(messageToSave, options)
-          // eslint-disable-next-line no-unused-vars
-          .then((_, newMessage) => {
-            reject(
-              err ||
-                (response
-                  ? new Error(JSON.stringify(response))
-                  : new Error("Encountered unknown error"))
-            );
-          });
-      } else {
-        let options = { conflict: "update" };
-        if (trx) {
-          options.transaction = trx;
-        }
-        Message.save(
-          {
-            ...messageToSave,
-            send_status: "SENT",
-            service: "twilio",
-            sent_at: new Date()
-          },
-          options
-        ).then((saveError, newMessage) => {
-          resolve(newMessage);
-        });
-      }
-    });
-  });
+    throw new Error(JSON.stringify(response));
+  } else {
+    const options = { conflict: "update" };
+    if (trx) {
+      options.transaction = trx;
+    }
+
+    log.debug("messageToSave", messageToSave);
+    return await Message.save(
+      {
+        ...messageToSave,
+        send_status: "SENT",
+        service: "twilio",
+        sent_at: new Date()
+      },
+      options
+    );
+  }
 }
 
 async function handleDeliveryReport(report) {
@@ -249,7 +340,36 @@ async function handleIncomingMessage(twilioMessage) {
   }
 
   const { From, To, MessageSid, MessagingServiceSid } = twilioMessage;
-  const contactNumber = getFormattedPhoneNumber(From);
+
+  let contactNumber;
+  let messageBody;
+  if (
+    process.env.OVERRIDE_RECIPIENT &&
+    From === process.env.OVERRIDE_RECIPIENT
+  ) {
+    // This is a reply from the overriden recipient. We want to pretend it came from the
+    // original recipient, and we can assume that the overrider is a auto-reply bot that
+    // reflects back the message we sent. In override mode, the message includes the
+    // original recipient.
+    messageBody = twilioMessage.Body.replace(
+      /^\[(.*?)\] /,
+      (__, matchGroup) => {
+        contactNumber = getFormattedPhoneNumber(matchGroup);
+        return "";
+      }
+    );
+
+    if (!contactNumber) {
+      log.error(
+        `Got a reply from the OVERRIDE_RECIPIENT that didn't include the original phone number: ${messageBody}`
+      );
+      return;
+    }
+  } else {
+    contactNumber = getFormattedPhoneNumber(From);
+    messageBody = twilioMessage.Body;
+  }
+
   const userNumber = To ? getFormattedPhoneNumber(To) : "";
 
   const lastOutbound = await getLastMessage({
@@ -281,7 +401,7 @@ async function handleIncomingMessage(twilioMessage) {
     contact_number: contactNumber,
     user_number: userNumber,
     is_from_contact: true,
-    text: twilioMessage.Body,
+    text: messageBody,
     attachments: JSON.stringify(attachments),
     service_response: JSON.stringify(twilioMessage),
     service_id: MessageSid,
@@ -437,11 +557,11 @@ async function removeNumbersFromMessagingService(
 }
 
 async function addNumbersToMessagingService(phoneSids, messagingServiceSid) {
-  return await bulkRequest(phoneSids, async phoneNumberSid => {
-    return twilio.messaging
+  return await bulkRequest(phoneSids, async phoneNumberSid =>
+    twilio.messaging
       .services(messagingServiceSid)
-      .phoneNumbers.create({ phoneNumberSid });
-  });
+      .phoneNumbers.create({ phoneNumberSid })
+  );
 }
 
 async function deleteMessagingService(messagingServiceSid) {
@@ -458,7 +578,6 @@ export default {
   sendMessage,
   handleDeliveryReport,
   handleIncomingMessage,
-  parseMessageText,
   createMessagingService,
   deleteMessagingService,
   removeNumbersFromMessagingService,

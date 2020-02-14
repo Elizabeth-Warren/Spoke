@@ -40,6 +40,53 @@ Open two terminal windows:
 
 / begin original README
 
+## Testing with auto-responders
+
+If you'd like to test spoke without actually sending texts, you have a couple options.
+
+### Skipping Twilio
+
+We have an option to skip sending texts through Twilio and just simulating replies. In your .env, add the following two lines:
+
+```
+# This makes Spoke not send any real texts and just simulate a reply coming back
+SKIP_TWILIO_AND_AUTOREPLY=1
+
+# This makes Spoke randomly drop 60% of messages (so only ~40% of contacts will respond). This is based on
+# a hash of the contact's phone number, so a particular contact will have a 60% chance of responding to
+# the initial text, and then if they do respond they will continue to respond to future messages.
+DROP_MESSAGE_RATIO=0.6
+```
+
+### Twilio Autoresponder
+
+If you're working with the Twilio code itself, you may want to actually keep Twilio in the loop and
+send real texts. To do this, replace `SKIP_TWILIO_AND_AUTOREPLY=1` with `OVERRIDE_RECIPIENT=+16173974753`.
+This will send all texts, regardless of the contact's phone number, to `+16173974753`. This is a special
+Twilio number that will auto-reply with whatever you sent it (try it out by sending a text to that number!)
+
+We have some special handling in the code to still route texts correctly -- we append the contact's original
+phone number to the outgoing message (so `foo` sent to `+16175555770` would become `[+16175555770] foo`), and
+then the autoreply will keep that intact (so it would reply with `[+16175555770] foo (auto-reply)`). We then
+parse out this tag in incoming messages and treat that message as a reply from `+16175555770`.
+
+IMPORTANT NOTE: Twilio will block messages after 15 in a row go back and forth between two numbers
+within 15 seconds. So if you use this setting to send more than 7 outbound messages, you'll
+hit this limit and Twilio will stop sending messages. So the recommended flow is to switch
+to this config just to do a small end-to-end test with a couple recipients (and probably
+change DROP_MESSAGE_RATIO to 0 so you actually send all the messages).
+
+### Generating test input data
+
+To generate a CSV with, e.g., 1000 contacts, just run:
+
+```
+./dev-tools/generate-test-data.py 1000 > ./sample1000.csv
+```
+
+This will generate 1000 contacts with `555`-area-code phone numbers, black-hole email addresses,
+`02141` as their ZIP, and a `fav_color` custom field.
+
 # Spoke
 
 Spoke is an open source text-distribution tool for organizations to mobilize supporters and members into action. Spoke allows you to upload phone numbers, customize scripts and assign volunteers to communicate with supporters while allowing organizations to manage the process.

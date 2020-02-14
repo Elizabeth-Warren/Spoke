@@ -10,8 +10,8 @@
     "prefer-template": ["off"],
     "semi": ["error", "always"],
     "react/require-extension": "off",
-    "quotes": ["error", "double"],
-    "camelcase": "off"
+    "camelcase": "off",
+    "quotes": "off"
   },
   "env": { "jest": true, "node": true, "browser": true, "jasmine": true },
   "settings": {
