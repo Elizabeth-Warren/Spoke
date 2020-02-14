@@ -28,6 +28,10 @@ custom:
     certificateName: "*.elizabethwarren.codes"
     createRoute53Record: true
     securityPolicy: tls_1_2
+  custom:
+    prune:
+      automatic: true
+      number: 5
 
 provider:
   name: aws
@@ -126,6 +130,6 @@ plugins:
   - serverless-domain-manager
   - serverless-associate-waf
   - serverless-api-compression
-
+  - serverless-prune-plugin
 package:
   excludeDevDependencies: true

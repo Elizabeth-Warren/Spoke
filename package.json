@@ -172,6 +172,7 @@
     "serverless-api-compression": "^1.0.1",
     "serverless-associate-waf": "^1.1.1",
     "serverless-domain-manager": "^3.3.0",
+    "serverless-prune-plugin": "^1.4.1",
     "wait-on": "^2.1.0",
     "webpack": "^4.41.5",
     "webpack-cli": "^3.3.10",
