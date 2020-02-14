@@ -5,6 +5,7 @@ import FlatButton from "material-ui/FlatButton";
 import Form from "react-formal";
 import GSForm from "./forms/GSForm";
 import { List, ListItem } from "material-ui/List";
+import Subheader from "material-ui/Subheader";
 import Divider from "material-ui/Divider";
 import CampaignFormSectionHeading from "./CampaignFormSectionHeading";
 import DeleteIcon from "material-ui/svg-icons/action/delete";
@@ -18,6 +19,13 @@ import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import arrayMove from "array-move";
 import { parseResponsesCSV } from "../lib";
 import RaisedButton from "material-ui/RaisedButton/RaisedButton";
+import CheckIcon from "material-ui/svg-icons/action/check-circle";
+import WarningIcon from "material-ui/svg-icons/alert/warning";
+import ErrorIcon from "material-ui/svg-icons/alert/error";
+
+const checkIcon = <CheckIcon color={theme.colors.EWnavy} />;
+const warningIcon = <WarningIcon color={theme.colors.EWred} />;
+const errorIcon = <ErrorIcon color={theme.colors.EWred} />;
 
 const innerStyles = {
   button: {
@@ -170,6 +178,80 @@ export default class CampaignCannedResponsesForm extends React.Component {
     });
   };
 
+  renderValidationStats() {
+    if (!this.state.validationStats) {
+      return "";
+    }
+
+    const {
+      missingFieldCount,
+      invalidFieldCount,
+      invalidCustomFields
+    } = this.state.validationStats;
+    const rowOrRows = count => (count === 1 ? "row" : "rows");
+
+    let stats = [
+      [
+        missingFieldCount,
+        `${rowOrRows(missingFieldCount)} with missing body or title`
+      ],
+      [
+        invalidFieldCount,
+        `${rowOrRows(invalidFieldCount)} with invalid custom fields`,
+        invalidCustomFields
+      ]
+    ];
+    stats = stats
+      .filter(([count]) => count > 0)
+      .map(([count, text, nestedItems]) => {
+        return {
+          label: `${count} ${text}`,
+          nestedItems
+        };
+      });
+    return (
+      <List>
+        <Divider />
+        {stats.map((stat, index) => (
+          <ListItem
+            key={index}
+            leftIcon={warningIcon}
+            innerDivStyle={innerStyles.nestedItem}
+            primaryText={stat.label}
+            nestedItems={
+              stat.nestedItems &&
+              stat.nestedItems.map((field, index) => (
+                <ListItem
+                  key={index}
+                  innerDivStyle={innerStyles.nestedItem}
+                  primaryText={field}
+                />
+              ))
+            }
+          />
+        ))}
+      </List>
+    );
+  }
+
+  showUploadStats() {
+    const { responses } = this.state;
+    const responsesCount = responses && responses.length;
+    if (!responses || responsesCount === 0) {
+      return "";
+    }
+    return (
+      <List>
+        <Subheader>Uploaded</Subheader>
+        <ListItem
+          {...dataTest("uploadedResponses")}
+          primaryText={`${responsesCount} responses`}
+          leftIcon={checkIcon}
+        />
+      </List>
+    );
+  }
+
   showUploadButton() {
     const { uploading } = this.state;
     return (
@@ -295,12 +377,12 @@ export default class CampaignCannedResponsesForm extends React.Component {
     );
   }
 
-  handleUploadError(error) {
+  handleUploadError(error, validationStats) {
     this.setState({
-      validationStats: null,
+      validationStats,
       uploading: false,
       responseUploadError: error,
-      responses: null
+      responses: []
     });
   }
 
@@ -308,7 +390,8 @@ export default class CampaignCannedResponsesForm extends React.Component {
     this.setState({
       validationStats,
       uploading: false,
-      responseUploadError: null
+      responseUploadError: null,
+      responses
     });
 
     const newResponses = responses.map(response => {
@@ -342,11 +425,23 @@ export default class CampaignCannedResponsesForm extends React.Component {
         file,
         customFields,
         ({ responses, validationStats, error }) => {
+          const { invalidFieldCount, missingFieldCount } = validationStats;
+
+          const hasNoResponses =
+            !!invalidFieldCount.length &&
+            !!missingFieldCount.length &&
+            !!responses.length;
+
           if (error) {
-            this.handleUploadError(error);
-          } else if (responses.length === 0) {
+            this.handleUploadError(error, validationStats);
+          } else if (hasNoResponses) {
             this.handleUploadError("Upload at least one response");
-          } else if (responses.length > 0) {
+          } else if (responses && responses.length === 0) {
+            this.handleUploadError(
+              "Errors found in responses, none were uploaded.",
+              validationStats
+            );
+          } else {
             this.handleUploadSuccess(validationStats, responses);
           }
         }
@@ -357,6 +452,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
   render() {
     const { formValues } = this.props;
     const cannedResponses = formValues.cannedResponses;
+    const { responseUploadError } = this.state;
     const list =
       cannedResponses.length === 0 ? null : (
         <List>
@@ -376,6 +472,17 @@ export default class CampaignCannedResponsesForm extends React.Component {
           subtitle="Save some scripts for your texters to use to answer additional FAQs that may come up outside of the survey questions and scripts you already set up."
         />
         {this.showUploadButton()}
+        {this.showUploadStats()}
+
+        {responseUploadError ? (
+          <List>
+            <ListItem primaryText={responseUploadError} leftIcon={errorIcon} />
+          </List>
+        ) : (
+          ""
+        )}
+        {this.renderValidationStats()}
+
         {list}
         {this.showAddForm()}
         <Form.Button

@@ -60,7 +60,7 @@ export {
   isRoleGreater
 } from "./permissions";
 
-const getFormattedField = (field, customFields = []) => {
+const validateCustomFieldsInBody = (field, customFields = []) => {
   const regex = /{(.*?)}/;
   const arr = field.trim().split(" ");
   const allVars = arr.reduce((acc, string) => {
@@ -72,12 +72,21 @@ const getFormattedField = (field, customFields = []) => {
   }, []);
 
   const validCustomFields = [...customFields, ...presetFields];
-  const isValid = allVars.every(item => validCustomFields.indexOf(item) >= 0);
+  const sortedFields = _.partition(
+    allVars,
+    item => validCustomFields.indexOf(item) >= 0
+  );
+
+  const missing = sortedFields[1] || [];
+  const isValid = missing.length === 0;
 
   if (isValid) {
-    return field;
+    return { field };
   }
-  return "";
+  return {
+    field: "",
+    missingFields: missing
+  };
 };
 
 const getValidatedResponsesData = (data, customFields) => {
@@ -87,21 +96,34 @@ const getValidatedResponsesData = (data, customFields) => {
   validatedData = result[0];
   const missingFieldCount = result[1];
 
-  validatedData = _.map(validatedData, row =>
-    _.extend(row, {
-      Body: getFormattedField(row.Body, customFields)
-    })
-  );
-
+  validatedData = _.map(validatedData, row => {
+    const { field, missingFields } = validateCustomFieldsInBody(
+      row.Body,
+      customFields
+    );
+    return Object.assign({}, row, {
+      missingFields,
+      Body: field
+    });
+  });
   result = _.partition(validatedData, row => !!row.Body && !!row.Title);
   validatedData = result[0];
-  const invalidCellRows = result[1];
+  const invalidFieldRows = result[1];
+  const invalidCustomFields = invalidFieldRows.reduce(
+    (acc, row) => _.union(acc, row.missingFields),
+    []
+  );
+
+  //if there are any invalid fields, return no responses
+  validatedData =
+    !invalidFieldRows.length && !missingFieldCount.length ? validatedData : [];
 
   return {
     validatedData,
     validationStats: {
-      invalidCellCount: invalidCellRows.length,
-      missingFieldCount: missingFieldCount.length
+      invalidFieldCount: invalidFieldRows.length,
+      missingFieldCount: missingFieldCount.length,
+      invalidCustomFields
     }
   };
 };
@@ -109,6 +131,7 @@ const getValidatedResponsesData = (data, customFields) => {
 export const parseResponsesCSV = (file, customFields, callback) => {
   Papa.parse(file, {
     header: true,
+    skipEmptyLines: true,
     // eslint-disable-next-line no-shadow, no-unused-vars
     complete: ({ data, meta, errors }, file) => {
       const fields = meta.fields;
