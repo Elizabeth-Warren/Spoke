@@ -97,10 +97,10 @@ const styles = StyleSheet.create({
     borderBottom: `2px solid ${theme.colors.white}`
   },
   mainSectionContainer: {
-    height: "100%"
+    display: "flex",
+    height: "calc(100vh - 58px)"
   },
   messageSection: {
-    float: "left",
     width: "calc(100% - 650px)",
     height: "100%",
     display: "flex",
@@ -110,13 +110,13 @@ const styles = StyleSheet.create({
   responsesSection: {
     backgroundColor: theme.colors.EWlibertyGreen,
     height: "100%",
-    float: "left",
     width: "400px",
     overflowY: "scroll"
   },
 
   contactsSection: {
-    float: "left",
+    backgroundColor: theme.colors.EWnavy,
+    color: "white",
     height: "100%",
     width: "250px",
     overflowY: "scroll"
@@ -131,14 +131,12 @@ const styles = StyleSheet.create({
 
   middleScrollingSection: {
     flex: "1 1 auto",
-    flexGrow: "1",
     overflowY: "scroll",
     overflow: "-moz-scrollbars-vertical"
   },
   bottomFixedSection: {
     borderTop: `1px solid ${grey100}`,
-    flex: "0 0 auto",
-    marginBottom: "none"
+    flexShrink: "0"
   },
   messageField: {
     padding: "0px 8px",
