@@ -25,3 +25,4 @@ schema.graphql
 .serverless/
 webpack/bundle.js
 scratch/
+sample*.csv

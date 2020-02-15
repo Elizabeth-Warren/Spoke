@@ -92,6 +92,20 @@ To generate a CSV with, e.g., 1000 contacts, just run:
 This will generate 1000 contacts with `555`-area-code phone numbers, black-hole email addresses,
 `02141` as their ZIP, and a `fav_color` custom field.
 
+In your .env, add the following to make phone numbers valid from the sample input data
+
+```
+SUPPRESS_PHONE_VALIDATION=1
+```
+
+### Working with a reasonable batch size for dynamic assign
+
+The default size for batch assign is 300, but when testing you can change the batch size to a more reasonable tested number by setting in the .env file.
+
+```
+DYNAMIC_ASSIGN_MAX_BATCH_SIZE=10
+```
+
 # Spoke
 
 Spoke is an open source text-distribution tool for organizations to mobilize supporters and members into action. Spoke allows you to upload phone numbers, customize scripts and assign volunteers to communicate with supporters while allowing organizations to manage the process.

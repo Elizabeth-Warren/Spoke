@@ -4,11 +4,11 @@ import sys
 
 
 def first_name(i):
-    return f"John{i}"
+    return f"Bailey{i}"
 
 
 def last_name(i):
-    return f"Doe{i}"
+    return f"Warren{i}"
 
 
 def phone_number(i):
@@ -16,14 +16,14 @@ def phone_number(i):
 
 
 def email(i):
-    return f"johndoe{i}@blackhole.elizabethwarren.com"
+    return f"goodboybailey{i}@blackhole.elizabethwarren.com"
 
 
 def zip(i):
     return "02141"
 
 
-fav_colors = ["red", "blue", "green", "orange", "purple", "yellow"]
+fav_colors = ["red", "blue", "liberty-green", "orange", "purple", "yellow"]
 
 
 def fav_color(i):
