@@ -1,63 +1,27 @@
 import PropTypes from "prop-types";
 import React from "react";
-import AssignmentTexter from "../components/AssignmentTexter";
-import Empty from "../components/Empty";
+import AssignmentTexter from "src/containers/AssignmentTexter";
+
 import { withRouter } from "react-router";
 import loadData from "./hoc/load-data";
 import gql from "graphql-tag";
 
-const contactDataFragment = `
-        id
-        assignmentId
-        firstName
-        lastName
-        cell
-        customFields
-        hasUnresolvedTags
-        optOut {
-          id
-        }
-        questionResponseValues {
-          interactionStepId
-          value
-        }
-        location {
-          city
-          state
-          timezone {
-            offset
-            hasDST
-          }
-        }
-        messageStatus
-        messages {
-          id
-          createdAt
-          text
-          isFromContact
-          attachments
-        }
-`;
-
 export class TexterTodo extends React.Component {
-  constructor() {
-    super();
-    this.assignContactsIfNeeded = this.assignContactsIfNeeded.bind(this);
+  constructor(props) {
+    super(props);
     this.refreshData = this.refreshData.bind(this);
-    this.loadContacts = this.loadContacts.bind(this);
   }
 
   componentWillMount() {
     const { assignment } = this.props.data;
-    this.assignContactsIfNeeded();
     if (!assignment || assignment.campaign.isArchived) {
-      console.log(`LEGACY PUSH TexterTodoList 54`);
       this.props.router.push(`/app/${this.props.params.organizationId}/todos`);
     }
   }
 
   shouldComponentUpdate = nextProps => {
     if (nextProps.data.errors && this.props.params.organizationId) {
+      // TODO: fix suspend redirect
       this.props.router.push(
         `/app/${this.props.params.organizationId}/suspended`
       );
@@ -65,61 +29,24 @@ export class TexterTodo extends React.Component {
     return true;
   };
 
-  assignContactsIfNeeded = async (checkServer = false, currentIndex) => {
-    const { assignment } = this.props.data;
-    // TODO: should we assign a single contact at first, and then afterwards assign 10
-    //       to avoid people loading up the screen but doing nothing -- then they've 'taken' only one contact
-    if (
-      !this.loadingNewContacts &&
-      assignment &&
-      (assignment.contacts.length === 0 || checkServer)
-    ) {
-      const didAddContacts = await this.getNewContacts(
-        checkServer,
-        currentIndex
-      );
-      if (didAddContacts) {
-        return;
-      }
-      // FUTURE: we might check if currentIndex is really at the end now that we've updated
-      console.log("Are we empty?", checkServer, currentIndex);
-      const self = this;
-      return () => {
-        self.props.router.push(
-          `/app/${self.props.params.organizationId}/todos`
-        );
-      };
-    }
-  };
-
-  getNewContacts = async (waitForServer = false, currentIndex) => {
+  requestBatch = async () => {
     const { assignment } = this.props.data;
     if (assignment.campaign.useDynamicAssignment) {
-      console.log(
-        "getnewContacts<ind><cur contacts>",
-        currentIndex,
-        assignment.contacts.map(c => c.id)
+      const result = await this.props.mutations.findNewCampaignContact(
+        assignment.id
       );
-      this.loadingNewContacts = true;
-      const didAddContacts = (
-        await this.props.mutations.findNewCampaignContact(assignment.id)
-      ).data.findNewCampaignContact.found;
-      console.log("getNewContacts ?added", didAddContacts);
-      if (didAddContacts || waitForServer) {
+      if (result.errors) {
+        // TODO[matteo] handle batch assign error;
+        console.log(result.errors);
+        throw new Error(`requestBatch failed: result.errors`);
+      }
+      const didAddContacts = result.data.findNewCampaignContact.found;
+      console.log("requestBatch ?added", didAddContacts);
+      if (didAddContacts) {
         await this.props.data.refetch();
       }
-      this.loadingNewContacts = false;
       return didAddContacts;
     }
-  };
-
-  loadContacts = async contactIds => {
-    this.loadingAssignmentContacts = true;
-    const newContacts = await this.props.mutations.getAssignmentContacts(
-      contactIds
-    );
-    this.loadingAssignmentContacts = false;
-    return newContacts;
   };
 
   refreshData = () => {
@@ -143,15 +70,12 @@ export class TexterTodo extends React.Component {
     return (
       <AssignmentTexter
         assignment={assignment}
-        contacts={contacts}
+        contactsPreview={contacts}
         allContactsCount={allContactsCount}
-        assignContactsIfNeeded={this.assignContactsIfNeeded}
         refreshData={this.refreshData}
-        loadContacts={this.loadContacts}
-        getNewContacts={this.getNewContacts}
-        onRefreshAssignmentContacts={this.refreshAssignmentContacts}
+        requestBatch={this.requestBatch}
         organizationId={this.props.params.organizationId}
-        reviewMode={this.props.reviewMode}
+        initialSendMode={this.props.messageStatus === "needsMessage"}
       />
     );
   }
@@ -162,8 +86,7 @@ TexterTodo.propTypes = {
   params: PropTypes.object,
   data: PropTypes.object,
   mutations: PropTypes.object,
-  router: PropTypes.object,
-  reviewMode: PropTypes.bool
+  router: PropTypes.object
 };
 
 const mapQueriesToProps = ({ ownProps }) => ({
@@ -232,14 +155,17 @@ const mapQueriesToProps = ({ ownProps }) => ({
           }
           contacts(contactsFilter: $contactsFilter) {
             id
+            messageStatus
+            firstName
+            lastName
           }
           allContactsCount: contactsCount
         }
       }
     `,
+    // TODO ^ could slim down the requested contact data for initial send
     variables: {
       contactsFilter: {
-        contactId: ownProps.params.contactId,
         messageStatus: ownProps.messageStatus,
         isOptedOut: false,
         validTimezone: true
@@ -256,7 +182,7 @@ const mapMutationsToProps = ({ ownProps }) => ({
     mutation: gql`
       mutation findNewCampaignContact(
         $assignmentId: String!
-        $numberContacts: Int!
+        $numberContacts: Int
       ) {
         findNewCampaignContact(
           assignmentId: $assignmentId
@@ -268,22 +194,8 @@ const mapMutationsToProps = ({ ownProps }) => ({
     `,
     variables: {
       assignmentId,
-      numberContacts: 10
-    }
-  }),
-  getAssignmentContacts: (contactIds, findNew) => ({
-    mutation: gql`
-      mutation getAssignmentContacts($organizationId: String!, $assignmentId: String!, $contactIds: [String]!, $findNew: Boolean) {
-        getAssignmentContacts(organizationId: $organizationId, assignmentId: $assignmentId, contactIds: $contactIds, findNew: $findNew) {
-          ${contactDataFragment}
-        }
-      }
-    `,
-    variables: {
-      organizationId: ownProps.params.organizationId,
-      assignmentId: ownProps.params.assignmentId,
-      contactIds,
-      findNew: !!findNew
+      // Note: lower the batch size by passing this param:
+      numberContacts: null
     }
   })
 });

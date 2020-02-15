@@ -106,14 +106,6 @@ export default function makeRoutes(requireAuth = () => {}) {
               }}
             />
             <Route path=":assignmentId">
-              <Route path="review">
-                <Route
-                  path=":contactId"
-                  components={{
-                    fullScreen: props => <TexterTodo {...props} reviewMode />
-                  }}
-                />
-              </Route>
               <Route
                 path="text"
                 components={{
@@ -123,21 +115,14 @@ export default function makeRoutes(requireAuth = () => {}) {
                 }}
               />
               <Route
-                path="reply"
+                path="conversations"
                 components={{
                   fullScreen: props => (
-                    <TexterTodo {...props} messageStatus="needsResponse" />
-                  ),
-                  topNav: null
-                }}
-              />
-              <Route
-                path="stale"
-                components={{
-                  fullScreen: props => (
-                    <TexterTodo {...props} messageStatus="convo" />
-                  ),
-                  topNav: null
+                    <TexterTodo
+                      {...props}
+                      messageStatus="needsResponse,convo"
+                    />
+                  )
                 }}
               />
               <Route
@@ -145,27 +130,6 @@ export default function makeRoutes(requireAuth = () => {}) {
                 components={{
                   fullScreen: props => (
                     <TexterTodo {...props} messageStatus="closed" />
-                  ),
-                  topNav: null
-                }}
-              />
-              <Route
-                path="all"
-                components={{
-                  fullScreen: props => (
-                    <TexterTodo
-                      {...props}
-                      messageStatus="needsMessageOrResponse"
-                    />
-                  ),
-                  topNav: null
-                }}
-              />
-              <Route
-                path="active"
-                components={{
-                  fullScreen: props => (
-                    <TexterTodo {...props} messageStatus="allActiveContacts" />
                   ),
                   topNav: null
                 }}

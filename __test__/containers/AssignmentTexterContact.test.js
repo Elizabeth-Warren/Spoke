@@ -6,7 +6,7 @@ import moment from "moment-timezone";
 import { mount } from "enzyme";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import { StyleSheetTestUtils } from "aphrodite";
-import { AssignmentTexterContact } from "../../src/containers/AssignmentTexterContact";
+import { AssignmentTexterContact } from "src/containers/AssignmentTexter/AssignmentTexterContact";
 
 var MockDate = require("mockdate");
 
@@ -69,27 +69,29 @@ const propsWithEnforcedTextingHoursCampaign = {
     allContactsCount: 2
   },
   refreshData: jest.fn(),
-  contact: {
-    id: 19,
-    assignmentId: 9,
-    firstName: "larry",
-    lastName: "person",
-    cell: "+19734779697",
-    zip: "10025",
-    customFields: "{}",
-    optOut: null,
-    currentInteractionStepScript: "{firstName}",
-    questionResponseValues: [],
-    location: {
-      city: "New York",
-      state: "NY",
-      timezone: {
-        offset: -5,
-        hasDST: true
-      }
-    },
-    messageStatus: "needsMessage",
-    messages: []
+  data: {
+    contact: {
+      id: 19,
+      assignmentId: 9,
+      firstName: "larry",
+      lastName: "person",
+      cell: "+19734779697",
+      zip: "10025",
+      customFields: "{}",
+      optOut: null,
+      currentInteractionStepScript: "{firstName}",
+      questionResponseValues: [],
+      location: {
+        city: "New York",
+        state: "NY",
+        timezone: {
+          offset: -5,
+          hasDST: true
+        }
+      },
+      messageStatus: "needsMessage",
+      messages: []
+    }
   }
 };
 
@@ -113,7 +115,7 @@ describe("when contact is not within texting hours...", () => {
           campaign={campaign}
           assignment={propsWithEnforcedTextingHoursCampaign.assignment}
           refreshData={propsWithEnforcedTextingHoursCampaign.refreshData}
-          contact={propsWithEnforcedTextingHoursCampaign.contact}
+          data={propsWithEnforcedTextingHoursCampaign.data}
         />
       </MuiThemeProvider>
     );
@@ -141,7 +143,7 @@ describe("when contact is within texting hours...", () => {
           campaign={campaign}
           assignment={propsWithEnforcedTextingHoursCampaign.assignment}
           refreshData={propsWithEnforcedTextingHoursCampaign.refreshData}
-          contact={propsWithEnforcedTextingHoursCampaign.contact}
+          data={propsWithEnforcedTextingHoursCampaign.data}
         />
       </MuiThemeProvider>
     );

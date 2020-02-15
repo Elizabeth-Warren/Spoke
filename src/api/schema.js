@@ -255,7 +255,6 @@ const rootSchema = gql`
       optOutMessage: String!
     ): Organization
     enableCampaignPhoneNumbers(organizationId: String!): Organization
-    bulkSendMessages(assignmentId: Int!): [CampaignContact]
     sendMessage(
       message: MessageInput!
       campaignContactId: String!
@@ -287,15 +286,9 @@ const rootSchema = gql`
     archiveCampaigns(ids: [String!]): [Campaign]
     unarchiveCampaign(id: String!): Campaign
     sendReply(id: String!, message: String!): CampaignContact
-    getAssignmentContacts(
-      organizationId: String!
-      assignmentId: String!
-      contactIds: [String]
-      findNew: Boolean
-    ): [CampaignContact]
     findNewCampaignContact(
       assignmentId: String!
-      numberContacts: Int!
+      numberContacts: Int
     ): FoundContact
     assignUserToCampaign(token: String!): Campaign
     userAgreeTerms: User
@@ -335,7 +328,6 @@ export const schema = [
   "scalar JSON",
   "scalar Phone",
   campaignSchema,
-
   assignmentSchema,
   interactionStepSchema,
   optOutSchema,

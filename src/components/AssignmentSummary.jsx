@@ -2,8 +2,6 @@ import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { Card, CardActions, CardTitle } from "material-ui/Card";
 import { StyleSheet, css } from "aphrodite";
-import loadData from "../containers/hoc/load-data";
-import gql from "graphql-tag";
 import RaisedButton from "material-ui/RaisedButton";
 import Badge from "material-ui/Badge";
 import moment from "moment";
@@ -111,11 +109,8 @@ export class AssignmentSummary extends Component {
     const {
       assignment,
       unmessagedCount,
-      unrepliedCount,
+      conversationCount,
       badTimezoneCount,
-      totalMessagedCount,
-      allActiveContactsCount,
-      pastMessagesCount,
       skippedMessagesCount
     } = this.props;
     const {
@@ -149,57 +144,40 @@ export class AssignmentSummary extends Component {
             <div dangerouslySetInnerHTML={{ __html: introHtml }} />
           </div>
           <CardActions>
-            {window.NOT_IN_USA && window.ALLOW_SEND_ALL
-              ? ""
-              : this.renderBadgedButton({
-                  dataTestText: "sendFirstTexts",
-                  assignment,
-                  title: "Send first texts",
-                  count: unmessagedCount,
-                  primary: true,
-                  disabled:
-                    (useDynamicAssignment &&
-                      !hasUnassignedContactsForTexter &&
-                      unmessagedCount == 0) ||
-                    (useDynamicAssignment && maxContacts === 0),
-                  contactsFilter: "text",
-                  hideIfZero: !useDynamicAssignment
-                })}
-            {window.NOT_IN_USA && window.ALLOW_SEND_ALL
-              ? ""
-              : this.renderBadgedButton({
-                  dataTestText: "sendReplies",
-                  assignment,
-                  title: "Send replies",
-                  count: unrepliedCount,
-                  primary: false,
-                  disabled: false,
-                  contactsFilter: "reply",
-                  hideIfZero: true
-                })}
             {this.renderBadgedButton({
+              dataTestText: "sendFirstTexts",
               assignment,
-              title: "Past Messages",
-              count: pastMessagesCount,
-              style: inlineStyles.pastMsgStyle,
+              title: "Send first texts",
+              count: unmessagedCount,
+              primary: true,
+              disabled:
+                (useDynamicAssignment &&
+                  !hasUnassignedContactsForTexter &&
+                  unmessagedCount === 0) ||
+                (useDynamicAssignment && maxContacts === 0),
+              contactsFilter: "text",
+              hideIfZero: !useDynamicAssignment
+            })}
+            {this.renderBadgedButton({
+              dataTestText: "conversations",
+              assignment,
+              title: "Conversations",
+              count: conversationCount,
               primary: false,
               disabled: false,
-              contactsFilter: "stale",
+              contactsFilter: "conversations", // TODO: introduce our own filter
               hideIfZero: true
             })}
-
-            {unmessagedCount === 0 &&
-              this.renderBadgedButton({
-                assignment,
-                title: "All",
-                count: allActiveContactsCount,
-                style: inlineStyles.pastMsgStyle,
-                primary: false,
-                disabled: false,
-                contactsFilter: "active",
-                hideIfZero: true
-              })}
-
+            {/*  TODO: better messaging around texting hours */}
+            {this.renderBadgedButton({
+              assignment,
+              title: "Send later",
+              count: badTimezoneCount,
+              primary: false,
+              disabled: true,
+              contactsFilter: null,
+              hideIfZero: true
+            })}
             {this.renderBadgedButton({
               assignment,
               title: "Skipped Messages",
@@ -208,26 +186,6 @@ export class AssignmentSummary extends Component {
               primary: false,
               disabled: false,
               contactsFilter: "skipped",
-              hideIfZero: true
-            })}
-            {window.NOT_IN_USA && window.ALLOW_SEND_ALL
-              ? this.renderBadgedButton({
-                  assignment,
-                  title: "Send messages",
-                  primary: true,
-                  disabled: false,
-                  contactsFilter: "all",
-                  count: 0,
-                  hideIfZero: false
-                })
-              : ""}
-            {this.renderBadgedButton({
-              assignment,
-              title: "Send later",
-              count: badTimezoneCount,
-              primary: false,
-              disabled: true,
-              contactsFilter: null,
               hideIfZero: true
             })}
           </CardActions>
@@ -242,10 +200,8 @@ AssignmentSummary.propTypes = {
   router: PropTypes.object,
   assignment: PropTypes.object,
   unmessagedCount: PropTypes.number,
-  unrepliedCount: PropTypes.number,
+  conversationCount: PropTypes.number,
   badTimezoneCount: PropTypes.number,
-  pastMessagesCount: PropTypes.number,
-  allActiveContactsCount: PropTypes.number,
   skippedMessagesCount: PropTypes.number,
   data: PropTypes.object,
   mutations: PropTypes.object

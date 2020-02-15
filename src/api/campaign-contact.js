@@ -1,5 +1,6 @@
 import gql from "graphql-tag";
 
+// TODO allow passing an array of contact ids to the filter?
 export const schema = gql`
   input ContactsFilter {
     contactId: ID

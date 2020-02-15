@@ -66,6 +66,7 @@ import db from "src/server/db";
 import preconditions from "src/server/preconditions";
 import BackgroundJob from "../db/background-job";
 import { assignTexters } from "src/server/workers/assign-texters";
+import config from "src/server/config";
 
 const uuidv4 = require("uuid").v4;
 
@@ -887,29 +888,10 @@ const rootMutations = {
 
       return true;
     },
-    getAssignmentContacts: async (
-      _,
-      { organizationId, assignmentId, contactIds, findNew },
-      { loaders, user }
-    ) => {
-      await assignmentAndNotSuspended(organizationId, user, assignmentId);
-      const contacts = contactIds.map(async contactId => {
-        const contact = await loaders.campaignContact.load(contactId);
-        if (contact && contact.assignment_id === Number(assignmentId)) {
-          return contact;
-        }
-        return null;
-      });
-      if (findNew) {
-        // maybe TODO: we could automatically add dynamic assignments in the same api call
-        // findNewCampaignContact()
-      }
-      return contacts;
-    },
     findNewCampaignContact: async (
       _,
       { assignmentId, numberContacts },
-      { loaders, user }
+      { user }
     ) => {
       /* This attempts to find a new contact for the assignment, in the case that useDynamicAssigment == true */
       const assignment = await Assignment.get(assignmentId);
@@ -924,13 +906,18 @@ const rootMutations = {
         r.knex("campaign_contact").where("assignment_id", assignmentId)
       );
 
-      numberContacts = numberContacts || 1;
+      const maxSize = config.DYNAMIC_ASSIGN_MAX_BATCH_SIZE;
+      numberContacts = numberContacts
+        ? Math.min(numberContacts, maxSize)
+        : maxSize;
       if (
         assignment.max_contacts &&
         contactsCount + numberContacts > assignment.max_contacts
       ) {
         numberContacts = assignment.max_contacts - contactsCount;
       }
+      // TODO[matteo]: simplify by only allowing a batch to be requested
+      // if someone has zero unmessaged contacts
       // Don't add more if they already have that many
       const result = await r.getCount(
         r.knex("campaign_contact").where({
@@ -962,9 +949,8 @@ const rootMutations = {
 
       if (updatedCount > 0) {
         return { found: true };
-      } else {
-        return { found: false };
       }
+      return { found: false };
     },
 
     createOptOut: async (
@@ -993,14 +979,7 @@ const rootMutations = {
         id: campaignContactId
       };
     },
-    bulkSendMessages: async (_, { assignmentId }, loaders) => {
-      // Note: not supported in the Warren fork
-      log.error("Not allowed to send all messages at once");
-      throw new GraphQLError({
-        status: 403,
-        message: "Not allowed to send all messages at once"
-      });
-    },
+
     sendMessage: async (
       _,
       { message, campaignContactId },
@@ -1014,7 +993,6 @@ const rootMutations = {
         contact.assignment_id !== parseInt(message.assignmentId, 10) ||
         campaign.is_archived
       ) {
-        // TODO[matteo]: figure out why this returns "TypeError: Cannot convert object to primitive value"
         throw new GraphQLError({
           status: 400,
           message: "Your assignment has changed"
@@ -1041,19 +1019,6 @@ const rootMutations = {
           message: "Skipped sending because this contact was already opted out"
         });
       }
-
-      // TODO[matteo]: enforce organization/campaign texting hours here
-      // const config = {
-      //   textingHoursEnforced: organization.texting_hours_enforced,
-      //   textingHoursStart: organization.texting_hours_start,
-      //   textingHoursEnd: organization.texting_hours_end,
-      // }
-      // if (!isBetweenTextingHours(offsetData, config)) {
-      //   throw new GraphQLError({
-      //     status: 400,
-      //     message: "Skipped sending because it's now outside texting hours for this contact"
-      //   })
-      // }
 
       const { contactNumber, text } = message;
 
@@ -1099,7 +1064,7 @@ const rootMutations = {
           message: "Outside permitted texting time for this recipient"
         });
       }
-
+      // TODO[matteo]: throw some duplicate send detection in here
       const messageInstance = new Message({
         text: replaceCurlyApostrophes(text),
         contact_number: contactNumber,

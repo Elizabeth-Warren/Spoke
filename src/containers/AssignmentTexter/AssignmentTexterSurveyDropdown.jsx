@@ -4,7 +4,7 @@ import SelectField from "material-ui/SelectField";
 import MenuItem from "material-ui/MenuItem";
 import Divider from "material-ui/Divider";
 import gql from "graphql-tag";
-import loadData from "./hoc/load-data";
+import loadData from "src/components/hoc/load-data";
 
 const styles = {
   previousStep: {

@@ -1,7 +1,8 @@
 import { CampaignContact, r, cacheableData } from "../models";
 import { mapFieldsToModel } from "./lib/utils";
-import { log, getTopMostParent, zipToTimeZone } from "../../lib";
-import db from "../db";
+import { zipToTimeZone } from "../../lib";
+import db from "src/server/db";
+import log from "src/server/log";
 
 export const resolvers = {
   Location: {

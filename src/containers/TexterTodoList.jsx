@@ -2,14 +2,14 @@ import PropTypes from "prop-types";
 import React from "react";
 import Check from "material-ui/svg-icons/action/check-circle";
 import Empty from "../components/Empty";
-import AssignmentSummary from "../components/AssignmentSummary";
 import loadData from "./hoc/load-data";
 import gql from "graphql-tag";
 import { withRouter } from "react-router";
 
+import AssignmentSummary from "src/components/AssignmentSummary";
 class TexterTodoList extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = { polling: null };
   }
 
@@ -27,10 +27,9 @@ class TexterTodoList extends React.Component {
       .map(assignment => {
         if (
           assignment.unmessagedCount > 0 ||
-          assignment.unrepliedCount > 0 ||
+          assignment.conversationCount > 0 ||
           assignment.badTimezoneCount > 0 ||
           assignment.campaign.useDynamicAssignment ||
-          assignment.pastMessagesCount > 0 ||
           assignment.skippedMessagesCount > 0
         ) {
           return (
@@ -39,11 +38,9 @@ class TexterTodoList extends React.Component {
               key={assignment.id}
               assignment={assignment}
               unmessagedCount={assignment.unmessagedCount}
-              unrepliedCount={assignment.unrepliedCount}
+              conversationCount={assignment.conversationCount}
               badTimezoneCount={assignment.badTimezoneCount}
-              pastMessagesCount={assignment.pastMessagesCount}
               skippedMessagesCount={assignment.skippedMessagesCount}
-              allActiveContactsCount={assignment.allActiveContactsCount}
             />
           );
         }
@@ -51,6 +48,7 @@ class TexterTodoList extends React.Component {
       })
       .filter(ele => ele !== null);
   }
+
   componentDidMount() {
     this.props.data.refetch();
     // stopPolling is broken (at least in currently used version), so we roll our own so we can unmount correctly
@@ -100,7 +98,8 @@ class TexterTodoList extends React.Component {
 TexterTodoList.propTypes = {
   organizationId: PropTypes.string,
   params: PropTypes.object,
-  data: PropTypes.object
+  data: PropTypes.object,
+  router: PropTypes.object
 };
 
 const mapQueriesToProps = ({ ownProps }) => ({
@@ -109,11 +108,9 @@ const mapQueriesToProps = ({ ownProps }) => ({
       query getTodos(
         $organizationId: String!
         $needsMessageFilter: ContactsFilter
-        $needsResponseFilter: ContactsFilter
+        $conversationFilter: ContactsFilter
         $badTimezoneFilter: ContactsFilter
-        $pastMessagesFilter: ContactsFilter
         $skippedMessagesFilter: ContactsFilter
-        $allActiveContactsFilter: ContactsFilter
       ) {
         currentUser {
           id
@@ -133,17 +130,12 @@ const mapQueriesToProps = ({ ownProps }) => ({
             }
             maxContacts
             unmessagedCount: contactsCount(contactsFilter: $needsMessageFilter)
-            unrepliedCount: contactsCount(contactsFilter: $needsResponseFilter)
-            badTimezoneCount: contactsCount(contactsFilter: $badTimezoneFilter)
-            pastMessagesCount: contactsCount(
-              contactsFilter: $pastMessagesFilter
+            conversationCount: contactsCount(
+              contactsFilter: $conversationFilter
             )
+            badTimezoneCount: contactsCount(contactsFilter: $badTimezoneFilter)
             skippedMessagesCount: contactsCount(
               contactsFilter: $skippedMessagesFilter
-            )
-
-            allActiveContactsCount: contactsCount(
-              contactsFilter: $allActiveContactsFilter
             )
           }
         }
@@ -156,28 +148,17 @@ const mapQueriesToProps = ({ ownProps }) => ({
         isOptedOut: false,
         validTimezone: true
       },
-      needsResponseFilter: {
-        messageStatus: "needsResponse",
-        isOptedOut: false,
-        validTimezone: true
-      },
       badTimezoneFilter: {
         isOptedOut: false,
         validTimezone: false
       },
-      pastMessagesFilter: {
-        messageStatus: "convo",
+      conversationFilter: {
+        messageStatus: "needsResponse,convo",
         isOptedOut: false,
         validTimezone: true
       },
       skippedMessagesFilter: {
         messageStatus: "closed",
-        isOptedOut: false,
-        validTimezone: true
-      },
-
-      allActiveContactsFilter: {
-        messageStatus: "allActiveContacts",
         isOptedOut: false,
         validTimezone: true
       }

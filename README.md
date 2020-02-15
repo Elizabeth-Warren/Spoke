@@ -16,6 +16,11 @@ Notable changes from upstream:
 - Added external_id_type and state_code as top-level fields to campaign_contact
 - Removed support for `zip` on campaign_contact, which was incomplete in WFP fork anyway
 - Removed support for sqlite
+- Reworked background jobs to run on Lambda, removed support for cron'd jobs
+- Added slack log in
+- Changed the invite flow
+- Split the texter experience into separate components for initial sends and replies
+- Removed bulk send
 
 ## Running for the first time
 

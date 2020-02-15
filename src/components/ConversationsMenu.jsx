@@ -7,7 +7,6 @@ import { StyleSheet, css } from "aphrodite";
 
 const styles = StyleSheet.create({
   wrapper: {
-    backgroundColor: theme.colors.EWlibertyGreen,
     height: "100%"
   },
   componentWrapper: {
@@ -34,11 +33,13 @@ class ConversationsMenu extends React.Component {
       {
         name: "active",
         label: "Active"
-      },
-      {
-        name: "skipped",
-        label: "Skipped"
       }
+      // TODO: matteo: hide skipped for now, they are separated in the TexterTodoList,
+      //   we may want to change that at some point
+      // {
+      //   name: "skipped",
+      //   label: "Skipped"
+      // }
     ];
     return tabs;
   }

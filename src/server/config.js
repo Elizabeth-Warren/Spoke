@@ -53,6 +53,9 @@ export default {
     process.env.SES_CONFIGURATION_SET_NAME || "organizing_emails",
   JOB_EXECUTOR: getJobExecutor(),
   JOB_LAMBDA_WORKER_FUNCTION_NAME: lambdaWorkerFunction,
+  // NOTE: also the default batch size
+  DYNAMIC_ASSIGN_MAX_BATCH_SIZE:
+    process.env.DYNAMIC_ASSIGN_MAX_BATCH_SIZE || 300,
   KNEX_CONFIG: {
     client: "pg",
     connection: {

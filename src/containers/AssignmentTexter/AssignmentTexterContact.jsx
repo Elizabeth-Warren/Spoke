@@ -18,7 +18,6 @@ import yup from "yup";
 import GSForm from "../../components/forms/GSForm";
 import Form from "react-formal";
 import SendButton from "../../components/SendButton";
-import BulkSendButton from "../../components/BulkSendButton";
 import SendButtonArrow from "../../components/SendButtonArrow";
 import CircularProgress from "material-ui/CircularProgress";
 import Snackbar from "material-ui/Snackbar";
@@ -203,12 +202,13 @@ const inlineStyles = {
   }
 };
 
+// TODO: find a nicer way to split this (or AssignmentTexter) into separate components for initial
+//  vs conversations, or at the very least put it in "conversation" vs "initial send mode"
 export class AssignmentTexterContact extends React.Component {
   constructor(props) {
     super(props);
-
     const { assignment, campaign } = this.props;
-    const { contact } = this.props;
+    const contact = this.props.data.contact;
     const questionResponses = this.getInitialQuestionResponses(
       contact.questionResponseValues
     );
@@ -268,10 +268,10 @@ export class AssignmentTexterContact extends React.Component {
   }
 
   componentDidMount() {
-    const { contact } = this.props;
+    const { contact } = this.props.data;
     if (!this.props.forceDisabledDisplayIfNotSendable) {
       if (contact.optOut) {
-        this.skipContact();
+        this.advanceBecauseOfError();
       } else if (!this.isContactBetweenTextingHours(contact)) {
         setTimeout(() => {
           this.props.refreshData();
@@ -294,14 +294,14 @@ export class AssignmentTexterContact extends React.Component {
     document.body.removeEventListener("keydown", this.onEnter);
   }
 
-  onEnter(evt) {
+  async onEnter(evt) {
     if (evt.keyCode === 13) {
       evt.preventDefault();
       // pressing the Enter key submits
       if (this.state.optOutDialogOpen) {
         this.handleOptOut();
       } else if (this.state.skipDialogOpen) {
-        this.handleSkipContact();
+        await this.handleSkipContact();
         this.handleCloseSkipDialog();
       } else {
         this.handleClickSendMessageButton();
@@ -352,7 +352,8 @@ export class AssignmentTexterContact extends React.Component {
     return questionResponses;
   }
   getMessageTextFromScript(script) {
-    const { campaign, contact, texter } = this.props;
+    const { campaign, texter } = this.props;
+    const { contact } = this.props.data;
 
     return script
       ? applyScript({
@@ -365,7 +366,8 @@ export class AssignmentTexterContact extends React.Component {
   }
 
   getStartingMessageText() {
-    const { contact, campaign } = this.props;
+    const { campaign } = this.props;
+    const { contact } = this.props.data;
     const { messages } = contact;
     return messages.length > 0
       ? ""
@@ -386,7 +388,8 @@ export class AssignmentTexterContact extends React.Component {
   };
 
   createMessageToContact(text, cannedResponseId) {
-    const { texter, assignment, contact } = this.props;
+    const { texter, assignment } = this.props;
+    const { contact } = this.props.data;
 
     return {
       contactNumber: contact.cell,
@@ -404,6 +407,7 @@ export class AssignmentTexterContact extends React.Component {
 
   handleSendMessageError = e => {
     if (e.status === 402) {
+      // ???
       this.goBackToTodos();
     } else if (e.status === 400) {
       const newState = {
@@ -420,7 +424,7 @@ export class AssignmentTexterContact extends React.Component {
           disabled: true,
           disabledText: e.message
         });
-        this.skipContact();
+        this.advanceBecauseOfError();
       }
     } else {
       console.error(e);
@@ -432,7 +436,7 @@ export class AssignmentTexterContact extends React.Component {
 
   handleMessageFormSubmit = async ({ messageText }) => {
     try {
-      const { contact } = this.props;
+      const { contact } = this.props.data;
       const { messages } = contact;
 
       const message = this.createMessageToContact(
@@ -443,29 +447,37 @@ export class AssignmentTexterContact extends React.Component {
         return; // stops from multi-send
       }
       this.setState({ disabled: true });
-      console.log("sendMessage", contact.id);
+
       const sendMessageResult = await this.props.mutations.sendMessage(
         message,
         contact.id
       );
+
       if (sendMessageResult.errors && this.props.campaign.organization.id) {
-        this.props.router.push(
-          `/app/${this.props.campaign.organization.id}/suspended`
-        );
+        this.handleSendMessageError(sendMessageResult.errors);
       }
 
       await this.handleSubmitSurveys();
       const autoAdvance = messages.length === 0;
-      console.log("autoadvance", autoAdvance);
-
-      this.props.onFinishContact(contact.id, autoAdvance);
+      if (autoAdvance) {
+        this.props.advanceContact();
+      } else {
+        // Refresh the contact:
+        await this.props.data.refetch();
+        // Refresh the sidebar:
+        await this.props.refreshData();
+        this.setState({
+          disabled: false,
+          messageText: ""
+        });
+      }
     } catch (e) {
       this.handleSendMessageError(e);
     }
   };
 
   handleSubmitSurveys = async () => {
-    const { contact } = this.props;
+    const { contact } = this.props.data;
 
     const deletionIds = [];
     const questionResponseObjects = [];
@@ -505,13 +517,14 @@ export class AssignmentTexterContact extends React.Component {
     await this.handleSubmitSurveys();
     await this.handleApplyTag();
     await this.handleEditMessageStatus("closed");
-    this.props.onFinishContact();
+    await this.props.refreshData();
+    this.props.advanceContact();
   };
 
   handleApplyTag = async () => {
     if (!!this.state.tag && this.state.tag !== NO_TAG.value) {
       await this.props.mutations.addTag(
-        [this.props.contact.id],
+        [this.props.contactId],
         [this.state.tag],
         ""
       );
@@ -523,16 +536,17 @@ export class AssignmentTexterContact extends React.Component {
   };
 
   handleEditMessageStatus = async messageStatus => {
-    const { contact } = this.props;
+    const { contact } = this.props.data;
     await this.props.mutations.editCampaignContactMessageStatus(
       messageStatus,
       contact.id
     );
+    await this.props.refreshData();
   };
 
   handleOptOut = async () => {
     const optOutMessageText = this.state.optOutMessageText;
-    const { contact } = this.props;
+    const { contact } = this.props.data;
     const { assignment } = this.props;
     const message = this.createMessageToContact(optOutMessageText);
     if (this.state.disabled) {
@@ -566,7 +580,8 @@ export class AssignmentTexterContact extends React.Component {
       if (optOutRes.errors) {
         this.toggleErrorModal();
       } else {
-        this.props.onFinishContact(contact.id);
+        this.props.refreshData();
+        this.props.advanceContact();
       }
     } catch (e) {
       this.handleSendMessageError(e);
@@ -632,7 +647,7 @@ export class AssignmentTexterContact extends React.Component {
 
   handleClickSendMessageButton = () => {
     this.refs.form.submit();
-    if (this.props.contact.messageStatus === "needsMessage") {
+    if (this.props.data.contact.messageStatus === "needsMessage") {
       this.setState({ justSentNew: true });
     }
   };
@@ -686,13 +701,9 @@ export class AssignmentTexterContact extends React.Component {
     return isBetweenTextingHours(timezoneData, config);
   }
 
-  skipContact = () => {
-    setTimeout(this.props.onFinishContact, 1500);
-  };
-
-  bulkSendMessages = async assignmentId => {
-    await this.props.mutations.bulkSendMessages(assignmentId);
-    this.props.refreshData();
+  // note: this is not the same as skipping with tag
+  advanceBecauseOfError = () => {
+    setTimeout(this.props.advanceContact, 1500);
   };
 
   messageSchema = yup.object({
@@ -726,7 +737,7 @@ export class AssignmentTexterContact extends React.Component {
       onTagChanged={tag => this.setState({ tag })}
     />
   );
-
+  // TODO: matteo/appears to be unused
   dialogActions = (
     <FlatButton
       label="Close"
@@ -734,6 +745,7 @@ export class AssignmentTexterContact extends React.Component {
       onClick={() => this.handleCloseDialog()}
     />
   );
+
   renderErrorModal = () => (
     <Dialog
       title="Oh no! There's been an error."
@@ -745,7 +757,7 @@ export class AssignmentTexterContact extends React.Component {
           primary
           onClick={() => {
             this.toggleErrorModal();
-            this.props.onFinishContact(this.props.contact.id);
+            this.props.advanceContact();
           }}
         />
       }
@@ -772,12 +784,12 @@ export class AssignmentTexterContact extends React.Component {
   );
 
   renderMiddleScrollingSection() {
-    const { contact } = this.props;
+    const { contact } = this.props.data;
     return <MessageList contact={contact} messages={contact.messages} />;
   }
 
   renderSurveySection() {
-    const { contact } = this.props;
+    const { contact } = this.props.data;
     const { messages } = contact;
 
     const { questionResponses } = this.state;
@@ -830,13 +842,8 @@ export class AssignmentTexterContact extends React.Component {
   }
 
   renderActionToolbar() {
-    const {
-      contact,
-      campaign,
-      assignment,
-      navigationToolbarChildren,
-      onFinishContact
-    } = this.props;
+    const { campaign } = this.props;
+    const { contact } = this.props.data;
     const { justSentNew } = this.state;
     const { messageStatus } = contact;
     const size = document.documentElement.clientWidth;
@@ -853,22 +860,7 @@ export class AssignmentTexterContact extends React.Component {
                   this.state.disabled || this.state.notSendableButForceDisplay
                 }
               />
-              {window.NOT_IN_USA &&
-              window.ALLOW_SEND_ALL &&
-              window.BULK_SEND_CHUNK_SIZE ? (
-                <BulkSendButton
-                  assignment={assignment}
-                  onFinishContact={onFinishContact}
-                  bulkSendMessages={this.bulkSendMessages}
-                  setDisabled={this.setDisabled}
-                />
-              ) : (
-                ""
-              )}
             </ToolbarGroup>
-            <div className={css(styles.navButtonsWrapper)}>
-              {navigationToolbarChildren}
-            </div>
           </Toolbar>
         </div>
       );
@@ -894,9 +886,6 @@ export class AssignmentTexterContact extends React.Component {
               />
               {this.renderNeedsResponseToggleButton(contact)}
             </ToolbarGroup>
-            <div className={css(styles.navButtonsWrapper)}>
-              {navigationToolbarChildren}
-            </div>
           </Toolbar>
         </div>
       );
@@ -922,9 +911,6 @@ export class AssignmentTexterContact extends React.Component {
                 style={inlineStyles.buttonWidth}
               />
             </ToolbarGroup>
-            <div className={css(styles.navButtonsWrapper)}>
-              {navigationToolbarChildren}
-            </div>
           </Toolbar>
         </div>
       );
@@ -933,7 +919,7 @@ export class AssignmentTexterContact extends React.Component {
   }
 
   renderTopFixedSection() {
-    const { contact } = this.props;
+    const { contact } = this.props.data;
     return (
       <ContactToolbar
         campaign={this.props.campaign}
@@ -955,7 +941,8 @@ export class AssignmentTexterContact extends React.Component {
   }
 
   renderReplyTools() {
-    const { campaign, assignment, contact } = this.props;
+    const { campaign, assignment } = this.props;
+    const { contact } = this.props.data;
     const { campaignCannedResponses } = assignment;
 
     const nonDeletedResponses = campaignCannedResponses.filter(r => !r.deleted);
@@ -979,7 +966,7 @@ export class AssignmentTexterContact extends React.Component {
     const { conversationList, onSelectConversation } = this.props;
     return (
       <ConversationsMenu
-        currentContact={this.props.contact.id}
+        currentContact={this.props.contactId}
         conversations={conversationList || []}
         onSelectConversation={onSelectConversation}
       />
@@ -988,7 +975,7 @@ export class AssignmentTexterContact extends React.Component {
 
   renderCorrectSendButton() {
     const { campaign } = this.props;
-    const { contact } = this.props;
+    const { contact } = this.props.data;
     if (
       contact.messageStatus === "messaged" ||
       contact.messageStatus === "convo" ||
@@ -1009,7 +996,7 @@ export class AssignmentTexterContact extends React.Component {
 
   renderBottomFixedSection() {
     const { optOutDialogOpen, skipDialogOpen } = this.state;
-    const { contact } = this.props;
+    const { contact } = this.props.data;
     const { messageStatus } = contact;
 
     const message =
@@ -1054,8 +1041,20 @@ export class AssignmentTexterContact extends React.Component {
     );
   }
 
+  renderInitialSendProgress() {
+    // TODO: STYLE ME!
+    return (
+      <div style={{ fontSize: "xxx-large", textAlign: "center" }}>
+        {this.props.contactsRemaining}
+      </div>
+    );
+  }
   // todo middle scrolling section needs to be 800px and then next to it needs to
   render() {
+    const { messageStatus } = this.props.data.contact;
+    const { justSentNew } = this.state;
+
+    const conversationView = !(messageStatus === "needsMessage" || justSentNew);
     return (
       <div>
         {this.state.errorModalOpen && this.renderErrorModal()}
@@ -1073,7 +1072,7 @@ export class AssignmentTexterContact extends React.Component {
           </div>
           <div className={css(styles.mainSectionContainer)}>
             <div className={css(styles.contactsSection)}>
-              {this.renderContactsSection()}
+              {conversationView ? this.renderContactsSection() : ""}
             </div>
             <div className={css(styles.messageSection)}>
               <div
@@ -1088,7 +1087,9 @@ export class AssignmentTexterContact extends React.Component {
               </div>
             </div>
             <div className={css(styles.responsesSection)}>
-              {this.renderReplyTools()}
+              {conversationView
+                ? this.renderReplyTools()
+                : this.renderInitialSendProgress()}
             </div>
           </div>
         </div>
@@ -1105,20 +1106,70 @@ export class AssignmentTexterContact extends React.Component {
 }
 
 AssignmentTexterContact.propTypes = {
-  contact: PropTypes.object,
+  data: PropTypes.object,
+  contactId: PropTypes.string,
+  contactsRemaining: PropTypes.number,
   campaign: PropTypes.object,
   assignment: PropTypes.object,
   texter: PropTypes.object,
-  navigationToolbarChildren: PropTypes.array,
-  onFinishContact: PropTypes.func,
+  advanceContact: PropTypes.func,
   router: PropTypes.object,
   mutations: PropTypes.object,
-  refreshData: PropTypes.func,
+  refreshData: PropTypes.func, // refreshes the contact list
   onExitTexter: PropTypes.func,
-  forceDisabledDisplayIfNotSendable: PropTypes.bool,
+  forceDisabledDisplayIfNotSendable: PropTypes.bool, // remove?
   conversationList: PropTypes.array,
   onSelectConversation: PropTypes.func
 };
+
+const mapQueriesToProps = ({ ownProps }) => ({
+  data: {
+    query: gql`
+      query getContact($contactId: String!) {
+        contact(id: $contactId) {
+          id
+          assignmentId
+          firstName
+          lastName
+          cell
+          customFields
+          hasUnresolvedTags
+          optOut {
+            id
+          }
+          questionResponseValues {
+            interactionStepId
+            value
+          }
+          location {
+            city
+            state
+            timezone {
+              offset
+              hasDST
+            }
+          }
+          messageStatus
+          messages {
+            id
+            createdAt
+            text
+            isFromContact
+            attachments
+          }
+        }
+      }
+    `,
+    variables: {
+      contactId: ownProps.contactId
+    },
+    // avoid caching issues when loading this contact in the conversation view
+    // after initial send
+    forceFetch: true,
+    // provide an interactive-ish texting experience when on a contact page
+    pollInterval: 5000
+  }
+});
 
 const mapMutationsToProps = () => ({
   createOptOut: (optOut, campaignContactId) => ({
@@ -1242,5 +1293,6 @@ const mapMutationsToProps = () => ({
 });
 
 export default loadData(wrapMutations(withRouter(AssignmentTexterContact)), {
+  mapQueriesToProps,
   mapMutationsToProps
 });

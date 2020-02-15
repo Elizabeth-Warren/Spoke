@@ -6,15 +6,17 @@ import theme from "../styles/theme";
 
 const styles = StyleSheet.create({
   listItem: {
+    color: "white",
     ":hover": {
       backgroundColor: "rgba(240, 242, 240, .1)"
     }
   },
   listItemActive: {
+    color: "white",
     backgroundColor: "rgba(240, 242, 240, .1)"
   },
   icon: {
-    backgroundColor: theme.colors.EWnavy,
+    backgroundColor: theme.colors.EWlibertyGreen,
     borderRadius: "50%",
     height: 12,
     width: 12,
@@ -31,7 +33,7 @@ const styles = StyleSheet.create({
   }
 });
 
-export default class ScriptList extends React.Component {
+export default class ConversationList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -71,7 +73,7 @@ export default class ScriptList extends React.Component {
   }
 }
 
-ScriptList.propTypes = {
+ConversationList.propTypes = {
   conversation: PropTypes.object,
   conversations: PropTypes.arrayOf(PropTypes.object),
   onSelectConversation: PropTypes.func,

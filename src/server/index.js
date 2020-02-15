@@ -188,9 +188,10 @@ app.use(
           : 5 * 60 * 1000 // default saying 5 min, no matter what
     },
     formatError: error => {
-      const code =
-        (error.originalError && error.originalError.code) ||
-        "INTERNAL_SERVER_ERROR";
+      let code = "UNKNOWN";
+      if (error.originalError) {
+        code = error.originalError.code || "INTERNAL_SERVER_ERROR";
+      }
       error.code = code;
       telemetry.reportError(error.originalError, {
         userId: request.user && request.user.id,
