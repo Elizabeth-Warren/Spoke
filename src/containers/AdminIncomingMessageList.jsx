@@ -444,7 +444,9 @@ export class AdminIncomingMessageList extends Component {
               onConversationSelected={this.handleRowSelection}
               onConversationCountChanged={this.conversationCountChanged}
               clearSelectedMessages={this.state.clearSelectedMessages}
-              rowSizeList={CONVERSATION_LIST_ROW_SIZES.sort((a, b) => a - b)}
+              rowSizeList={CONVERSATION_LIST_ROW_SIZES.slice(0).sort(
+                (a, b) => a - b
+              )}
               onForceRefresh={this.handleForceRefresh}
               toolbarTop
               toolbarBottom
@@ -474,7 +476,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
     variables: {
       organizationId: ownProps.params.organizationId
     },
-    forceFetch: true
+    fetchPolicy: "network-only"
   }
 });
 

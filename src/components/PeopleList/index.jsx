@@ -109,9 +109,6 @@ export class PeopleList extends Component {
     this.setState({
       userEdit: false
     });
-    this.props.users.refetch({
-      cursor: this.state.cursor
-    });
   }
 
   async resetPassword(userId) {
@@ -148,8 +145,8 @@ export class PeopleList extends Component {
         };
 
         if (fetchMoreResult) {
-          returnValue.people.users = fetchMoreResult.data.people.users;
-          returnValue.people.pageInfo = fetchMoreResult.data.people.pageInfo;
+          returnValue.people.users = fetchMoreResult.people.users;
+          returnValue.people.pageInfo = fetchMoreResult.people.pageInfo;
         }
         return returnValue;
       }
@@ -306,7 +303,7 @@ export class PeopleList extends Component {
           onNextPageClick={this.handleNextPageClick}
           onPreviousPageClick={this.handlePreviousPageClick}
           onRowSizeChange={this.handleRowSizeChanged}
-          rowSizeList={PEOPLE_PAGE_ROW_SIZES.sort((a, b) => a - b)}
+          rowSizeList={PEOPLE_PAGE_ROW_SIZES.slice(0).sort((a, b) => a - b)}
           footerToolbarStyle={{ paddingRight: "100px" }}
           tableWrapperStyle={{ marginTop: "20px" }}
         />
@@ -430,7 +427,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
       filterString: ownProps.searchString,
       role: ownProps.role
     },
-    forceFetch: true
+    fetchPolicy: "network-only"
   }
 });
 

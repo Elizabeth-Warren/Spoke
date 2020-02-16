@@ -108,7 +108,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
         }
       }
     `,
-    forceFetch: true
+    fetchPolicy: "network-only"
   }
 });
 

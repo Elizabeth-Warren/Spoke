@@ -315,7 +315,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
     variables: {
       organizationId: ownProps.params.organizationId
     },
-    forceFetch: true
+    fetchPolicy: "network-only"
   }
 });
 

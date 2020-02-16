@@ -16,6 +16,7 @@ class TexterTodoList extends React.Component {
   renderTodoList(assignments) {
     const organizationId = this.props.params.organizationId;
     return assignments
+      .slice(0)
       .sort((x, y) => {
         const xToText = x.unmessagedCount + x.unrepliedCount;
         const yToText = y.unmessagedCount + y.unrepliedCount;
@@ -47,19 +48,6 @@ class TexterTodoList extends React.Component {
         return null;
       })
       .filter(ele => ele !== null);
-  }
-
-  componentDidMount() {
-    this.props.data.refetch();
-    // stopPolling is broken (at least in currently used version), so we roll our own so we can unmount correctly
-    if (this.props.data.currentUser.cacheable && !this.state.polling) {
-      const self = this;
-      this.setState({
-        polling: setInterval(() => {
-          self.props.data.refetch();
-        }, 5000)
-      });
-    }
   }
 
   componentWillUnmount() {
@@ -162,7 +150,8 @@ const mapQueriesToProps = ({ ownProps }) => ({
         isOptedOut: false,
         validTimezone: true
       }
-    }
+    },
+    pollInterval: 5000
   }
 });
 

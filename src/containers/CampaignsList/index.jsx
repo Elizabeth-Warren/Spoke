@@ -67,7 +67,7 @@ export class CampaignList extends React.Component {
         };
 
         if (fetchMoreResult) {
-          returnValue.organization = fetchMoreResult.data.organization;
+          returnValue.organization = fetchMoreResult.organization;
         }
         return returnValue;
       }
@@ -102,7 +102,6 @@ export class CampaignList extends React.Component {
       organizationId={this.props.organizationId}
       archiveCampaign={this.props.mutations.archiveCampaign}
       unarchiveCampaign={this.props.mutations.unarchiveCampaign}
-      refetch={this.props.data.refetch}
     />
   );
 
@@ -158,7 +157,8 @@ const mapMutationsToProps = () => ({
             ${campaignInfoFragment}
           }
         }`,
-    variables: { campaignId }
+    variables: { campaignId },
+    refetchQueries: ["organization"]
   }),
   unarchiveCampaign: campaignId => ({
     mutation: gql`mutation unarchiveCampaign($campaignId: String!) {
@@ -166,7 +166,8 @@ const mapMutationsToProps = () => ({
           ${campaignInfoFragment}
         }
       }`,
-    variables: { campaignId }
+    variables: { campaignId },
+    refetchQueries: ["organization"]
   })
 });
 
@@ -201,7 +202,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
       campaignsFilter: ownProps.campaignsFilter,
       sortBy: ownProps.sortBy
     },
-    forceFetch: true
+    fetchPolicy: "network-only"
   }
 });
 

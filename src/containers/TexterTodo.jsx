@@ -172,7 +172,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
       },
       assignmentId: ownProps.params.assignmentId
     },
-    forceFetch: true,
+    fetchPolicy: "network-only",
     pollInterval: 20000
   }
 });

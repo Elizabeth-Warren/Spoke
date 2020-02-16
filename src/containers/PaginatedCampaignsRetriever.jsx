@@ -47,10 +47,9 @@ export class PaginatedCampaignsRetriever extends Component {
           }
           const returnValue = Object.assign({}, prev);
           returnValue.campaigns.campaigns = returnValue.campaigns.campaigns.concat(
-            fetchMoreResult.data.campaigns.campaigns
+            fetchMoreResult.campaigns.campaigns
           );
-          returnValue.campaigns.pageInfo =
-            fetchMoreResult.data.campaigns.pageInfo;
+          returnValue.campaigns.pageInfo = fetchMoreResult.campaigns.pageInfo;
           return returnValue;
         }
       });
@@ -95,7 +94,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
       organizationId: ownProps.organizationId,
       campaignsFilter: ownProps.campaignsFilter
     },
-    forceFetch: true
+    fetchPolicy: "network-only"
   }
 });
 

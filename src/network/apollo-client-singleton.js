@@ -1,10 +1,9 @@
-import ApolloClient, { addQueryMerging } from "apollo-client";
+import ApolloClient from "apollo-client";
 import ResponseMiddlewareNetworkInterface from "./response-middleware-network-interface";
 import { graphQLErrorParser } from "./errors";
 
 const responseMiddlewareNetworkInterface = new ResponseMiddlewareNetworkInterface(
-  process.env.GRAPHQL_URL || "/graphql",
-  { credentials: "same-origin" }
+  { uri: process.env.GRAPHQL_URL || "/graphql", credentials: "same-origin" }
 );
 
 responseMiddlewareNetworkInterface.use({
@@ -31,10 +30,9 @@ responseMiddlewareNetworkInterface.use({
   }
 });
 
-const networkInterface = addQueryMerging(responseMiddlewareNetworkInterface);
+const networkInterface = responseMiddlewareNetworkInterface;
 
 const ApolloClientSingleton = new ApolloClient({
-  networkInterface,
-  shouldBatch: true
+  networkInterface
 });
 export default ApolloClientSingleton;

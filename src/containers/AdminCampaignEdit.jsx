@@ -181,8 +181,7 @@ class AdminCampaignEdit extends React.Component {
         !this.isNew()
           ? null
           : this.state.expandedSection + 1
-    }); // currently throws an unmounted component error in the console
-    await this.props.campaignData.refetch();
+    });
   };
 
   handleSave = async () => {
@@ -507,7 +506,6 @@ class AdminCampaignEdit extends React.Component {
     await this.props.mutations.startCampaign(
       this.props.campaignData.campaign.id
     );
-    await this.props.campaignData.refetch();
     const showJoinDialog = !!this.props.campaignData.campaign
       .useDynamicAssignment;
     this.setState({
@@ -737,7 +735,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
     variables: {
       organizationId: ownProps.params.organizationId
     },
-    forceFetch: true
+    fetchPolicy: "network-only"
   }
 });
 
@@ -796,12 +794,7 @@ function AdminCampaignEditRouter(props) {
   const jobStatus = job.status;
 
   if (jobStatus === "PENDING" || jobStatus === "RUNNING") {
-    return (
-      <JobProgress
-        jobId={job.id}
-        onJobComplete={() => props.campaignData.refetch()}
-      />
-    );
+    return <JobProgress jobId={job.id} />;
   }
 
   if (jobStatus === "FAILED") {

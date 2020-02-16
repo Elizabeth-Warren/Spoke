@@ -274,7 +274,6 @@ export class AssignmentTexterContact extends React.Component {
         this.advanceBecauseOfError();
       } else if (!this.isContactBetweenTextingHours(contact)) {
         setTimeout(() => {
-          this.props.refreshData();
           this.setState({ disabled: false });
         }, 1500);
       }
@@ -462,10 +461,6 @@ export class AssignmentTexterContact extends React.Component {
       if (autoAdvance) {
         this.props.advanceContact();
       } else {
-        // Refresh the contact:
-        await this.props.data.refetch();
-        // Refresh the sidebar:
-        await this.props.refreshData();
         this.setState({
           disabled: false,
           messageText: ""
@@ -517,7 +512,6 @@ export class AssignmentTexterContact extends React.Component {
     await this.handleSubmitSurveys();
     await this.handleApplyTag();
     await this.handleEditMessageStatus("closed");
-    await this.props.refreshData();
     this.props.advanceContact();
   };
 
@@ -541,7 +535,6 @@ export class AssignmentTexterContact extends React.Component {
       messageStatus,
       contact.id
     );
-    await this.props.refreshData();
   };
 
   handleOptOut = async () => {
@@ -580,7 +573,6 @@ export class AssignmentTexterContact extends React.Component {
       if (optOutRes.errors) {
         this.toggleErrorModal();
       } else {
-        this.props.refreshData();
         this.props.advanceContact();
       }
     } catch (e) {
@@ -1115,7 +1107,6 @@ AssignmentTexterContact.propTypes = {
   advanceContact: PropTypes.func,
   router: PropTypes.object,
   mutations: PropTypes.object,
-  refreshData: PropTypes.func, // refreshes the contact list
   onExitTexter: PropTypes.func,
   forceDisabledDisplayIfNotSendable: PropTypes.bool, // remove?
   conversationList: PropTypes.array,
@@ -1165,7 +1156,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
     },
     // avoid caching issues when loading this contact in the conversation view
     // after initial send
-    forceFetch: true,
+    fetchPolicy: "network-only",
     // provide an interactive-ish texting experience when on a contact page
     pollInterval: 5000
   }

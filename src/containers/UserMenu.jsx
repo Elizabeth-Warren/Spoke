@@ -177,7 +177,7 @@ const mapQueriesToProps = () => ({
         }
       }
     `,
-    forceFetch: true
+    fetchPolicy: "network-only"
   }
 });
 

@@ -4,18 +4,6 @@ import loadData from "./hoc/load-data";
 import { CircularProgress } from "material-ui";
 
 class JobProgress extends Component {
-  componentWillReceiveProps(newProps) {
-    const status =
-      newProps.jobData.backgroundJob && newProps.jobData.backgroundJob.status;
-
-    if (status === "FAILED" || status === "DONE") {
-      if (!this.hasCalledJobComplete) {
-        this.hasCalledJobComplete = true;
-        newProps.onJobComplete();
-      }
-    }
-  }
-
   render() {
     const job = this.props.jobData.backgroundJob;
     return (

@@ -46,7 +46,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
       organizationId: ownProps.organizationId,
       role: "TEXTER"
     },
-    forceFetch: true
+    fetchPolicy: "network-only"
   }
 });
 

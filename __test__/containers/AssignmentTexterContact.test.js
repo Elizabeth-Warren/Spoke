@@ -95,37 +95,6 @@ const propsWithEnforcedTextingHoursCampaign = {
   }
 };
 
-describe("when contact is not within texting hours...", () => {
-  afterEach(() => {
-    propsWithEnforcedTextingHoursCampaign.refreshData.mockReset();
-  });
-
-  it("it refreshes data in componentDidMount", () => {
-    timezones.isBetweenTextingHours.mockReturnValue(false);
-    timezones.getLocalTime.mockReturnValue(
-      moment()
-        .utc()
-        .utcOffset(-5)
-    );
-    StyleSheetTestUtils.suppressStyleInjection();
-    let component = mount(
-      <MuiThemeProvider>
-        <AssignmentTexterContact
-          texter={propsWithEnforcedTextingHoursCampaign.texter}
-          campaign={campaign}
-          assignment={propsWithEnforcedTextingHoursCampaign.assignment}
-          refreshData={propsWithEnforcedTextingHoursCampaign.refreshData}
-          data={propsWithEnforcedTextingHoursCampaign.data}
-        />
-      </MuiThemeProvider>
-    );
-    jest.runOnlyPendingTimers();
-    expect(
-      propsWithEnforcedTextingHoursCampaign.refreshData.mock.calls
-    ).toHaveLength(1);
-  });
-});
-
 describe("when contact is within texting hours...", () => {
   var component;
   beforeEach(() => {

@@ -104,7 +104,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
       contactsFilter: { contactId: ownProps.campaignContact.id },
       assignmentsFilter: { texterId: ownProps.assignment.texter.id }
     },
-    forceFetch: true
+    fetchPolicy: "network-only"
   }
 });
 

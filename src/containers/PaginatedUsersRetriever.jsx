@@ -45,9 +45,9 @@ export class PaginatedUsersRetriever extends Component {
           }
           const returnValue = Object.assign({}, prev);
           returnValue.people.users = returnValue.people.users.concat(
-            fetchMoreResult.data.people.users
+            fetchMoreResult.people.users
           );
-          returnValue.people.pageInfo = fetchMoreResult.data.people.pageInfo;
+          returnValue.people.pageInfo = fetchMoreResult.people.pageInfo;
           return returnValue;
         }
       });
@@ -96,7 +96,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
       campaignsFilter: ownProps.campaignsFilter,
       sortBy: ownProps.sortBy || "FIRST_NAME"
     },
-    forceFetch: true
+    fetchPolicy: "network-only"
   }
 });
 
