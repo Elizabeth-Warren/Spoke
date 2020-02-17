@@ -75,7 +75,11 @@ export default wrap(async (req, res) => {
       )
       */
         const html = "";
-        const css = "";
+        const css = {
+          content: fs.readFileSync(
+            path.join(__dirname, "../../styles/fonts.css")
+          ) // these could also be defined in theme.js using aphrodite
+        };
         res.send(renderIndex(html, css, assetMap, store.data));
       } else {
         res.status(404).send("Not found");

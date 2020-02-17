@@ -16,7 +16,7 @@ export default function renderIndex(html, css, assetMap, store) {
     <style>
       /* CSS declarations go here */
       body {
-        font-family: 'Poppins';
+        font-family: 'Ringside Regular A';
         position: absolute;
         top: 0;
         bottom: 0;
