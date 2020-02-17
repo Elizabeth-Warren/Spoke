@@ -370,7 +370,9 @@ export async function reassignConversations(
       assignment = await Assignment.save({
         user_id: newTexterUserId,
         campaign_id: campaignId,
-        max_contacts: parseInt(process.env.MAX_CONTACTS_PER_TEXTER || 0, 10)
+        max_contacts: process.env.MAX_CONTACTS_PER_TEXTER
+          ? parseInt(process.env.MAX_CONTACTS_PER_TEXTER, 10)
+          : null
       });
     }
     campaignIdAssignmentIdMap.set(campaignId, assignment.id);
