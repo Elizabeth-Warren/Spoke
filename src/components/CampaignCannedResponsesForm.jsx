@@ -22,6 +22,9 @@ import RaisedButton from "material-ui/RaisedButton/RaisedButton";
 import CheckIcon from "material-ui/svg-icons/action/check-circle";
 import WarningIcon from "material-ui/svg-icons/alert/warning";
 import ErrorIcon from "material-ui/svg-icons/alert/error";
+import ColumnName from "../containers/AdminCampaignCreate/ColumnName";
+import FilePicker from "../containers/AdminCampaignCreate/FilePicker";
+import ValidationStats from "../containers/AdminCampaignCreate/ValidationStats";
 
 const checkIcon = <CheckIcon color={theme.colors.EWnavy} />;
 const warningIcon = <WarningIcon color={theme.colors.EWred} />;
@@ -51,8 +54,28 @@ const styles = StyleSheet.create({
   form: {
     backgroundColor: theme.colors.white,
     padding: 10
+  },
+  uploadColumnsWrapper: {
+    display: "flex",
+    flexDirection: "row"
+  },
+  uploadColumn: {
+    flex: "1"
+  },
+  errorMessage: {
+    backgroundColor: theme.colors.red,
+    padding: "10px 5px"
   }
 });
+
+const requiredColumns = [
+  { name: "Body", desc: "response body", type: "required" },
+  { name: "Title", desc: "response title", type: "required" }
+];
+
+const optionalColumns = [
+  { name: "Data Item", desc: "survey question", type: "optional" }
+];
 
 export default class CampaignCannedResponsesForm extends React.Component {
   constructor(props) {
@@ -60,9 +83,10 @@ export default class CampaignCannedResponsesForm extends React.Component {
   }
 
   state = {
+    state: "idle",
     showAddForm: false,
-    uploading: false,
-    currentlyEditing: []
+    currentlyEditing: [],
+    fields: null
   };
 
   formSchema = yup.object({
@@ -140,6 +164,14 @@ export default class CampaignCannedResponsesForm extends React.Component {
     });
   };
 
+  columnIsPresent(name) {
+    if (!this.state.fields) {
+      return null;
+    }
+
+    return this.state.fields.indexOf(name) !== -1;
+  }
+
   handleEdit = (responseId, newData) => {
     const newVals = this.props.formValues.cannedResponses.map(
       responseToEdit => {
@@ -178,98 +210,54 @@ export default class CampaignCannedResponsesForm extends React.Component {
     });
   };
 
-  renderValidationStats() {
-    if (!this.state.validationStats) {
-      return "";
-    }
-
-    const {
-      missingFieldCount,
-      invalidFieldCount,
-      invalidCustomFields
-    } = this.state.validationStats;
-    const rowOrRows = count => (count === 1 ? "row" : "rows");
-
-    let stats = [
-      [
-        missingFieldCount,
-        `${rowOrRows(missingFieldCount)} with missing body or title`
-      ],
-      [
-        invalidFieldCount,
-        `${rowOrRows(invalidFieldCount)} with invalid custom fields`,
-        invalidCustomFields
-      ]
-    ];
-    stats = stats
-      .filter(([count]) => count > 0)
-      .map(([count, text, nestedItems]) => {
-        return {
-          label: `${count} ${text}`,
-          nestedItems
-        };
-      });
-    return (
-      <List>
-        <Divider />
-        {stats.map((stat, index) => (
-          <ListItem
-            key={index}
-            leftIcon={warningIcon}
-            innerDivStyle={innerStyles.nestedItem}
-            primaryText={stat.label}
-            nestedItems={
-              stat.nestedItems &&
-              stat.nestedItems.map((field, index) => (
-                <ListItem
-                  key={index}
-                  innerDivStyle={innerStyles.nestedItem}
-                  primaryText={field}
-                />
-              ))
-            }
-          />
-        ))}
-      </List>
-    );
-  }
-
-  showUploadStats() {
-    const { responses } = this.state;
-    const responsesCount = responses && responses.length;
-    if (!responses || responsesCount === 0) {
-      return "";
-    }
-    return (
-      <List>
-        <Subheader>Uploaded</Subheader>
-        <ListItem
-          {...dataTest("uploadedResponses")}
-          primaryText={`${responsesCount} responses`}
-          leftIcon={checkIcon}
-        />
-      </List>
-    );
-  }
-
   showUploadButton() {
-    const { uploading } = this.state;
+    const { responseUploadError } = this.state;
+
     return (
       <div>
-        <RaisedButton
-          {...dataTest("responseUploadButton")}
-          style={innerStyles.button}
-          label={uploading ? "Uploading..." : "Upload responses"}
-          labelPosition="before"
-          disabled={uploading}
-          onClick={() => document.querySelector("#response-upload").click()}
-        />
-        <input
-          id="response-upload"
-          type="file"
-          onChange={this.handleUpload}
-          style={{ display: "none" }}
-        />
+        <h3>Upload CSV</h3>
+        {responseUploadError && (
+          <div className={css(styles.errorMessage)}>{responseUploadError}</div>
+        )}
+
+        <div className={css(styles.uploadColumnsWrapper)}>
+          <div className={css(styles.uploadColumn)}>
+            <h4>Required Columns</h4>
+            <div>
+              {requiredColumns.map(c => (
+                <ColumnName
+                  key={c.name}
+                  {...c}
+                  present={this.columnIsPresent(c.name)}
+                />
+              ))}
+            </div>
+            <h4>Optional Columns</h4>
+            <div>
+              {optionalColumns.map(c => (
+                <ColumnName
+                  key={c.name}
+                  {...c}
+                  present={this.columnIsPresent(c.name)}
+                />
+              ))}
+            </div>
+          </div>
+          {(this.state.state === "idle" ||
+            this.state.state === "uploading") && (
+            <FilePicker onPick={this.handleUpload} />
+          )}
+
+          {(this.state.state === "parsed" ||
+            this.state.state === "uploading") && (
+            <ValidationStats
+              stats={this.state.validationStats}
+              canDelete={this.state.state === "parsed"}
+              onDelete={this.onDelete}
+              nResponses={this.state.responses && this.state.responses.length}
+            />
+          )}
+        </div>
       </div>
     );
   }
@@ -377,21 +365,34 @@ export default class CampaignCannedResponsesForm extends React.Component {
     );
   }
 
-  handleUploadError(error, validationStats) {
+  onDelete = () => {
+    this.setState({
+      responseUploadError: null,
+      uploadError: null,
+      parsedData: null,
+      validationStats: null,
+      fields: null,
+      state: "idle"
+    });
+  };
+
+  handleUploadError(error, validationStats, fields) {
     this.setState({
       validationStats,
-      uploading: false,
       responseUploadError: error,
-      responses: []
+      responses: [],
+      fields,
+      state: "parsed"
     });
   }
 
-  handleUploadSuccess(validationStats, responses) {
+  handleUploadSuccess(validationStats, responses, fields) {
     this.setState({
       validationStats,
-      uploading: false,
       responseUploadError: null,
-      responses
+      responses,
+      fields,
+      state: "parsed"
     });
 
     const newResponses = responses.map(response => {
@@ -416,15 +417,22 @@ export default class CampaignCannedResponsesForm extends React.Component {
     });
   }
 
-  handleUpload = event => {
+  handleUpload = (acceptedFiles, rejectedFiles) => {
+    if (
+      rejectedFiles.length > 0 ||
+      acceptedFiles.length + rejectedFiles.length > 1
+    ) {
+      this.setState({ error: "Please upload a single CSV file" });
+      return;
+    }
+
     const { customFields } = this.props;
-    event.preventDefault();
-    const file = event.target.files[0];
-    this.setState({ uploading: true }, () => {
+    const file = acceptedFiles[0];
+    this.setState({ state: "parsing" }, () => {
       parseResponsesCSV(
         file,
         customFields,
-        ({ responses, validationStats, error }) => {
+        ({ responses, fields, validationStats, error }) => {
           const { invalidFieldCount, missingFieldCount } = validationStats;
 
           const hasNoResponses =
@@ -433,16 +441,17 @@ export default class CampaignCannedResponsesForm extends React.Component {
             !!responses.length;
 
           if (error) {
-            this.handleUploadError(error, validationStats);
+            this.setState({ responseUploadError, state: "idle" });
           } else if (hasNoResponses) {
             this.handleUploadError("Upload at least one response");
           } else if (responses && responses.length === 0) {
             this.handleUploadError(
               "Errors found in responses, none were uploaded.",
-              validationStats
+              validationStats,
+              fields
             );
           } else {
-            this.handleUploadSuccess(validationStats, responses);
+            this.handleUploadSuccess(validationStats, responses, fields);
           }
         }
       );
@@ -469,21 +478,11 @@ export default class CampaignCannedResponsesForm extends React.Component {
       >
         <CampaignFormSectionHeading
           title="Script responses for texters"
-          subtitle="Save some scripts for your texters to use to answer additional FAQs that may come up outside of the survey questions and scripts you already set up."
+          subtitle="Save some scripts for your texters to use to answer additional FAQs that may come up outside of the survey questions and scripts you already set up. Add responses by uploading a CSV of script responses or add them manually."
         />
         {this.showUploadButton()}
-        {this.showUploadStats()}
-
-        {responseUploadError ? (
-          <List>
-            <ListItem primaryText={responseUploadError} leftIcon={errorIcon} />
-          </List>
-        ) : (
-          ""
-        )}
-        {this.renderValidationStats()}
-
         {list}
+        <h3>Add Manually</h3>
         {this.showAddForm()}
         <Form.Button
           type="submit"

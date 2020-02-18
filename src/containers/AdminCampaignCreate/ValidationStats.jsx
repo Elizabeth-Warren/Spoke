@@ -26,34 +26,70 @@ const warningIcon = <WarningIcon color={theme.colors.EWlightRed} />;
 const infoIcon = <InfoIcon />;
 const errorIcon = <ErrorIcon color={theme.colors.red} />;
 
-export default function ValidationStats({
-  nContacts,
-  customFields,
-  stats,
-  canDelete,
-  onDelete
-}) {
-  const { dupeCount, missingCellCount, invalidCellCount } = stats;
+export default function ValidationStats(props) {
+  const {
+    nContacts,
+    nResponses,
+    customFields,
+    stats,
+    canDelete,
+    onDelete
+  } = props;
+  const {
+    dupeCount,
+    missingCellCount,
+    invalidCellCount,
+    missingFieldCount,
+    invalidFieldCount,
+    invalidCustomFields
+  } = stats;
 
   const statLines = [
     {
+      key: "nContacts",
       text: `${nContacts} valid contacts`,
       icon: nContacts > 0 ? infoIcon : errorIcon
     },
     {
+      key: "nResponses",
+      text: `${nResponses} valid responses`,
+      icon: nResponses > 0 ? infoIcon : errorIcon
+    },
+    {
+      key: "dupeCount",
       text: `${dupeCount} duplicates`,
       icon: dupeCount > 0 ? warningIcon : infoIcon
     },
     {
+      key: "missingCellCount",
       text: `${missingCellCount} rows with missing numbers`,
       icon: missingCellCount > 0 ? warningIcon : infoIcon
     },
     {
+      key: "invalidCellCount",
       text: `${invalidCellCount} rows with invalid numbers`,
       icon: invalidCellCount > 0 ? warningIcon : infoIcon
     },
     {
-      text: `Custom fields: ${customFields.join(", ")}`,
+      key: "customFields",
+      text: `Custom fields: ${customFields && customFields.join(", ")}`,
+      icon: infoIcon
+    },
+
+    {
+      key: "missingFieldCount",
+      text: `${missingFieldCount} rows with missing body or title`,
+      icon: missingFieldCount > 0 ? warningIcon : infoIcon
+    },
+    {
+      key: "invalidFieldCount",
+      text: `${invalidFieldCount} rows with invalid fields`,
+      icon: invalidCellCount > 0 ? warningIcon : infoIcon
+    },
+    {
+      key: "invalidCustomFields",
+      text: `Invalid custom fields: ${invalidCustomFields &&
+        invalidCustomFields.join(", ")}`,
       icon: infoIcon
     }
   ];
@@ -62,15 +98,20 @@ export default function ValidationStats({
     <div className={css(styles.uploadColumnRight)}>
       <Card className={css(styles.statsCard)}>
         <List>
-          {statLines.map((stat, index) => (
-            <ListItem
-              key={index}
-              leftIcon={stat.icon}
-              innerDivStyle={{ fontSize: "12px" }}
-              primaryText={stat.text}
-              disabled
-            />
-          ))}
+          {statLines.map((stat, index) => {
+            const hasStat = !!stats[stat.key] || !!props[stat.key];
+            return (
+              hasStat && (
+                <ListItem
+                  key={index}
+                  leftIcon={stat.icon}
+                  innerDivStyle={{ fontSize: "12px" }}
+                  primaryText={stat.text}
+                  disabled
+                />
+              )
+            );
+          })}
         </List>
         <div style={{ textAlign: "center" }}>
           <RaisedButton
@@ -86,13 +127,13 @@ export default function ValidationStats({
 }
 
 ValidationStats.propTypes = {
-  nContacts: types.number.isRequired,
-  customFields: types.arrayOf(types.string).isRequired,
+  nContacts: types.number,
+  customFields: types.arrayOf(types.string),
   stats: types.shape({
-    dupeCount: types.number.isRequired,
-    missingCellCount: types.number.isRequired,
-    invalidCellCount: types.number.isRequired
-  }).isRequired,
+    dupeCount: types.number,
+    missingCellCount: types.number,
+    invalidCellCount: types.number
+  }),
   canDelete: types.bool.isRequired,
   onDelete: types.func.isRequired
 };

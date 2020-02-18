@@ -150,7 +150,9 @@ export const parseResponsesCSV = (file, customFields, callback) => {
           data,
           customFields
         );
+
         callback({
+          fields,
           validationStats,
           responses: validatedData
         });
