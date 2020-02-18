@@ -110,6 +110,8 @@ export class AssignmentSummary extends Component {
       assignment,
       unmessagedCount,
       conversationCount,
+      // TODO: simplify this, because we don't use per-contact location data we can just
+      //  disable stuff by checking the campaign texting hours
       badTimezoneCount,
       skippedMessagesCount
     } = this.props;
@@ -148,6 +150,7 @@ export class AssignmentSummary extends Component {
               dataTestText: "sendFirstTexts",
               assignment,
               title: "Send first texts",
+              // note: won't show a count if outside of texting hours
               count: unmessagedCount,
               primary: true,
               disabled:
@@ -156,7 +159,7 @@ export class AssignmentSummary extends Component {
                   unmessagedCount === 0) ||
                 (useDynamicAssignment && maxContacts === 0),
               contactsFilter: "text",
-              hideIfZero: !useDynamicAssignment
+              hideIfZero: !useDynamicAssignment || badTimezoneCount > 0
             })}
             {this.renderBadgedButton({
               dataTestText: "conversations",

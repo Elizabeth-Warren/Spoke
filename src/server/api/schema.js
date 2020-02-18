@@ -1020,7 +1020,9 @@ const rootMutations = {
         });
       }
 
-      const { contactNumber, text, isInitialMessage } = message;
+      const { text, isInitialMessage } = message;
+      // TODO[matteo]: don't allow the frontend to pass the contact number
+      const contactNumber = contact.cell || message.contactNumber;
 
       if (text.length > (process.env.MAX_MESSAGE_LENGTH || 99999)) {
         throw new GraphQLError({

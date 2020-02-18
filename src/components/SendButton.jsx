@@ -43,7 +43,7 @@ class SendButton extends Component {
           onTouchTap={this.handleTouchTap}
           disabled={this.props.disabled}
           label={this.clickStepLabels()[this.state.clickStepIndex]}
-          primary
+          primary={!this.props.disabled}
         />
       </div>
     );

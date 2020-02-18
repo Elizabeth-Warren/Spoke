@@ -26,7 +26,6 @@ const styles = {
 const MessageList = function MessageList(props) {
   const { contact } = props;
   const { optOut, messages } = contact;
-  // TODO[matteo]: see what this looks like
   const optOutItem = optOut ? (
     <div>
       <Divider />
@@ -50,7 +49,7 @@ const MessageList = function MessageList(props) {
         padding: "10px"
       }}
     >
-      {messages.map((message, index) => (
+      {(messages || []).map((message, index) => (
         <Message key={index} message={message} />
       ))}
       {optOutItem}

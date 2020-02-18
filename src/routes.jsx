@@ -24,6 +24,7 @@ import UserEdit from "./containers/UserEdit";
 import TexterFaqs from "./components/TexterFrequentlyAskedQuestions";
 import FAQs from "./lib/faqs";
 import AdminCampaignCreate from "./containers/AdminCampaignCreate";
+import InitialMessageTexter from "src/containers/AssignmentTexter/InitialMessageTexter";
 
 export default function makeRoutes(requireAuth = () => {}) {
   return (
@@ -106,9 +107,7 @@ export default function makeRoutes(requireAuth = () => {}) {
               <Route
                 path="text"
                 components={{
-                  fullScreen: props => (
-                    <TexterTodo {...props} messageStatus="needsMessage" />
-                  )
+                  fullScreen: props => <InitialMessageTexter {...props} />
                 }}
               />
               <Route
