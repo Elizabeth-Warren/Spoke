@@ -1,10 +1,8 @@
 import { PhoneNumberUtil, PhoneNumberFormat } from "google-libphonenumber";
 
-// Allow fake numbers in test and local development
 const skipValidation =
-  process.env.NODE_ENV !== "production" &&
-  (global.SUPPRESS_PHONE_VALIDATION || process.env.SUPPRESS_PHONE_VALIDATION);
-
+  global.SUPPRESS_PHONE_VALIDATION === "1" ||
+  process.env.SUPPRESS_PHONE_VALIDATION === "1";
 export const getFormattedPhoneNumber = (cell, country = "US") => {
   const phoneUtil = PhoneNumberUtil.getInstance();
   // we return an empty string vs null when the phone number is inValid

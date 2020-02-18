@@ -10,6 +10,12 @@ custom:
   debugApollo:
     dev: 1
     prod: 0
+  suppressPhoneValidation:
+    dev: 1
+  dropMessageRatio:
+    dev: 0.9
+  skipTwilioAndAutoReply:
+    dev: 1
   deploy:
     bucket_name: ${ssm:/${self:custom.infrastructure}/s3/deploy-artifacts/bucket/name~true}
     bucket_arn: ${ssm:/${self:custom.infrastructure}/s3/deploy-artifacts/bucket/arn~true}
@@ -106,6 +112,9 @@ provider:
     SLACK_TEAM_ID: ${ssm:/${self:custom.stage}/spoke/slack/TEAM_ID~true}
     EMBEDDED_SHIFTER_URL: ${ssm:/${self:custom.stage}/spoke/shifter/URL~true}
     MAX_CONTACTS: 60000
+    SUPPRESS_PHONE_VALIDATION: ${self:custom.suppressPhoneValidation.${self:custom.stage}}
+    SKIP_TWILIO_AND_AUTOREPLY: ${self:custom.skipTwilioAndAutoReply.${self:custom.stage}}
+    DROP_MESSAGE_RATIO: ${self:custom.dropMessageRatio.${self:custom.stage}}
 
 functions:
   api:
