@@ -52,7 +52,7 @@ export default function makeRoutes(requireAuth = () => {}) {
           components={{
             main: () => <DashboardLoader path="/app" />,
             topNav: p => (
-              <TopNav title="Spoke Texting" orgId={p.params.organizationId} />
+              <TopNav title="Spoke" orgId={p.params.organizationId} />
             ),
             fullScreen: null
           }}
@@ -89,7 +89,7 @@ export default function makeRoutes(requireAuth = () => {}) {
                 <SuspendedTexter organizationId={p.params.organizationId} />
               ),
               topNav: p => (
-                <TopNav title="Spoke Texting" orgId={p.params.organizationId} />
+                <TopNav title="Spoke" orgId={p.params.organizationId} />
               )
             }}
           />
@@ -98,10 +98,7 @@ export default function makeRoutes(requireAuth = () => {}) {
               components={{
                 main: TexterTodoList,
                 topNav: p => (
-                  <TopNav
-                    title="Spoke Texting"
-                    orgId={p.params.organizationId}
-                  />
+                  <TopNav title="Spoke" orgId={p.params.organizationId} />
                 )
               }}
             />
