@@ -6,7 +6,9 @@ custom:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
   infrastructure: ${opt:infrastructure, env:INFRASTRUCTURE, "dev"}
-  baseUrl: https://${self:custom.customDomain.domainName}
+  baseUrl:
+    dev: https://${self:custom.customDomain.domainName}
+    prod: https://spoke.elizabethwarren.com
   debugApollo:
     dev: 1
     prod: 0
@@ -99,12 +101,12 @@ provider:
     TWILIO_ACCOUNT_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_ACCOUNT_SID~true}
     TWILIO_AUTH_TOKEN: ${ssm:/${self:custom.stage}/spoke/TWILIO_AUTH_TOKEN~true}
     TWILIO_MESSAGE_SERVICE_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_MESSAGE_SERVICE_SID~true}
-    TWILIO_STATUS_CALLBACK_URL: ${self:custom.baseUrl}/twilio-message-report
+    TWILIO_STATUS_CALLBACK_URL: ${self:custom.baseUrl.${self:custom.stage}}/twilio-message-report
     JOB_EXECUTOR: LAMBDA
     JOB_LAMBDA_WORKER_FUNCTION_NAME: internal-spoke-${self:custom.stage}-worker
     ASSETS_DIR: ./build/client/assets
     ASSETS_MAP_FILE: assets.json
-    BASE_URL: ${self:custom.baseUrl}
+    BASE_URL: ${self:custom.baseUrl.${self:custom.stage}}
     OPTOUTS_SHARE_ALL_ORGS: 1
     ENABLE_CLOUDWATCH_REPORTING: 1
     SLACK_CLIENT_ID: ${ssm:/${self:custom.stage}/spoke/slack/CLIENT_ID~true}
