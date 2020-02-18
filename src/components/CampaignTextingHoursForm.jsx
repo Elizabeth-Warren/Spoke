@@ -10,11 +10,12 @@ import isEqual from "lodash/isEqual";
 import moment from "moment";
 import Autocomplete from "material-ui/AutoComplete";
 import { dataSourceItem } from "./utils";
+import MenuItem from "material-ui/MenuItem";
+import SelectField from "material-ui/SelectField";
 
 export default class CampaignTextingHoursForm extends React.Component {
   state = {
     showForm: false,
-    timezoneSearchText: undefined,
     textingHoursStartSearchText: undefined,
     textingHoursEndSearchText: undefined
   };
@@ -49,14 +50,34 @@ export default class CampaignTextingHoursForm extends React.Component {
     );
   }
 
+  createMenuItems(choices) {
+    return choices.map(({ text, rawValue }) => (
+      <MenuItem value={text} key={rawValue} primaryText={text} />
+    ));
+  }
+
+  useDropdownFormField(name, initialValue, label, choices) {
+    return (
+      <SelectField
+        children={this.createMenuItems(choices)}
+        fullWidth={true}
+        value={initialValue}
+        floatingLabelText={label}
+        floatingLabelFixed={true}
+        onChange={(event, index, value) => {
+          this.fireOnChangeIfTheFormValuesChanged(name, value);
+        }}
+      />
+    );
+  }
+
   addAutocompleteFormField(
     name,
     stateName,
     initialValue,
     label,
     hint,
-    choices,
-    collection
+    choices
   ) {
     return (
       <Form.Field
@@ -133,22 +154,7 @@ export default class CampaignTextingHoursForm extends React.Component {
       return dataSourceItem(formattedHour, hour);
     });
 
-    const timezones = [
-      "US/Alaska",
-      "US/Aleutian",
-      "US/Arizona",
-      "US/Central",
-      "US/East-Indiana",
-      "US/Eastern",
-      "US/Hawaii",
-      "US/Indiana-Starke",
-      "US/Michigan",
-      "US/Mountain",
-      "US/Pacific",
-      "US/Samoa",
-      "America/Puerto_Rico",
-      "America/Virgin"
-    ];
+    const timezones = ["US/Central", "US/Eastern", "US/Mountain", "US/Pacific"];
     const timezoneChoices = timezones.map(timezone =>
       dataSourceItem(timezone, timezone)
     );
@@ -185,8 +191,7 @@ export default class CampaignTextingHoursForm extends React.Component {
                   formatTextingHours(this.props.formValues.textingHoursStart),
                   "Start time",
                   "Start typing a start time",
-                  hourChoices,
-                  hours
+                  hourChoices
                 )}
 
                 {this.addAutocompleteFormField(
@@ -199,14 +204,11 @@ export default class CampaignTextingHoursForm extends React.Component {
                   hours
                 )}
 
-                {this.addAutocompleteFormField(
+                {this.useDropdownFormField(
                   "timezone",
-                  "timezoneSearchText",
                   this.props.formValues.timezone,
                   "Timezone to use for contacts without ZIP code and to determine daylight savings",
-                  "Start typing a timezone",
-                  timezoneChoices,
-                  timezones
+                  timezoneChoices
                 )}
               </div>
             ) : (
