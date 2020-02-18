@@ -67,6 +67,7 @@ import preconditions from "src/server/preconditions";
 import BackgroundJob from "../db/background-job";
 import { assignTexters } from "src/server/workers/assign-texters";
 import config from "src/server/config";
+import { ApolloError } from "src/server/api/errors";
 
 const uuidv4 = require("uuid").v4;
 
@@ -988,7 +989,6 @@ const rootMutations = {
       const contact = await loaders.campaignContact.load(campaignContactId);
       const campaign = await loaders.campaign.load(contact.campaign_id);
       await accessRequired(user, campaign.organization_id, "TEXTER");
-      // TODO: assignmentId should be an int
       if (
         contact.assignment_id !== parseInt(message.assignmentId, 10) ||
         campaign.is_archived
@@ -1020,7 +1020,7 @@ const rootMutations = {
         });
       }
 
-      const { contactNumber, text } = message;
+      const { contactNumber, text, isInitialMessage } = message;
 
       if (text.length > (process.env.MAX_MESSAGE_LENGTH || 99999)) {
         throw new GraphQLError({
@@ -1087,18 +1087,36 @@ const rootMutations = {
 
       const service = serviceMap[sendingServiceName];
 
-      contact.updated_at = "now()";
-
-      if (
-        contact.message_status === "needsResponse" ||
-        contact.message_status === "convo"
-      ) {
-        contact.message_status = "convo";
+      if (isInitialMessage) {
+        const countUpdated = await r
+          .knex("campaign_contact")
+          .update({
+            message_status: "messaged",
+            updated_at: "now()"
+          })
+          .where({
+            id: contact.id,
+            message_status: "needsMessage"
+          });
+        if (countUpdated !== 1) {
+          throw new ApolloError(
+            "Duplicate initial message",
+            "DUPLICATE_MESSAGE"
+          );
+        }
       } else {
-        contact.message_status = "messaged";
+        contact.updated_at = "now()";
+        if (
+          contact.message_status === "needsResponse" ||
+          contact.message_status === "convo"
+        ) {
+          contact.message_status = "convo";
+        } else {
+          contact.message_status = "messaged";
+        }
+        await contact.save();
       }
 
-      await contact.save();
       log.info(
         `Sending (${sendingServiceName}): ${messageInstance.user_number} -> ${messageInstance.contact_number}\nMessage: ${messageInstance.text}`
       );

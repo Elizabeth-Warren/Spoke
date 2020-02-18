@@ -415,7 +415,8 @@ export class AssignmentTexterContact extends React.Component {
       userId: texter.id,
       text,
       assignmentId: assignment.id,
-      cannedResponseId
+      cannedResponseId,
+      isInitialMessage: this.props.initialSendMode || false
     };
   }
 
@@ -1133,7 +1134,8 @@ AssignmentTexterContact.propTypes = {
   onExitTexter: PropTypes.func,
   forceDisabledDisplayIfNotSendable: PropTypes.bool, // remove?
   conversationList: PropTypes.array,
-  onSelectConversation: PropTypes.func
+  onSelectConversation: PropTypes.func,
+  initialSendMode: PropTypes.bool
 };
 
 const mapQueriesToProps = ({ ownProps }) => ({

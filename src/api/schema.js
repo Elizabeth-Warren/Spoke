@@ -94,6 +94,7 @@ const rootSchema = gql`
     assignmentId: String!
     userId: String
     cannedResponseId: Int
+    isInitialMessage: Boolean
   }
 
   input UserInput {

@@ -196,6 +196,7 @@ export class AssignmentTexter extends React.Component {
         forceDisabledDisplayIfNotSendable={false}
         onSelectConversation={this.onSelectConversation}
         conversationList={this.props.contactsPreview}
+        initialSendMode={this.props.initialSendMode}
       />
     );
   }
