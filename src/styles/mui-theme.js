@@ -18,6 +18,13 @@ const muiTheme = getMuiTheme(
       canvasColor: theme.colors.white,
       borderColor: theme.colors.lightGray,
       disabledColor: fade(darkBlack, 0.3)
+    },
+    datePicker: {
+      textColor: theme.colors.EWnavy,
+      calendarTextColor: theme.colors.EWnavy,
+      selectColor: theme.colors.EWnavy,
+      selectTextColor: theme.colors.white,
+      headerColor: theme.colors.EWlibertyGreen
     }
   },
   { userAgent: "all" }
