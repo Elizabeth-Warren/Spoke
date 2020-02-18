@@ -50,9 +50,10 @@ const getScriptFieldValue = (contact, texter, fieldName) => {
     result = customFieldNames[fieldName];
   }
 
-  if (CAPITALIZE_FIELDS.indexOf(fieldName) >= 0) {
-    result = capitalize(result);
-  }
+  // No automatic capitalization in the Warren fork
+  // if (CAPITALIZE_FIELDS.indexOf(fieldName) >= 0) {
+  //   result = capitalize(result);
+  // }
 
   return result;
 };
