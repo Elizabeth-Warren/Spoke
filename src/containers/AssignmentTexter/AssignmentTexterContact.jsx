@@ -155,6 +155,26 @@ const styles = StyleSheet.create({
     "@media(maxWidth: 320px) and (minWidth: 300px)": {
       marginLeft: "-30px !important"
     }
+  },
+  countdownContainer: {
+    width: "100%",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    boxSizing: "border-box"
+  },
+  countdown: {
+    marginTop: 20,
+    borderRadius: 40,
+    backgroundColor: theme.colors.EWlibertyGreen,
+    color: theme.colors.EWnavy,
+    fontSize: 18,
+    fontWeight: 800,
+    minWidth: 50,
+    height: "auto",
+    textAlign: "center",
+    padding: "2px 10px"
   }
 });
 
@@ -1036,11 +1056,14 @@ export class AssignmentTexterContact extends React.Component {
   renderInitialSendProgress() {
     // TODO: STYLE ME!
     return (
-      <div style={{ fontSize: "xxx-large", textAlign: "center" }}>
-        {this.props.contactsRemaining}
+      <div className={css(styles.countdownContainer)}>
+        <span className={css(styles.countdown)}>
+          {this.props.contactsRemaining}
+        </span>
       </div>
     );
   }
+
   // todo middle scrolling section needs to be 800px and then next to it needs to
   render() {
     const { messageStatus } = this.props.data.contact;
@@ -1064,7 +1087,9 @@ export class AssignmentTexterContact extends React.Component {
           </div>
           <div className={css(styles.mainSectionContainer)}>
             <div className={css(styles.contactsSection)}>
-              {conversationView ? this.renderContactsSection() : ""}
+              {conversationView
+                ? this.renderContactsSection()
+                : this.renderInitialSendProgress()}
             </div>
             <div className={css(styles.messageSection)}>
               <div
@@ -1079,9 +1104,7 @@ export class AssignmentTexterContact extends React.Component {
               </div>
             </div>
             <div className={css(styles.responsesSection)}>
-              {conversationView
-                ? this.renderReplyTools()
-                : this.renderInitialSendProgress()}
+              {conversationView ? this.renderReplyTools() : null}
             </div>
           </div>
         </div>
