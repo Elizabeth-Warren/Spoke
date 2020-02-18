@@ -7,12 +7,18 @@ import TextField from "material-ui/TextField";
 import { searchFor } from "../lib/search-helpers";
 
 const styles = {
-  title: {
-    color: theme.colors.EWnavy,
-    paddingLeft: 16
+  searchWrapper: {
+    width: "100%",
+    boxSizing: "border-box",
+    padding: "10px 20px"
   },
-  searchField: {
-    margin: "10px 20px"
+  searchStyle: {
+    backgroundColor: theme.colors.white,
+    border: `2px solid ${theme.colors.EWnavy}`,
+    borderRadius: 8,
+    color: theme.colors.EWnavy,
+    boxSizing: "border-box",
+    padding: "0px 10px"
   }
 };
 
@@ -46,11 +52,13 @@ class CannedResponseMenu extends React.Component {
 
   renderCannedResponses({ scripts }) {
     return (
-      <div>
+      <div style={styles.searchWrapper}>
         <TextField
-          style={styles.searchField}
+          style={styles.searchStyle}
+          underlineShow={false}
           hintText="Search replies..."
           onChange={e => this.handleOnChange(e)}
+          fullWidth
         />
         <ScriptList
           scripts={scripts}
