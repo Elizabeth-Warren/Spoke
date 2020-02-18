@@ -8,6 +8,7 @@ import _ from "lodash";
 import preconditions from "src/server/preconditions";
 import crypto from "crypto";
 import randomSecret from "src/server/random-secret";
+import url from "url";
 
 let twilio = null;
 const MAX_SEND_ATTEMPTS = 5;
@@ -37,7 +38,9 @@ if (!process.env.TWILIO_MESSAGE_SERVICE_SID) {
 
 function webhook() {
   if (twilio) {
-    return Twilio.webhook();
+    return Twilio.webhook({
+      host: url.parse(process.env.BASE_URL).host
+    });
   }
 
   log.warn("NO TWILIO WEB VALIDATION");
