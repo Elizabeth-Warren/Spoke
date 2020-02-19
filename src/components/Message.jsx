@@ -18,7 +18,20 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     textAlign: "left",
     backgroundColor: theme.colors.gray,
-    color: theme.colors.white
+    color: theme.colors.white,
+    position: "relative",
+
+    ":before": {
+      content: "' '",
+      height: 0,
+      position: "absolute",
+      width: 0,
+      left: -25,
+      border: "14px solid transparent",
+      borderRightColor: theme.colors.gray,
+      zIndex: 10,
+      top: "calc(50% - 14px)"
+    }
   },
   fromTexter: {
     marginRight: "10px",
@@ -26,7 +39,20 @@ const styles = StyleSheet.create({
     alignSelf: "flex-end",
     textAlign: "right",
     backgroundColor: theme.colors.EWlibertyGreen,
-    color: theme.colors.EWnavy
+    color: theme.colors.EWnavy,
+    position: "relative",
+
+    ":before": {
+      content: "' '",
+      height: 0,
+      position: "absolute",
+      width: 0,
+      right: -25,
+      border: "14px solid transparent",
+      borderLeftColor: theme.colors.EWlibertyGreen,
+      zIndex: 10,
+      top: "calc(50% - 14px)"
+    }
   },
   when: {
     fontSize: theme.text.body.fontSize - 2
