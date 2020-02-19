@@ -229,11 +229,11 @@ export class InitialMessageTexterContact extends Component {
     // TODO: don't allow users to hold down enter
     // https://unixpapa.com/js/testkey.html
     // note: key*down* is necessary to stop propagation of keyup for the textarea element
-    document.body.addEventListener("keydown", this.onEnter);
+    document.body.addEventListener("keyup", this.onEnter);
   }
 
   componentWillUnmount() {
-    document.body.removeEventListener("keydown", this.onEnter);
+    document.body.removeEventListener("keyup", this.onEnter);
   }
 
   async onEnter(evt) {
