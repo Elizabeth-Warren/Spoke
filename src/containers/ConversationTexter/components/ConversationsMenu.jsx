@@ -1,19 +1,45 @@
-import type from "prop-types";
+import types from "prop-types";
 import React from "react";
 import { Tabs, Tab } from "material-ui";
 import ConversationList from "./ConversationList";
 import { StyleSheet, css } from "aphrodite";
+import RequestBatchButton from "src/containers/RequestBatchButton";
 
 const styles = StyleSheet.create({
   wrapper: {
-    height: "100%"
+    height: "100%",
+    display: "flex",
+    flexDirection: "column"
   },
   componentWrapper: {
-    height: "calc(100% - 60px)"
+    flex: "1",
+    overflowY: "auto"
+  },
+  rebatchWrapper: {
+    margin: "20px",
+    textAlign: "center"
+  },
+  rebatchImage: {
+    width: "150px",
+    height: "150px"
+  },
+  rebatchHeader: {
+    fontFamily: "Ringside Compressed A",
+    textTransform: "uppercase"
   }
 });
 
 class ConversationsMenu extends React.Component {
+  static propTypes = {
+    conversations: types.array,
+    onSelectContact: types.func,
+    currentContactId: types.string,
+
+    organizationId: types.string.isRequired,
+    assignmentId: types.string.isRequired,
+    moreBatchesAvailable: types.bool.isRequired
+  };
+
   constructor(props) {
     super(props);
     const { conversations, currentContactId } = this.props;
@@ -84,6 +110,44 @@ class ConversationsMenu extends React.Component {
     );
   }
 
+  renderBatchRequestIfAvailable() {
+    const {
+      moreBatchesAvailable,
+      organizationId,
+      assignmentId,
+      conversations
+    } = this.props;
+
+    const visible =
+      this.state.tab === "active" &&
+      moreBatchesAvailable &&
+      !conversations.find(c => c.messageStatus === "needsResponse");
+
+    return (
+      <div
+        className={css(styles.rebatchWrapper)}
+        style={visible ? {} : { display: "none" }}
+      >
+        <img
+          src="https://ew-spoke-public.s3.amazonaws.com/bailey-circle.png"
+          className={css(styles.rebatchImage)}
+          alt="Bailey Warren"
+        />
+        <h2 className={css(styles.rebatchHeader)}>Great Job!</h2>
+        <p>
+          You've replied to all your messages, but there's more texts to send!
+          Can Elizabeth and Bailey count on you to send another batch?
+        </p>
+        <RequestBatchButton
+          organizationId={organizationId}
+          assignmentId={assignmentId}
+          buttonLabel="LFG"
+          secondary
+        />
+      </div>
+    );
+  }
+
   render() {
     const { conversations, currentContactId } = this.props;
     const tabs = this.getTabs();
@@ -103,15 +167,10 @@ class ConversationsMenu extends React.Component {
         <div className={css(styles.componentWrapper)}>
           {this.renderConversations({ conversations, currentContactId })}
         </div>
+        {this.renderBatchRequestIfAvailable()}
       </div>
     );
   }
 }
-
-ConversationsMenu.propTypes = {
-  conversations: type.array,
-  onSelectContact: type.func,
-  currentContactId: type.string
-};
 
 export default ConversationsMenu;

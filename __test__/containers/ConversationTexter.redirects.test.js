@@ -1,6 +1,9 @@
 /**
  * @jest-environment jsdom
  */
+
+jest.mock("src/containers/RequestBatchButton");
+
 import React from "react";
 import { mount } from "enzyme";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";

@@ -873,7 +873,6 @@ export class ConversationTexterContactComponent extends React.Component {
             {this.renderNeedsResponseToggleButton(contact)}
             <RaisedButton
               {...dataTest("optOut")}
-              secondary
               label="Opt out"
               onTouchTap={this.handleOpenDialog}
               style={inlineStyles.buttonWidth}

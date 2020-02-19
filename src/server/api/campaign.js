@@ -332,7 +332,7 @@ export const resolvers = {
       }
       const contacts = await r
         .knex("campaign_contact")
-        .select("id")
+        .select(r.knex.raw("1"))
         .where({ campaign_id: campaign.id, assignment_id: null })
         .limit(1);
       return contacts.length > 0;

@@ -79,11 +79,15 @@ export class ConversationTexterComponent extends React.Component {
       contactsForAssignment: conversations
     } = this.props.conversationData;
 
-    if (conversations.length === 0) {
+    const firstActiveConversation = conversations.find(
+      c => c.messageStatus !== "closed"
+    );
+
+    if (!firstActiveConversation) {
       return null;
     }
 
-    return conversations[0].id;
+    return firstActiveConversation.id;
   }
 
   getNextConversationId() {
@@ -128,6 +132,8 @@ export class ConversationTexterComponent extends React.Component {
   };
 
   renderConversationList() {
+    const { assignment } = this.props.data;
+
     return (
       <ConversationsMenu
         currentContactId={this.state.currentContactId}
@@ -135,6 +141,14 @@ export class ConversationTexterComponent extends React.Component {
           this.setState({ currentContactId: contactId });
         }}
         conversations={this.props.conversationData.contactsForAssignment}
+        organizationId={this.props.params.organizationId}
+        assignmentId={this.props.params.assignmentId}
+        moreBatchesAvailable={
+          this.state.currentContactId != null &&
+          assignment &&
+          assignment.campaign.useDynamicAssignment &&
+          assignment.campaign.hasUnassignedContactsForTexter
+        }
       />
     );
   }
@@ -150,7 +164,13 @@ export class ConversationTexterComponent extends React.Component {
     }
 
     if (!this.state.currentContactId) {
-      return <EmptyState campaign={assignment.campaign} />;
+      return (
+        <EmptyState
+          campaign={assignment.campaign}
+          assignment={assignment}
+          organizationId={assignment.campaign.organization.id}
+        />
+      );
     }
 
     return (
@@ -211,6 +231,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
             title
             isArchived
             useDynamicAssignment
+            hasUnassignedContactsForTexter
             overrideOrganizationTextingHours
             timezone
             textingHoursStart

@@ -1,4 +1,4 @@
-import PropTypes from "prop-types";
+import types from "prop-types";
 import React from "react";
 import { List, ListItem } from "material-ui/List";
 import { StyleSheet, css } from "aphrodite";
@@ -42,51 +42,41 @@ const styles = StyleSheet.create({
   }
 });
 
-export default class ConversationList extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      script: props.script
-    };
-  }
+export default function ConversationList(props) {
+  const { conversations = [], onSelectConversation, currentContactId } = props;
 
-  render() {
-    const { conversations = [], onSelectConversation } = this.props;
+  const listItems = conversations.map((convo, i) => {
+    const { messageStatus, id, firstName, lastName } = convo;
+    const isCurrent = currentContactId === id;
+    const name = `${firstName} ${lastName}`;
+    const needsMessage = messageStatus === "needsResponse";
+    return (
+      <ListItem
+        value={name}
+        onTouchTap={() => onSelectConversation(convo)}
+        key={id}
+        style={{ top: `${i * 48}px` }}
+        className={classNames(css(styles.listItem), {
+          [css(styles.listItemActive)]: isCurrent
+        })}
+      >
+        <div className={css(styles.itemRow)}>
+          {needsMessage && <div className={css(styles.icon)} />}
+          <span className={needsMessage ? null : css(styles.noIcon)}>
+            {name}
+          </span>
+        </div>
+      </ListItem>
+    );
+  });
 
-    const listItems = conversations.map((convo, i) => {
-      const { messageStatus, id, firstName, lastName } = convo;
-      const isCurrent = this.props.currentContactId === id;
-      const name = `${firstName} ${lastName}`;
-      const needsMessage = messageStatus === "needsResponse";
-      return (
-        <ListItem
-          value={name}
-          onTouchTap={() => onSelectConversation(convo)}
-          key={id}
-          style={{ top: `${i * 48}px` }}
-          className={classNames(css(styles.listItem), {
-            [css(styles.listItemActive)]: isCurrent
-          })}
-        >
-          <div className={css(styles.itemRow)}>
-            {needsMessage && <div className={css(styles.icon)} />}
-            <span className={needsMessage ? null : css(styles.noIcon)}>
-              {name}
-            </span>
-          </div>
-        </ListItem>
-      );
-    });
+  const list = conversations.length === 0 ? null : <List>{listItems}</List>;
 
-    const list = conversations.length === 0 ? null : <List>{listItems}</List>;
-
-    return <div className={css(styles.listWrapper)}>{list}</div>;
-  }
+  return <div className={css(styles.listWrapper)}>{list}</div>;
 }
 
 ConversationList.propTypes = {
-  conversation: PropTypes.object,
-  conversations: PropTypes.arrayOf(PropTypes.object),
-  onSelectConversation: PropTypes.func,
-  currentContactId: PropTypes.string
+  conversations: types.arrayOf(types.object).isRequired,
+  onSelectConversation: types.func.isRequired,
+  currentContactId: types.string
 };

@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const Empty = ({ title, icon, content, hideMobile }) => (
+const Empty = ({ title, icon, content, hideMobile, children }) => (
   <div
     className={hideMobile ? css(styles.hideMobile) : css(styles.container)}
     {...dataTest("empty")}
@@ -48,6 +48,7 @@ const Empty = ({ title, icon, content, hideMobile }) => (
     {React.cloneElement(icon, { style: inlineStyles.icon })}
     <div className={css(styles.title)}>{title}</div>
     {content ? <div className={css(styles.content)}>{content}</div> : ""}
+    {children ? children : null}
   </div>
 );
 

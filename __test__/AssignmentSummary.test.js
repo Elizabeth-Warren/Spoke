@@ -1,18 +1,24 @@
 /**
  * @jest-environment jsdom
  */
+
+jest.mock("src/containers/RequestBatchButton");
+
 import React from "react";
 import { mount } from "enzyme";
 import { StyleSheetTestUtils } from "aphrodite";
 import injectTapEventPlugin from "react-tap-event-plugin";
-import each from "jest-each";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import { CardActions, CardTitle } from "material-ui/Card";
 import { AssignmentSummary } from "../src/components/AssignmentSummary";
 import Badge from "material-ui/Badge/Badge";
 import RaisedButton from "material-ui/RaisedButton/RaisedButton";
+import RequestBatchButton from "src/containers/RequestBatchButton";
 
-function getAssignment(isDynamic = false) {
+function getAssignment(
+  isDynamic = false,
+  hasUnassignedContactsForTexter = true
+) {
   return {
     id: "1",
     campaign: {
@@ -23,7 +29,8 @@ function getAssignment(isDynamic = false) {
       hasUnassignedContacts: false,
       introHtml: "yoyo",
       primaryColor: "#2052d8",
-      logoImageUrl: ""
+      logoImageUrl: "",
+      hasUnassignedContactsForTexter
     }
   };
 }
@@ -82,42 +89,48 @@ describe("AssignmentSummary actions inUSA and NOT AllowSendAll", () => {
     const actions = create(5, 0, 0, 0, true);
     expect(
       actions
-        .find(Badge)
+        .find(RequestBatchButton)
         .at(0)
-        .prop("badgeContent")
+        .prop("unsentCount")
     ).toBe(5);
     expect(
       actions
-        .find(RaisedButton)
+        .find(RequestBatchButton)
         .at(0)
-        .prop("label")
-    ).toBe("Send first texts");
+        .prop("buttonLabel")
+    ).toBe("Send Initial Texts");
   });
 
   it('renders "send first texts (1)" with unmessaged (non-dynamic)', () => {
     const actions = create(1, 0, 0, 0, false);
     expect(
       actions
-        .find(Badge)
+        .find(RequestBatchButton)
         .at(0)
-        .prop("badgeContent")
+        .prop("unsentCount")
     ).toBe(1);
     expect(
       actions
-        .find(RaisedButton)
+        .find(RequestBatchButton)
         .at(0)
-        .prop("label")
-    ).toBe("Send first texts");
+        .prop("buttonLabel")
+    ).toBe("Send Initial Texts");
   });
 
   it('renders "send first texts" with no unmessaged (dynamic assignment)', () => {
     const actions = create(0, 0, 0, 0, true);
     expect(
       actions
-        .find(RaisedButton)
+        .find(RequestBatchButton)
         .at(0)
-        .prop("label")
-    ).toBe("Send first texts");
+        .prop("unsentCount")
+    ).toBe(0);
+    expect(
+      actions
+        .find(RequestBatchButton)
+        .at(0)
+        .prop("buttonLabel")
+    ).toBe("Send Initial Texts");
   });
 
   it('renders a "conversations" badge after messaged contacts', () => {
@@ -175,12 +188,8 @@ describe("contacts filters", () => {
       </MuiThemeProvider>
     );
     const sendFirstTexts = mockRender.mock.calls[0][0];
-    expect(sendFirstTexts.title).toBe("Send first texts");
-    expect(sendFirstTexts.contactsFilter).toBe("text");
-
-    const sendReplies = mockRender.mock.calls[1][0];
-    expect(sendReplies.title).toBe("Conversations");
-    expect(sendReplies.contactsFilter).toBe("conversations");
+    expect(sendFirstTexts.title).toBe("Conversations");
+    expect(sendFirstTexts.contactsFilter).toBe("conversations");
   });
 });
 

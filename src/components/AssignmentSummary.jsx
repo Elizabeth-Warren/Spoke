@@ -9,6 +9,7 @@ import Divider from "material-ui/Divider";
 import { withRouter } from "react-router";
 import { dataTest } from "../lib/attributes";
 import theme from "../styles/theme";
+import RequestBatchButton from "src/containers/RequestBatchButton";
 
 const inlineStyles = {
   badge: {
@@ -110,10 +111,11 @@ export class AssignmentSummary extends Component {
       assignment,
       unmessagedCount,
       conversationCount,
+      skippedMessagesCount,
       // TODO: simplify this, because we don't use per-contact location data we can just
       //  disable stuff by checking the campaign texting hours
       badTimezoneCount,
-      skippedMessagesCount
+      organizationId
     } = this.props;
     const {
       title,
@@ -146,26 +148,22 @@ export class AssignmentSummary extends Component {
             <div dangerouslySetInnerHTML={{ __html: introHtml }} />
           </div>
           <CardActions>
-            {this.renderBadgedButton({
-              dataTestText: "sendFirstTexts",
-              assignment,
-              title: "Send first texts",
-              // note: won't show a count if outside of texting hours
-              count: unmessagedCount,
-              primary: true,
-              disabled:
-                (useDynamicAssignment &&
-                  !hasUnassignedContactsForTexter &&
-                  unmessagedCount === 0) ||
-                (useDynamicAssignment && maxContacts === 0),
-              contactsFilter: "text",
-              hideIfZero: !useDynamicAssignment || badTimezoneCount > 0
-            })}
+            {unmessagedCount > 0 ||
+            (useDynamicAssignment &&
+              badTimezoneCount === 0 &&
+              hasUnassignedContactsForTexter) ? (
+              <RequestBatchButton
+                organizationId={organizationId}
+                assignmentId={assignment.id}
+                buttonLabel="Send Initial Texts"
+                unsentCount={unmessagedCount}
+              />
+            ) : null}
             {this.renderBadgedButton({
               dataTestText: "conversations",
               assignment,
               title: "Conversations",
-              count: conversationCount,
+              count: conversationCount + skippedMessagesCount,
               primary: false,
               disabled: false,
               contactsFilter: "conversations", // TODO: introduce our own filter

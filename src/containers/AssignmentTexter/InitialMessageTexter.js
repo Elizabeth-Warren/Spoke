@@ -137,6 +137,16 @@ class InitialMessageTexter extends Component {
       this.setState({
         contactsMessaged: this.state.contactsMessaged.add(contactId)
       });
+
+      const areContactsLeft = (this.props.data.assignment.contacts || []).find(
+        c => !this.state.contactsMessaged.has(c.id)
+      );
+
+      if (!areContactsLeft) {
+        this.props.router.push(
+          `/app/${this.props.params.organizationId}/todos/${this.props.params.assignmentId}/conversations`
+        );
+      }
     }
   };
 
@@ -193,19 +203,24 @@ class InitialMessageTexter extends Component {
     if (!assignment) {
       // TODO: real 404 page
       this.props.router.push(`/404`);
+      return null;
     }
+
     if (!this.campaignIsBetweenTextingHours()) {
       // TODO: more feedback if out of texting hours, this redirects to todos, which should
       //   grey out the send messages button.
       this.exitTexter();
+      return null;
     }
 
     const contacts = (assignment.contacts || []).filter(
       contact => !this.state.contactsMessaged.has(contact.id)
     );
+
     if (contacts.length === 0) {
-      return this.renderEmpty();
+      return null;
     }
+
     const currentContact = contacts[0];
     const { campaign, texter } = assignment;
     return (
