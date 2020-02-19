@@ -17,12 +17,11 @@ const mapMutationsToProps = ({ ownProps }) => ({
   }),
   createOrUpdateCampaign: (contactsS3Key, shiftingEnabled) => {
     const shiftingConfiguration = JSON.stringify({ enabled: shiftingEnabled });
-
-    if (ownProps.copyCampaign) {
+    if (ownProps.copyFrom) {
       return {
         mutation: gql`
           mutation copyCampaign(
-            $campaignId: ID!
+            $campaignId: String!
             $contactsS3Key: String!
             $shiftingConfiguration: String!
           ) {
@@ -35,7 +34,11 @@ const mapMutationsToProps = ({ ownProps }) => ({
             }
           }
         `,
-        variables: { campaignId: ownProps.copyFrom, contactsS3Key }
+        variables: {
+          campaignId: ownProps.copyFrom,
+          contactsS3Key,
+          shiftingConfiguration
+        }
       };
     }
 

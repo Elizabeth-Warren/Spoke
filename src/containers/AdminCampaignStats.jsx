@@ -409,16 +409,6 @@ const mapMutationsToProps = () => ({
       }
     `,
     variables: { campaignId }
-  }),
-  copyCampaign: campaignId => ({
-    mutation: gql`
-      mutation copyCampaign($campaignId: String!) {
-        copyCampaign(id: $campaignId) {
-          id
-        }
-      }
-    `,
-    variables: { campaignId }
   })
 });
 

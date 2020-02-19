@@ -683,7 +683,10 @@ const rootMutations = {
         due_by: campaign.dueBy,
         is_started: false,
         is_archived: false,
-        shifting_configuration: shiftingConfiguration
+        shifting_configuration: shiftingConfiguration,
+        logo_image_url: campaign.logo_image_url,
+        intro_html: campaign.intro_html,
+        primary_color: campaign.primary_color
       });
       const newCampaign = await campaignInstance.save();
       const newCampaignId = newCampaign.id;
