@@ -229,6 +229,7 @@ const userLoggedIn = async (field, val) => {
 
 const userCache = {
   userHasRole,
+  userOrgHighestRole,
   userLoggedIn,
   userOrgs,
   allRoles,

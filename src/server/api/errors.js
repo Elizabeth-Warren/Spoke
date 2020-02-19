@@ -60,11 +60,9 @@ export async function accessRequired(
   // require a permission at-or-higher than the permission requested
   const hasRole = await cacheableData.user.userHasRole(user, orgId, role);
   if (!hasRole) {
-    const isSuspended = await cacheableData.user.userHasRole(
-      user,
-      orgId,
-      "SUSPENDED"
-    );
+    const isSuspended =
+      (await cacheableData.user.userOrgHighestRole(user.id, orgId)) ===
+      "SUSPENDED";
 
     if (isSuspended) {
       throw new SuspendedError(
