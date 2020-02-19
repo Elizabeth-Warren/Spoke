@@ -11,7 +11,7 @@ import TexterDashboard from "./components/TexterDashboard";
 import TopNav from "./components/TopNav";
 import DashboardLoader from "./containers/DashboardLoader";
 import TexterTodoList from "./containers/TexterTodoList";
-import TexterTodo from "./containers/TexterTodo";
+import ConversationTexter from "./containers/ConversationTexter";
 import SuspendedTexter from "./containers/SuspendedTexter";
 import Login from "./components/Login";
 import Terms from "./containers/Terms";
@@ -113,21 +113,7 @@ export default function makeRoutes(requireAuth = () => {}) {
               <Route
                 path="conversations"
                 components={{
-                  fullScreen: props => (
-                    <TexterTodo
-                      {...props}
-                      messageStatus="needsResponse,convo"
-                    />
-                  )
-                }}
-              />
-              <Route
-                path="skipped"
-                components={{
-                  fullScreen: props => (
-                    <TexterTodo {...props} messageStatus="closed" />
-                  ),
-                  topNav: null
+                  fullScreen: props => <ConversationTexter {...props} />
                 }}
               />
             </Route>

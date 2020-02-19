@@ -5,7 +5,8 @@ import { StyleSheet, css } from "aphrodite";
 import ActionInfoOutline from "material-ui/svg-icons/action/info-outline";
 import Dialog from "material-ui/Dialog";
 import FlatButton from "material-ui/FlatButton";
-import ConversationLink from "../../components/ConversationLink";
+
+import ConversationLink from "src/components/ConversationLink";
 
 const styles = StyleSheet.create({
   container: {
@@ -59,7 +60,6 @@ export default class ContactInfo extends React.Component {
     </FlatButton>
   );
 
-  //TODO: Move toolkit link to .env
   renderDialog = () => (
     <Dialog
       title="Conversation Information"

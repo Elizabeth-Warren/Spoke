@@ -1,11 +1,8 @@
 import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { StyleSheet, css } from "aphrodite";
-import ContactToolbar from "../../components/ContactToolbar";
-import MessageList from "../../components/MessageList";
-import NavigateHomeIcon from "material-ui/svg-icons/action/home";
+import ContactToolbar from "../ConversationTexter/components/ContactToolbar";
 import { grey100 } from "material-ui/styles/colors";
-import IconButton from "material-ui/IconButton/IconButton";
 import { Toolbar, ToolbarGroup } from "material-ui/Toolbar";
 import yup from "yup";
 import GSForm from "../../components/forms/GSForm";
@@ -316,16 +313,6 @@ export class InitialMessageTexterContact extends Component {
         campaign={this.props.campaign}
         assignment={this.props.assignment}
         campaignContact={contact}
-        rightToolbarIcon={
-          <IconButton
-            onTouchTap={this.props.exitTexter}
-            style={inlineStyles.exitTexterIconButton}
-            tooltip="Return Home"
-            tooltipPosition="bottom-center"
-          >
-            <NavigateHomeIcon color="rgb(255,255,255)" />
-          </IconButton>
-        }
       />
     );
   }

@@ -193,6 +193,10 @@ const rootSchema = gql`
     organization(id: String!, utc: String): Organization
     campaign(id: String!): Campaign
     contact(id: String!): CampaignContact
+    contactsForAssignment(
+      assignmentId: String!
+      contactsFilter: ContactsFilter
+    ): [CampaignContact]
     assignment(id: String!): Assignment
     organizations: [Organization]
     availableActions(organizationId: String!): [Action]

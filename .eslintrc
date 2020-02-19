@@ -11,7 +11,9 @@
     "semi": ["error", "always"],
     "react/require-extension": "off",
     "camelcase": "off",
-    "quotes": "off"
+    "quotes": "off",
+    "indent": "off",
+    "no-confusing-arrow": "off"
   },
   "env": { "jest": true, "node": true, "browser": true, "jasmine": true },
   "settings": {

@@ -1,6 +1,7 @@
 import React from "react";
 import TextField from "material-ui/TextField";
 import GSFormField from "./GSFormField";
+import _ from "lodash";
 
 export default class GSTextField extends GSFormField {
   render() {
@@ -12,7 +13,7 @@ export default class GSTextField extends GSFormField {
           zIndex: 0
         }}
         onFocus={event => event.target.select()}
-        {...this.props}
+        {..._.omit(this.props, "errors", "invalid")}
         value={value}
         onChange={event => {
           this.props.onChange(event.target.value);

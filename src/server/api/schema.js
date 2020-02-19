@@ -17,7 +17,7 @@ import {
   cacheableData
 } from "../models";
 // import { isBetweenTextingHours } from '../../lib/timezones'
-import { resolvers as assignmentResolvers } from "./assignment";
+import { resolvers as assignmentResolvers, getContacts } from "./assignment";
 import { getCampaigns, resolvers as campaignResolvers } from "./campaign";
 import { mutations as campaignMutations } from "./mutations/campaign";
 import { resolvers as campaignContactResolvers } from "./campaign-contact";
@@ -917,6 +917,11 @@ const rootMutations = {
       ) {
         numberContacts = assignment.max_contacts - contactsCount;
       }
+
+      log.info(
+        `Assigning ${numberContacts} to user ${user.id} on assignment ${assignmentId}`
+      );
+
       // TODO[matteo]: simplify by only allowing a batch to be requested
       // if someone has zero unmessaged contacts
       // Don't add more if they already have that many
@@ -1094,7 +1099,7 @@ const rootMutations = {
           .knex("campaign_contact")
           .update({
             message_status: "messaged",
-            updated_at: "now()"
+            updated_at: new Date()
           })
           .where({
             id: contact.id,
@@ -1107,7 +1112,7 @@ const rootMutations = {
           );
         }
       } else {
-        contact.updated_at = "now()";
+        contact.updated_at = new Date();
         if (
           contact.message_status === "needsResponse" ||
           contact.message_status === "convo"
@@ -1364,6 +1369,37 @@ const rootResolvers = {
         /* allowSuperadmin=*/ true
       );
       return contact;
+    },
+    contactsForAssignment: async (
+      _,
+      { assignmentId, contactsFilter },
+      { loaders, user }
+    ) => {
+      authRequired(user);
+      const assignment = await loaders.assignment.load(assignmentId);
+      const campaign = await loaders.campaign.load(assignment.campaign_id);
+
+      if (assignment.user_id === user.id) {
+        await accessRequired(
+          user,
+          campaign.organization_id,
+          "TEXTER",
+          /* allowSuperadmin=*/ true
+        );
+      } else {
+        await accessRequired(
+          user,
+          campaign.organization_id,
+          "SUPERVOLUNTEER",
+          /* allowSuperadmin=*/ true
+        );
+      }
+
+      const organization = await r
+        .table("organization")
+        .get(campaign.organization_id);
+
+      return getContacts(assignment, contactsFilter, organization, campaign);
     },
     organizations: async (_, { id }, { user }) => {
       await superAdminRequired(user);

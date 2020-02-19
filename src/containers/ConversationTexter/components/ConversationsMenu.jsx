@@ -2,7 +2,6 @@ import type from "prop-types";
 import React from "react";
 import { Tabs, Tab } from "material-ui";
 import ConversationList from "./ConversationList";
-import theme from "../styles/theme";
 import { StyleSheet, css } from "aphrodite";
 
 const styles = StyleSheet.create({
@@ -17,9 +16,9 @@ const styles = StyleSheet.create({
 class ConversationsMenu extends React.Component {
   constructor(props) {
     super(props);
-    const { conversations, currentContact } = this.props;
+    const { conversations, currentContactId } = this.props;
     const initialContact = conversations.find(
-      item => item.id === currentContact
+      item => item.id === currentContactId
     );
     const tab =
       initialContact && initialContact.messageStatus === "closed"
@@ -28,35 +27,57 @@ class ConversationsMenu extends React.Component {
     this.state = { tab };
   }
 
+  componentWillReceiveProps(newProps) {
+    // If the selected contact went from being closed to being
+    // active, then switch back to the active tab
+    if (newProps.currentContactId === this.props.currentContactId) {
+      const contactId = newProps.currentContactId;
+
+      const prevContact = this.props.conversations.find(
+        item => item.id === contactId
+      );
+      const newContact = newProps.conversations.find(
+        item => item.id === contactId
+      );
+
+      if (
+        prevContact &&
+        newContact &&
+        prevContact.messageStatus === "closed" &&
+        newContact.messageStatus !== "closed"
+      ) {
+        this.setState({ tab: "active" });
+      }
+    }
+  }
+
   getTabs() {
     const tabs = [
       {
         name: "active",
         label: "Active"
+      },
+      {
+        name: "skipped",
+        label: "Skipped"
       }
-      // TODO: matteo: hide skipped for now, they are separated in the TexterTodoList,
-      //   we may want to change that at some point
-      // {
-      //   name: "skipped",
-      //   label: "Skipped"
-      // }
     ];
     return tabs;
   }
 
   handleSelectConversation = convo => {
-    const { onSelectConversation } = this.props;
-    onSelectConversation(convo);
+    const { onSelectContact } = this.props;
+    onSelectContact(convo.id);
   };
 
-  renderConversations({ conversations, currentContact }) {
+  renderConversations({ conversations, currentContactId }) {
     const displayedConversations =
       this.state.tab === "active"
         ? conversations.filter(item => item.messageStatus !== "closed")
         : conversations.filter(item => item.messageStatus === "closed");
     return (
       <ConversationList
-        currentContact={currentContact}
+        currentContactId={currentContactId}
         conversations={displayedConversations}
         onSelectConversation={this.handleSelectConversation}
       />
@@ -64,7 +85,7 @@ class ConversationsMenu extends React.Component {
   }
 
   render() {
-    const { conversations, currentContact } = this.props;
+    const { conversations, currentContactId } = this.props;
     const tabs = this.getTabs();
 
     return (
@@ -80,7 +101,7 @@ class ConversationsMenu extends React.Component {
           ))}
         </Tabs>
         <div className={css(styles.componentWrapper)}>
-          {this.renderConversations({ conversations, currentContact })}
+          {this.renderConversations({ conversations, currentContactId })}
         </div>
       </div>
     );
@@ -89,8 +110,8 @@ class ConversationsMenu extends React.Component {
 
 ConversationsMenu.propTypes = {
   conversations: type.array,
-  onSelectConversation: type.func,
-  currentContact: type.string
+  onSelectContact: type.func,
+  currentContactId: type.string
 };
 
 export default ConversationsMenu;

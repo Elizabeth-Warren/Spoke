@@ -52,5 +52,6 @@ export const schema = gql`
     assignmentId: String
     tags: [Tag]
     hasUnresolvedTags: Boolean
+    updatedAt: Date
   }
 `;

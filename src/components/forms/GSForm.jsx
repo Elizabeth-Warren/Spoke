@@ -29,6 +29,12 @@ export default class GSForm extends React.Component {
     globalErrorMessage: null
   };
 
+  resetFormErrors = () => {
+    // called by parent components if they want to discard
+    // the current error state
+    this.setState({ formErrors: null, globalErrorMessage: null });
+  };
+
   handleFormError(err) {
     console.error(err);
     if (err instanceof GraphQLRequestError) {

@@ -130,27 +130,6 @@ describe("AssignmentSummary actions inUSA and NOT AllowSendAll", () => {
         .prop("badgeContent")
     ).toBe(7);
   });
-
-  it("renders 3 buttons with unmessaged, conversations and skipped", () => {
-    const actions = create(1, 2, 0, 3, false);
-    expect(actions.find(RaisedButton).length).toBe(3);
-  });
-
-  it('renders "skipped (n)" with closed conversations', () => {
-    const actions = create(0, 0, 0, 3, 0, false);
-    expect(
-      actions
-        .find(Badge)
-        .at(0)
-        .prop("badgeContent")
-    ).toBe(3);
-    expect(
-      actions
-        .find(RaisedButton)
-        .at(0)
-        .prop("label")
-    ).toBe("Skipped Messages");
-  });
 });
 
 it('renders "Send later" when there is a badTimezoneCount', () => {
@@ -202,10 +181,6 @@ describe("contacts filters", () => {
     const sendReplies = mockRender.mock.calls[1][0];
     expect(sendReplies.title).toBe("Conversations");
     expect(sendReplies.contactsFilter).toBe("conversations");
-
-    const skippedMessages = mockRender.mock.calls[3][0];
-    expect(skippedMessages.title).toBe("Skipped Messages");
-    expect(skippedMessages.contactsFilter).toBe("skipped");
   });
 });
 

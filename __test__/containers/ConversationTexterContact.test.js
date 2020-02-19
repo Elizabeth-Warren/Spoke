@@ -6,15 +6,15 @@ import moment from "moment-timezone";
 import { mount } from "enzyme";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import { StyleSheetTestUtils } from "aphrodite";
-import { AssignmentTexterContact } from "src/containers/AssignmentTexter/AssignmentTexterContact";
+import MockDate from "mockdate";
 
-var MockDate = require("mockdate");
+import { ConversationTexterContactComponent } from "src/containers/ConversationTexter/ConversationTexterContact";
 
 jest.mock("../../src/lib/timezones");
 jest.unmock("../../src/lib/tz-helpers");
 jest.useFakeTimers();
 
-var timezones = require("../../src/lib/timezones");
+const timezones = require("../../src/lib/timezones");
 
 const campaign = {
   id: 9,
@@ -46,7 +46,7 @@ const propsWithEnforcedTextingHoursCampaign = {
     lastName: "person",
     assignedCell: null
   },
-  campaign: campaign,
+  campaign,
   assignment: {
     id: 9,
     userCannedResponses: [],
@@ -57,7 +57,7 @@ const propsWithEnforcedTextingHoursCampaign = {
       lastName: "person",
       assignedCell: null
     },
-    campaign: campaign,
+    campaign,
     contacts: [
       {
         id: 19
@@ -96,7 +96,6 @@ const propsWithEnforcedTextingHoursCampaign = {
 };
 
 describe("when contact is within texting hours...", () => {
-  var component;
   beforeEach(() => {
     timezones.isBetweenTextingHours.mockReturnValue(true);
     timezones.getLocalTime.mockReturnValue(
@@ -105,9 +104,9 @@ describe("when contact is within texting hours...", () => {
         .utcOffset(-5)
     );
     StyleSheetTestUtils.suppressStyleInjection();
-    component = mount(
+    mount(
       <MuiThemeProvider>
-        <AssignmentTexterContact
+        <ConversationTexterContactComponent
           texter={propsWithEnforcedTextingHoursCampaign.texter}
           campaign={campaign}
           assignment={propsWithEnforcedTextingHoursCampaign.assignment}
@@ -131,7 +130,7 @@ describe("when contact is within texting hours...", () => {
 describe("AssignmentTextContact has the proper enabled/disabled state when created", () => {
   it("is enabled if the contact is inside texting hours", () => {
     timezones.isBetweenTextingHours.mockReturnValueOnce(true);
-    var assignmentTexterContact = new AssignmentTexterContact(
+    const assignmentTexterContact = new ConversationTexterContactComponent(
       propsWithEnforcedTextingHoursCampaign
     );
     expect(assignmentTexterContact.state.disabled).toBeFalsy();
@@ -140,7 +139,7 @@ describe("AssignmentTextContact has the proper enabled/disabled state when creat
 
   it("is disabled if the contact is inside texting hours", () => {
     timezones.isBetweenTextingHours.mockReturnValueOnce(false);
-    var assignmentTexterContact = new AssignmentTexterContact(
+    const assignmentTexterContact = new ConversationTexterContactComponent(
       propsWithEnforcedTextingHoursCampaign
     );
     expect(assignmentTexterContact.state.disabled).toBeTruthy();
@@ -151,13 +150,13 @@ describe("AssignmentTextContact has the proper enabled/disabled state when creat
 });
 
 describe("test isContactBetweenTextingHours", () => {
-  var assignmentTexterContact;
+  let assignmentTexterContact;
 
   beforeAll(() => {
-    assignmentTexterContact = new AssignmentTexterContact(
+    assignmentTexterContact = new ConversationTexterContactComponent(
       propsWithEnforcedTextingHoursCampaign
     );
-    timezones.isBetweenTextingHours.mockImplementation((o, c) => false);
+    timezones.isBetweenTextingHours.mockImplementation(() => false);
     MockDate.set("2018-02-01T15:00:00.000Z");
     timezones.getLocalTime.mockReturnValue(
       moment()
@@ -175,7 +174,7 @@ describe("test isContactBetweenTextingHours", () => {
   });
 
   it("works when the contact has location data with empty timezone", () => {
-    let contact = {
+    const contact = {
       location: {
         city: "New York",
         state: "NY",
@@ -187,11 +186,14 @@ describe("test isContactBetweenTextingHours", () => {
     };
 
     expect(
-      assignmentTexterContact.isContactBetweenTextingHours(contact)
+      assignmentTexterContact.isContactBetweenTextingHours(
+        contact,
+        propsWithEnforcedTextingHoursCampaign
+      )
     ).toBeFalsy();
     expect(timezones.isBetweenTextingHours.mock.calls).toHaveLength(1);
 
-    let theCall = timezones.isBetweenTextingHours.mock.calls[0];
+    const theCall = timezones.isBetweenTextingHours.mock.calls[0];
     expect(theCall[0]).toBeFalsy();
     expect(theCall[1]).toEqual({
       textingHoursStart: 8,
@@ -201,7 +203,7 @@ describe("test isContactBetweenTextingHours", () => {
   });
 
   it("works when the contact has location data", () => {
-    let contact = {
+    const contact = {
       location: {
         city: "New York",
         state: "NY",
@@ -213,11 +215,14 @@ describe("test isContactBetweenTextingHours", () => {
     };
 
     expect(
-      assignmentTexterContact.isContactBetweenTextingHours(contact)
+      assignmentTexterContact.isContactBetweenTextingHours(
+        contact,
+        propsWithEnforcedTextingHoursCampaign
+      )
     ).toBeFalsy();
     expect(timezones.isBetweenTextingHours.mock.calls).toHaveLength(1);
 
-    let theCall = timezones.isBetweenTextingHours.mock.calls[0];
+    const theCall = timezones.isBetweenTextingHours.mock.calls[0];
     expect(theCall[0]).toEqual({ hasDST: true, offset: -5 });
     expect(theCall[1]).toEqual({
       textingHoursStart: 8,
@@ -227,14 +232,17 @@ describe("test isContactBetweenTextingHours", () => {
   });
 
   it("works when the contact does not have location data", () => {
-    let contact = {};
+    const contact = {};
 
     expect(
-      assignmentTexterContact.isContactBetweenTextingHours(contact)
+      assignmentTexterContact.isContactBetweenTextingHours(
+        contact,
+        propsWithEnforcedTextingHoursCampaign
+      )
     ).toBeFalsy();
     expect(timezones.isBetweenTextingHours.mock.calls).toHaveLength(1);
 
-    let theCall = timezones.isBetweenTextingHours.mock.calls[0];
+    const theCall = timezones.isBetweenTextingHours.mock.calls[0];
     expect(theCall[0]).toBeNull();
     expect(theCall[1]).toEqual({
       textingHoursStart: 8,

@@ -1,46 +1,48 @@
 import PropTypes from "prop-types";
 import React from "react";
 import { StyleSheet, css } from "aphrodite";
-import ContactToolbar from "../../components/ContactToolbar";
-import MessageList from "../../components/MessageList";
-import ReplyTools from "../../components/ReplyTools";
-import ConversationsMenu from "../../components/ConversationsMenu";
-import AssignmentTexterSurveys from "../../components/AssignmentTexterSurveys";
-import RaisedButton from "material-ui/RaisedButton";
-import NavigateHomeIcon from "material-ui/svg-icons/action/home";
-import { grey100 } from "material-ui/styles/colors";
-import IconButton from "material-ui/IconButton/IconButton";
-import { Toolbar, ToolbarGroup } from "material-ui/Toolbar";
-import { applyScript } from "../../lib/scripts";
 import gql from "graphql-tag";
-import loadData from "../hoc/load-data";
 import yup from "yup";
-import GSForm from "../../components/forms/GSForm";
 import Form from "react-formal";
-import SendButton from "../../components/SendButton";
-import SendButtonArrow from "../../components/SendButtonArrow";
+import { withRouter } from "react-router";
+
+import RaisedButton from "material-ui/RaisedButton";
+import { grey100 } from "material-ui/styles/colors";
+import { Toolbar, ToolbarGroup } from "material-ui/Toolbar";
 import CircularProgress from "material-ui/CircularProgress";
 import Snackbar from "material-ui/Snackbar";
+import CreateIcon from "material-ui/svg-icons/content/create";
+import Dialog from "material-ui/Dialog";
+import FlatButton from "material-ui/FlatButton";
+
+import { applyScript } from "src/lib/scripts";
 import {
   getChildren,
   getTopMostParent,
   interactionStepForId,
   isBetweenTextingHours
-} from "../../lib";
-import { withRouter } from "react-router";
+} from "src/lib";
+import { dataTest } from "src/lib/attributes";
+import { getContactTimezone } from "src/lib/timezones";
+import { NO_TAG } from "src/lib/tags";
+import theme from "src/styles/theme";
+
+import loadData from "../hoc/load-data";
 import wrapMutations from "../hoc/wrap-mutations";
-import Empty from "../../components/Empty";
-import CreateIcon from "material-ui/svg-icons/content/create";
-import { dataTest } from "../../lib/attributes";
-import { getContactTimezone } from "../../lib/timezones";
+
+import ReplyTools from "src/components/ReplyTools";
+import AssignmentTexterSurveys from "src/components/AssignmentTexterSurveys";
+import GSForm from "src/components/forms/GSForm";
+import SendButton from "src/components/SendButton";
+import SendButtonArrow from "src/components/SendButtonArrow";
+import Empty from "src/components/Empty";
+
 import {
   OptOutDialog,
-  SkipDialog
-} from "../../components/AssignmentTexterContact";
-import { NO_TAG } from "../../lib/tags";
-import theme from "../../styles/theme";
-import Dialog from "material-ui/Dialog";
-import FlatButton from "material-ui/FlatButton";
+  SkipDialog,
+  ContactToolbar,
+  MessageList
+} from "./components";
 
 const styles = StyleSheet.create({
   mobile: {
@@ -54,12 +56,6 @@ const styles = StyleSheet.create({
     }
   },
   container: {
-    margin: 0,
-    position: "absolute",
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0,
     display: "flex",
     flexDirection: "column",
     height: "100%"
@@ -100,7 +96,7 @@ const styles = StyleSheet.create({
     height: "calc(100vh - 58px)"
   },
   messageSection: {
-    width: "calc(100% - 650px)",
+    width: "calc(100% - 300px)",
     height: "100%",
     display: "flex",
     flexDirection: "column"
@@ -113,14 +109,6 @@ const styles = StyleSheet.create({
     overflowY: "scroll"
   },
 
-  contactsSection: {
-    backgroundColor: theme.colors.EWnavy,
-    color: "white",
-    height: "100%",
-    width: "250px",
-    overflowY: "scroll"
-  },
-
   navButtonsWrapper: {
     height: "100%",
     display: "flex",
@@ -128,14 +116,11 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
 
-  middleScrollingSection: {
-    flex: "1 1 auto",
-    overflowY: "scroll",
-    overflow: "-moz-scrollbars-vertical"
-  },
+  middleScrollingSection: {},
   bottomFixedSection: {
     borderTop: `1px solid ${grey100}`,
-    flexShrink: "0"
+    flexShrink: "0",
+    position: "relative"
   },
   messageField: {
     padding: "0px 8px",
@@ -224,67 +209,23 @@ const inlineStyles = {
 
 // TODO: find a nicer way to split this (or AssignmentTexter) into separate components for initial
 //  vs conversations, or at the very least put it in "conversation" vs "initial send mode"
-export class AssignmentTexterContact extends React.Component {
+export class ConversationTexterContactComponent extends React.Component {
+  static propTypes = {
+    data: PropTypes.object,
+    contactId: PropTypes.string,
+    campaign: PropTypes.object,
+    assignment: PropTypes.object,
+    texter: PropTypes.object,
+    router: PropTypes.object,
+    advanceContact: PropTypes.func,
+    mutations: PropTypes.object,
+    forceDisabledDisplayIfNotSendable: PropTypes.bool // remove?
+  };
+
   constructor(props) {
     super(props);
-    const { assignment, campaign } = this.props;
-    const contact = this.props.data.contact;
-    const questionResponses = this.getInitialQuestionResponses(
-      contact.questionResponseValues
-    );
-    const availableSteps = this.getAvailableInteractionSteps(questionResponses);
 
-    let disabled = false;
-    let notSendableButForceDisplay = false;
-    let disabledText = "Sending...";
-    let snackbarOnTouchTap = null;
-    let snackbarActionTitle = null;
-    let snackbarError = null;
-
-    if (assignment.id !== contact.assignmentId || campaign.isArchived) {
-      disabledText = "";
-      disabled = true;
-      snackbarError = "Your assignment has changed";
-      snackbarOnTouchTap = this.goBackToTodos;
-      snackbarActionTitle = "Back to Todos";
-    } else if (contact.optOut) {
-      if (!this.props.forceDisabledDisplayIfNotSendable) {
-        disabledText = "Skipping opt-out...";
-        disabled = true;
-      } else {
-        notSendableButForceDisplay = true;
-      }
-    } else if (!this.isContactBetweenTextingHours(contact)) {
-      if (!this.props.forceDisabledDisplayIfNotSendable) {
-        disabledText = "Refreshing ...";
-        disabled = true;
-      } else {
-        notSendableButForceDisplay = true;
-      }
-    }
-
-    this.state = {
-      disabled,
-      disabledText,
-      notSendableButForceDisplay,
-      // this prevents jitter by not showing the optout/skip buttons right after sending
-      justSentNew: false,
-      questionResponses,
-      snackbarError,
-      snackbarActionTitle,
-      snackbarOnTouchTap,
-      optOutMessageText: campaign.organization.optOutMessage,
-      messageText: this.getStartingMessageText(),
-      optOutDialogOpen: false,
-      errorModalOpen: false,
-      skipDialogOpen: false,
-      currentInteractionStep:
-        availableSteps.length > 0
-          ? availableSteps[availableSteps.length - 1]
-          : null
-    };
-    this.onEnter = this.onEnter.bind(this);
-    this.setDisabled = this.setDisabled.bind(this);
+    this.state = this.resetStateForProps(props);
   }
 
   componentDidMount() {
@@ -292,28 +233,38 @@ export class AssignmentTexterContact extends React.Component {
     if (!this.props.forceDisabledDisplayIfNotSendable) {
       if (contact.optOut) {
         this.advanceBecauseOfError();
-      } else if (!this.isContactBetweenTextingHours(contact)) {
+      } else if (!this.isContactBetweenTextingHours(contact, this.props)) {
         setTimeout(() => {
           this.setState({ disabled: false });
         }, 1500);
       }
     }
 
-    const node = this.refs.messageScrollContainer;
-    // Does not work without this setTimeout
-    setTimeout(() => {
-      node.scrollTop = Math.floor(node.scrollHeight);
-    }, 0);
-
     // note: key*down* is necessary to stop propagation of keyup for the textarea element
     document.body.addEventListener("keydown", this.onEnter);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.contactId !== this.props.contactId) {
+      this.setState(this.resetStateForProps(nextProps));
+
+      if (this.refs.form) {
+        this.refs.form.resetFormErrors();
+      }
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.contactId !== this.props.contactId && this.refs.form) {
+      this.refs.form.resetFormErrors();
+    }
   }
 
   componentWillUnmount() {
     document.body.removeEventListener("keydown", this.onEnter);
   }
 
-  async onEnter(evt) {
+  onEnter = async evt => {
     if (evt.keyCode === 13) {
       evt.preventDefault();
       // pressing the Enter key submits
@@ -326,14 +277,14 @@ export class AssignmentTexterContact extends React.Component {
         this.handleClickSendMessageButton();
       }
     }
-  }
+  };
 
   setDisabled = async (disabled = true) => {
     this.setState({ disabled });
   };
 
-  getAvailableInteractionSteps(questionResponses) {
-    const allInteractionSteps = this.props.campaign.interactionSteps;
+  getAvailableInteractionSteps(questionResponses, props) {
+    const allInteractionSteps = props.campaign.interactionSteps;
     const availableSteps = [];
 
     let step = getTopMostParent(allInteractionSteps);
@@ -384,15 +335,74 @@ export class AssignmentTexterContact extends React.Component {
       : null;
   }
 
-  getStartingMessageText() {
-    const { campaign } = this.props;
-    const { contact } = this.props.data;
+  getStartingMessageText(props) {
+    const { campaign } = props;
+    const { contact } = props.data;
     const { messages } = contact;
     return messages.length > 0
       ? ""
       : this.getMessageTextFromScript(
           getTopMostParent(campaign.interactionSteps).script
         );
+  }
+
+  resetStateForProps(props) {
+    const { assignment, campaign } = props;
+    const contact = props.data.contact;
+    const questionResponses = this.getInitialQuestionResponses(
+      contact.questionResponseValues
+    );
+    const availableSteps = this.getAvailableInteractionSteps(
+      questionResponses,
+      props
+    );
+
+    let disabled = false;
+    let notSendableButForceDisplay = false;
+    let disabledText = "Sending...";
+
+    if (assignment.id !== contact.assignmentId || campaign.isArchived) {
+      disabledText = "";
+      disabled = true;
+
+      this.setState({
+        snackbarError: "Your assignment has changed",
+        snackbarOnTouchTap: this.goBackToTodos,
+        snackbarActionTitle: "Back to Todos"
+      });
+    } else if (contact.optOut) {
+      if (!props.forceDisabledDisplayIfNotSendable) {
+        disabledText = "Skipping opt-out...";
+        disabled = true;
+      } else {
+        notSendableButForceDisplay = true;
+      }
+    } else if (!this.isContactBetweenTextingHours(contact, props)) {
+      if (!props.forceDisabledDisplayIfNotSendable) {
+        disabledText = "Refreshing ...";
+        disabled = true;
+      } else {
+        notSendableButForceDisplay = true;
+      }
+    }
+
+    return {
+      disabled,
+      disabledText,
+      notSendableButForceDisplay,
+      // this prevents jitter by not showing the optout/skip buttons right after sending
+      justSentNew: false,
+      questionResponses,
+      optOutMessageText: campaign.organization.optOutMessage,
+      messageText: this.getStartingMessageText(props),
+      optOutDialogOpen: false,
+      errorModalOpen: false,
+      skipDialogOpen: false,
+      currentInteractionStep:
+        availableSteps.length > 0
+          ? availableSteps[availableSteps.length - 1]
+          : null
+    };
   }
 
   handleCannedResponseChange = cannedResponse => {
@@ -416,7 +426,7 @@ export class AssignmentTexterContact extends React.Component {
       text,
       assignmentId: assignment.id,
       cannedResponseId,
-      isInitialMessage: this.props.initialSendMode || false
+      isInitialMessage: false
     };
   }
 
@@ -449,7 +459,8 @@ export class AssignmentTexterContact extends React.Component {
     } else {
       console.error(e);
       this.setState({
-        snackbarError: "Something went wrong!"
+        snackbarError: "Something went wrong!",
+        disabled: false
       });
     }
   };
@@ -457,7 +468,6 @@ export class AssignmentTexterContact extends React.Component {
   handleMessageFormSubmit = async ({ messageText }) => {
     try {
       const { contact } = this.props.data;
-      const { messages } = contact;
 
       const message = this.createMessageToContact(
         messageText,
@@ -478,15 +488,11 @@ export class AssignmentTexterContact extends React.Component {
       }
 
       await this.handleSubmitSurveys();
-      const autoAdvance = messages.length === 0;
-      if (autoAdvance) {
-        this.props.advanceContact();
-      } else {
-        this.setState({
-          disabled: false,
-          messageText: ""
-        });
-      }
+
+      this.setState({
+        disabled: false,
+        messageText: ""
+      });
     } catch (e) {
       this.handleSendMessageError(e);
     }
@@ -591,6 +597,8 @@ export class AssignmentTexterContact extends React.Component {
         contact.id
       );
 
+      this.setState({ disabled: false });
+
       if (optOutRes.errors) {
         this.toggleErrorModal();
       } else {
@@ -665,8 +673,8 @@ export class AssignmentTexterContact extends React.Component {
     }
   };
 
-  isContactBetweenTextingHours(contact) {
-    const { campaign } = this.props;
+  isContactBetweenTextingHours(contact, props) {
+    const { campaign } = props;
 
     let timezoneData = null;
 
@@ -679,10 +687,7 @@ export class AssignmentTexterContact extends React.Component {
 
       timezoneData = { hasDST, offset };
     } else {
-      const location = getContactTimezone(
-        this.props.campaign,
-        contact.location
-      );
+      const location = getContactTimezone(props.campaign, contact.location);
       if (location) {
         const timezone = location.timezone;
         if (timezone) {
@@ -716,7 +721,10 @@ export class AssignmentTexterContact extends React.Component {
 
   // note: this is not the same as skipping with tag
   advanceBecauseOfError = () => {
-    setTimeout(this.props.advanceContact, 1500);
+    setTimeout(() => {
+      this.props.advanceContact();
+      this.setState({ disabled: false });
+    }, 1500);
   };
 
   messageSchema = yup.object({
@@ -748,14 +756,6 @@ export class AssignmentTexterContact extends React.Component {
       onRequestClose={this.handleCloseSkipDialog}
       onSkipCommentChanged={skipComment => this.setState({ skipComment })}
       onTagChanged={tag => this.setState({ tag })}
-    />
-  );
-  // TODO: matteo/appears to be unused
-  dialogActions = (
-    <FlatButton
-      label="Close"
-      primary
-      onClick={() => this.handleCloseDialog()}
     />
   );
 
@@ -808,7 +808,8 @@ export class AssignmentTexterContact extends React.Component {
     const { questionResponses } = this.state;
 
     const availableInteractionSteps = this.getAvailableInteractionSteps(
-      questionResponses
+      questionResponses,
+      this.props
     );
 
     return messages.length === 0 ? (
@@ -857,78 +858,30 @@ export class AssignmentTexterContact extends React.Component {
   renderActionToolbar() {
     const { campaign } = this.props;
     const { contact } = this.props.data;
-    const { justSentNew } = this.state;
-    const { messageStatus } = contact;
-    const size = document.documentElement.clientWidth;
 
-    if (messageStatus === "needsMessage" || justSentNew) {
-      return (
-        <div>
-          <Toolbar style={inlineStyles.actionToolbarFirst}>
-            <ToolbarGroup firstChild>
-              <SendButton
-                threeClickEnabled={campaign.organization.threeClickEnabled}
-                onFinalTouchTap={this.handleClickSendMessageButton}
-                disabled={
-                  this.state.disabled || this.state.notSendableButForceDisplay
-                }
-              />
-            </ToolbarGroup>
-          </Toolbar>
-        </div>
-      );
-    } else if (size < 450) {
-      // for needsResponse or messaged or convo
-      return (
-        <div>
-          <Toolbar
-            className={css(styles.mobile)}
-            style={inlineStyles.actionToolbar}
-          >
-            <ToolbarGroup
-              style={inlineStyles.mobileToolBar}
-              className={css(styles.lgMobileToolBar)}
-              firstChild
-            >
-              <RaisedButton
-                {...dataTest("optOut")}
-                secondary
-                label="Opt out"
-                onTouchTap={this.handleOpenDialog}
-                style={inlineStyles.buttonWidth}
-              />
-              {this.renderNeedsResponseToggleButton(contact)}
-            </ToolbarGroup>
-          </Toolbar>
-        </div>
-      );
-    } else if (size >= 768) {
-      // for needsResponse or messaged
-      return (
-        <div>
-          <Toolbar style={inlineStyles.actionToolbarFirst}>
-            <ToolbarGroup firstChild>
-              <SendButton
-                threeClickEnabled={campaign.organization.threeClickEnabled}
-                onFinalTouchTap={this.handleClickSendMessageButton}
-                disabled={
-                  this.state.disabled || this.state.notSendableButForceDisplay
-                }
-              />
-              {this.renderNeedsResponseToggleButton(contact)}
-              <RaisedButton
-                {...dataTest("optOut")}
-                secondary
-                label="Opt out"
-                onTouchTap={this.handleOpenDialog}
-                style={inlineStyles.buttonWidth}
-              />
-            </ToolbarGroup>
-          </Toolbar>
-        </div>
-      );
-    }
-    return "";
+    return (
+      <div>
+        <Toolbar style={inlineStyles.actionToolbarFirst}>
+          <ToolbarGroup firstChild>
+            <SendButton
+              threeClickEnabled={campaign.organization.threeClickEnabled}
+              onFinalTouchTap={this.handleClickSendMessageButton}
+              disabled={
+                this.state.disabled || this.state.notSendableButForceDisplay
+              }
+            />
+            {this.renderNeedsResponseToggleButton(contact)}
+            <RaisedButton
+              {...dataTest("optOut")}
+              secondary
+              label="Opt out"
+              onTouchTap={this.handleOpenDialog}
+              style={inlineStyles.buttonWidth}
+            />
+          </ToolbarGroup>
+        </Toolbar>
+      </div>
+    );
   }
 
   renderTopFixedSection() {
@@ -938,17 +891,6 @@ export class AssignmentTexterContact extends React.Component {
         campaign={this.props.campaign}
         assignment={this.props.assignment}
         campaignContact={contact}
-        onOptOut={this.handleNavigateNext}
-        rightToolbarIcon={
-          <IconButton
-            onTouchTap={this.props.onExitTexter}
-            style={inlineStyles.exitTexterIconButton}
-            tooltip="Return Home"
-            tooltipPosition="bottom-center"
-          >
-            <NavigateHomeIcon color="rgb(255,255,255)" />
-          </IconButton>
-        }
       />
     );
   }
@@ -971,17 +913,6 @@ export class AssignmentTexterContact extends React.Component {
         onSelectCannedResponse={this.handleCannedResponseChange}
         shiftingConfiguration={shiftingConfiguration}
         contact={contact}
-      />
-    );
-  }
-
-  renderContactsSection() {
-    const { conversationList, onSelectConversation } = this.props;
-    return (
-      <ConversationsMenu
-        currentContact={this.props.contactId}
-        conversations={conversationList || []}
-        onSelectConversation={onSelectConversation}
       />
     );
   }
@@ -1054,58 +985,32 @@ export class AssignmentTexterContact extends React.Component {
     );
   }
 
-  renderInitialSendProgress() {
-    // TODO: STYLE ME!
-    return (
-      <div className={css(styles.countdownContainer)}>
-        <span className={css(styles.countdown)}>
-          {this.props.contactsRemaining}
-        </span>
-      </div>
-    );
-  }
-
   // todo middle scrolling section needs to be 800px and then next to it needs to
   render() {
-    const { messageStatus } = this.props.data.contact;
-    const { justSentNew } = this.state;
-
-    const conversationView = !(messageStatus === "needsMessage" || justSentNew);
     return (
-      <div>
+      <div className={css(styles.container)}>
         {this.state.errorModalOpen && this.renderErrorModal()}
-        {this.state.disabled ? (
-          <div className={css(styles.overlay)}>
-            <CircularProgress size={0.5} />
-            {this.state.disabledText}
-          </div>
-        ) : (
-          ""
-        )}
         <div className={css(styles.container)}>
           <div className={css(styles.topFixedSection)}>
             {this.renderTopFixedSection()}
           </div>
           <div className={css(styles.mainSectionContainer)}>
-            <div className={css(styles.contactsSection)}>
-              {conversationView
-                ? this.renderContactsSection()
-                : this.renderInitialSendProgress()}
-            </div>
             <div className={css(styles.messageSection)}>
-              <div
-                {...dataTest("messageList")}
-                ref="messageScrollContainer"
-                className={css(styles.middleScrollingSection)}
-              >
-                {this.renderMiddleScrollingSection()}
-              </div>
+              {this.renderMiddleScrollingSection()}
               <div className={css(styles.bottomFixedSection)}>
                 {this.renderBottomFixedSection()}
+                {this.state.disabled ? (
+                  <div className={css(styles.overlay)}>
+                    <CircularProgress size={0.5} />
+                    {this.state.disabledText}
+                  </div>
+                ) : (
+                  ""
+                )}
               </div>
             </div>
             <div className={css(styles.responsesSection)}>
-              {conversationView ? this.renderReplyTools() : null}
+              {this.renderReplyTools()}
             </div>
           </div>
         </div>
@@ -1115,28 +1020,12 @@ export class AssignmentTexterContact extends React.Component {
           message={this.state.snackbarError || ""}
           action={this.state.snackbarActionTitle}
           onActionClick={this.state.snackbarOnTouchTap}
+          onRequestClose={() => this.setState({ snackbarError: null })}
         />
       </div>
     );
   }
 }
-
-AssignmentTexterContact.propTypes = {
-  data: PropTypes.object,
-  contactId: PropTypes.string,
-  contactsRemaining: PropTypes.number,
-  campaign: PropTypes.object,
-  assignment: PropTypes.object,
-  texter: PropTypes.object,
-  advanceContact: PropTypes.func,
-  router: PropTypes.object,
-  mutations: PropTypes.object,
-  onExitTexter: PropTypes.func,
-  forceDisabledDisplayIfNotSendable: PropTypes.bool, // remove?
-  conversationList: PropTypes.array,
-  onSelectConversation: PropTypes.func,
-  initialSendMode: PropTypes.bool
-};
 
 const mapQueriesToProps = ({ ownProps }) => ({
   data: {
@@ -1166,6 +1055,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
             }
           }
           messageStatus
+          updatedAt
           messages {
             id
             createdAt
@@ -1202,7 +1092,9 @@ const mapMutationsToProps = () => ({
     variables: {
       optOut,
       campaignContactId
-    }
+    },
+
+    refetchQueries: ["getContact"]
   }),
   editCampaignContactMessageStatus: (messageStatus, campaignContactId) => ({
     mutation: gql`
@@ -1216,13 +1108,16 @@ const mapMutationsToProps = () => ({
         ) {
           id
           messageStatus
+          updatedAt
         }
       }
     `,
     variables: {
       messageStatus,
       campaignContactId
-    }
+    },
+
+    refetchQueries: ["getContact"]
   }),
   deleteQuestionResponses: (interactionStepIds, campaignContactId) => ({
     mutation: gql`
@@ -1241,7 +1136,9 @@ const mapMutationsToProps = () => ({
     variables: {
       interactionStepIds,
       campaignContactId
-    }
+    },
+
+    refetchQueries: ["getContact"]
   }),
   updateQuestionResponses: (questionResponses, campaignContactId) => ({
     mutation: gql`
@@ -1260,7 +1157,8 @@ const mapMutationsToProps = () => ({
     variables: {
       questionResponses,
       campaignContactId
-    }
+    },
+    refetchQueries: ["getContact"]
   }),
   sendMessage: (message, campaignContactId) => ({
     mutation: gql`
@@ -1271,6 +1169,7 @@ const mapMutationsToProps = () => ({
         sendMessage(message: $message, campaignContactId: $campaignContactId) {
           id
           messageStatus
+          updatedAt
           messages {
             id
             createdAt
@@ -1284,7 +1183,8 @@ const mapMutationsToProps = () => ({
     variables: {
       message,
       campaignContactId
-    }
+    },
+    refetchQueries: ["getContact"]
   }),
   addTag: (campaignContactIds, tags, comment) => ({
     mutation: gql`
@@ -1304,11 +1204,15 @@ const mapMutationsToProps = () => ({
       campaignContactIds,
       tags,
       comment
-    }
+    },
+    refetchQueries: ["getContact"]
   })
 });
 
-export default loadData(wrapMutations(withRouter(AssignmentTexterContact)), {
-  mapQueriesToProps,
-  mapMutationsToProps
-});
+export default loadData(
+  wrapMutations(withRouter(ConversationTexterContactComponent)),
+  {
+    mapQueriesToProps,
+    mapMutationsToProps
+  }
+);

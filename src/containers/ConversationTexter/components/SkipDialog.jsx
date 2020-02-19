@@ -6,8 +6,8 @@ import Divider from "material-ui/Divider";
 import { StyleSheet, css } from "aphrodite";
 import DropDownMenu, { MenuItem } from "material-ui/DropDownMenu";
 import TextField from "material-ui/TextField";
-import { TAGS, NO_TAG } from "../../lib/tags";
-import theme from "../../styles/theme";
+import { TAGS, NO_TAG } from "src/lib/tags";
+import theme from "src/styles/theme";
 
 const styles = StyleSheet.create({
   skipCard: {

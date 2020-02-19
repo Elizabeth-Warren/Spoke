@@ -181,16 +181,6 @@ export class AssignmentSummary extends Component {
               contactsFilter: null,
               hideIfZero: true
             })}
-            {this.renderBadgedButton({
-              assignment,
-              title: "Skipped Messages",
-              count: skippedMessagesCount,
-              style: inlineStyles.pastMsgStyle,
-              primary: false,
-              disabled: false,
-              contactsFilter: "skipped",
-              hideIfZero: true
-            })}
           </CardActions>
         </Card>
       </div>

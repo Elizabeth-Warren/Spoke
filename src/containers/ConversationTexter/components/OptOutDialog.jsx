@@ -6,8 +6,8 @@ import PropTypes from "prop-types";
 import React from "react";
 import Form from "react-formal";
 import yup from "yup";
-import GSForm from "../forms/GSForm";
-import GSSubmitButton from "../forms/GSSubmitButton";
+import GSForm from "src/components/forms/GSForm";
+import GSSubmitButton from "src/components/forms/GSSubmitButton";
 
 const styles = StyleSheet.create({
   optOutCard: {

@@ -29,7 +29,8 @@ export const resolvers = {
         "external_id",
         "external_id_type",
         "state_code",
-        "hasUnresolvedTags"
+        "hasUnresolvedTags",
+        "updatedAt"
       ],
       CampaignContact
     ),

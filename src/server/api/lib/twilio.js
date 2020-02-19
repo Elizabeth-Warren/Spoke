@@ -204,6 +204,10 @@ async function sendMessage(message, contact, trx) {
       { conflict: "update" }
     );
 
+    if (messageParams.body.toLowerCase() == "done") {
+      return sentMessage;
+    }
+
     setTimeout(async () => {
       // after 250ms, submit a delivery report
       await handleDeliveryReport({
