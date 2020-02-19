@@ -25,6 +25,9 @@ const muiTheme = getMuiTheme(
       selectColor: theme.colors.EWnavy,
       selectTextColor: theme.colors.white,
       headerColor: theme.colors.EWlibertyGreen
+    },
+    textField: {
+      errorColor: theme.colors.EWred
     }
   },
   { userAgent: "all" }

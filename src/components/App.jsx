@@ -17,6 +17,7 @@ injectTapEventPlugin();
 
 Form.addInputTypes({
   string: GSTextField,
+  description: GSTextField,
   number: GSTextField,
   date: GSDateField,
   email: GSTextField,
