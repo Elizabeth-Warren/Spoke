@@ -114,6 +114,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
               hasUnassignedContactsForTexter
               introHtml
               primaryColor
+              dueBy
               logoImageUrl
             }
             maxContacts
