@@ -721,6 +721,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
     variables: {
       campaignId: ownProps.params.campaignId
     },
+    fetchPolicy: "network-only",
     pollInterval: 60000
   },
   organizationData: {
@@ -750,6 +751,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
       organizationId: ownProps.params.organizationId,
       sortBy: "FIRST_NAME"
     },
+    fetchPolicy: "network-only",
     pollInterval: 20000
   },
   availableActionsData: {
