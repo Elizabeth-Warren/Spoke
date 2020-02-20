@@ -10,5 +10,6 @@ export const schema = gql`
   type PhoneNumbersByAreaCode {
     areaCode: String!
     count: Int!
+    reservedAt: DateTime
   }
 `;

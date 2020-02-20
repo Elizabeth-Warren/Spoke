@@ -65,6 +65,7 @@ const rootSchema = gql`
   input CampaignPhoneNumberInput {
     areaCode: String
     count: Int
+    reservedAt: DateTime
   }
 
   input CampaignInput {
@@ -80,7 +81,7 @@ const rootSchema = gql`
     interactionSteps: InteractionStepInput
     cannedResponses: [CannedResponseInput]
     overrideOrganizationTextingHours: Boolean
-    phoneNumbers: CampaignPhoneNumberInput
+    phoneNumbers: [CampaignPhoneNumberInput]
     textingHoursEnforced: Boolean
     textingHoursStart: Int
     textingHoursEnd: Int
@@ -332,6 +333,7 @@ export const schema = [
   "scalar Date",
   "scalar JSON",
   "scalar Phone",
+  "scalar DateTime",
   campaignSchema,
   assignmentSchema,
   interactionStepSchema,

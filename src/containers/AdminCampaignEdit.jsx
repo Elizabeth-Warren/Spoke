@@ -48,6 +48,11 @@ const campaignInfoFragment = `
   timezone
   shiftingConfiguration
   joinUrl
+  phoneNumbers {
+    areaCode
+    count
+    reservedAt
+  }
   texters {
     id
     firstName
@@ -90,8 +95,7 @@ class AdminCampaignEdit extends React.Component {
     this.state = {
       expandedSection: isNew ? 0 : null,
       campaignFormValues: {
-        ...props.campaignData.campaign,
-        messagingServices: []
+        ...props.campaignData.campaign
       },
       startingCampaign: false,
       showJoinDialog: false
@@ -249,10 +253,13 @@ class AdminCampaignEdit extends React.Component {
       sectionState[key] = this.state.campaignFormValues[key];
       sectionProps[key] = this.props.campaignData.campaign[key];
     });
-    if (JSON.stringify(sectionState) !== JSON.stringify(sectionProps)) {
-      return false;
-    }
-    return true;
+    console.log(
+      "CHECK SAVED section state:",
+      sectionState,
+      "section props",
+      sectionProps
+    );
+    return JSON.stringify(sectionState) === JSON.stringify(sectionProps);
   }
 
   checkSectionCompleted(section) {
@@ -384,20 +391,26 @@ class AdminCampaignEdit extends React.Component {
         extraProps: {
           customFields: this.props.campaignData.campaign.customFields
         }
+      },
+      {
+        title: "Phone Numbers",
+        content: CampaignPhoneNumbersForm,
+        keys: ["phoneNumbers"],
+        checkCompleted: () =>
+          this.props.organizationData.organization
+            .campaignPhoneNumbersEnabled &&
+          this.props.campaignData.campaign.phoneNumbers.count > 20,
+        hidden: !this.props.organizationData.organization
+          .campaignPhoneNumbersEnabled,
+        blocksStarting: true,
+        expandAfterCampaignStarts: true,
+        expandableBySuperVolunteers: true,
+        extraProps: {
+          availablePhoneNumbers: this.props.organizationData.organization
+            .availablePhoneNumbers,
+          contactsCount: this.state.campaignFormValues.contactsCount
+        }
       }
-      // {
-      //   title: "Phone Numbers",
-      //   content: CampaignPhoneNumbersForm,
-      //   keys: ["phoneNumbers"],
-      //   checkCompleted: () =>
-      //     this.props.organizationData.campaignPhoneNumbersEnabled,
-      //   blocksStarting: true,
-      //   expandAfterCampaignStarts: true,
-      //   expandableBySuperVolunteers: true,
-      //   extraProps: {
-      //     phoneNumbers: this.props.organizationData.phoneNumbersByAreaCode
-      //   }
-      // }
     ];
   }
 
@@ -409,7 +422,7 @@ class AdminCampaignEdit extends React.Component {
     return "";
   }
 
-  renderCampaignFormSection(section) {
+  renderCampaignFormSection(section, isLast) {
     let shouldDisable = !this.isNew() && this.checkSectionSaved(section);
     const ContentComponent = section.content;
     const formValues = this.getSectionState(section);
@@ -417,7 +430,9 @@ class AdminCampaignEdit extends React.Component {
       <ContentComponent
         onChange={this.handleChange}
         formValues={formValues}
-        saveLabel={this.isNew() ? "Save and goto next section" : "Save"}
+        saveLabel={
+          this.isNew() && !isLast ? "Save and goto next section" : "Save"
+        }
         saveDisabled={shouldDisable}
         ensureComplete={this.props.campaignData.campaign.isStarted}
         onSubmit={this.handleSubmit}
@@ -578,7 +593,7 @@ class AdminCampaignEdit extends React.Component {
   }
 
   render() {
-    const sections = this.sections();
+    const sections = this.sections().filter(s => !s.hidden);
     const { expandedSection } = this.state;
     const { adminPerms } = this.props.params;
     return (
@@ -597,6 +612,8 @@ class AdminCampaignEdit extends React.Component {
             display: "inline-block",
             verticalAlign: "middle"
           };
+
+          const isLast = sectionIndex + 1 === sections.length;
 
           const sectionCanExpandOrCollapse =
             (section.expandAfterCampaignStarts ||
@@ -650,7 +667,7 @@ class AdminCampaignEdit extends React.Component {
                 avatar={avatar}
               />
               <CardText expandable>
-                {this.renderCampaignFormSection(section)}
+                {this.renderCampaignFormSection(section, isLast)}
               </CardText>
             </Card>
           );

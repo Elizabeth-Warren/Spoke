@@ -1,5 +1,6 @@
 import GraphQLDate from "graphql-date";
 import GraphQLJSON from "graphql-type-json";
+import GraphQLDateTime from "graphql-type-datetime";
 import { GraphQLError } from "graphql/error";
 import isUrl from "is-url";
 import { makeTree } from "src/lib";
@@ -88,26 +89,32 @@ async function updateCampaignPhoneNumbers(
   );
   const cfg = campaignInput.phoneNumbers;
 
-  // clear all campaign numbers
-  if (!cfg.amount) {
+  if (!cfg) {
     await db.TwilioPhoneNumber.releaseAllCampaignNumbers(id);
     return;
   }
 
   await db.transaction(async transaction => {
     await db.TwilioPhoneNumber.releaseAllCampaignNumbers(id, { transaction });
-    const success = await db.TwilioPhoneNumber.reserveForCampaign(
-      {
-        campaignId: id,
-        limit: Math.min(cfg.amount, twilio.MAX_NUMBERS_PER_MESSAGING_SERVICE),
-        areaCode: cfg.areaCode
-      },
-      { transaction }
-    );
+    await Promise.all(
+      cfg.map(async item => {
+        const success = await db.TwilioPhoneNumber.reserveForCampaign(
+          {
+            campaignId: id,
+            amount: Math.min(
+              item.count,
+              twilio.MAX_NUMBERS_PER_MESSAGING_SERVICE
+            ),
+            areaCode: item.areaCode
+          },
+          { transaction }
+        );
 
-    if (!success) {
-      throw Error("Failed to find sufficient phone numbers");
-    }
+        if (!success) {
+          throw Error("Failed to find sufficient phone numbers");
+        }
+      })
+    );
   });
 }
 
@@ -1524,6 +1531,7 @@ export const resolvers = {
   ...cannedResponseResolvers,
   ...questionResponseResolvers,
   ...{ Date: GraphQLDate },
+  ...{ DateTime: GraphQLDateTime },
   ...{ JSON: GraphQLJSON },
   ...{ Phone: GraphQLPhone },
   ...questionResolvers,

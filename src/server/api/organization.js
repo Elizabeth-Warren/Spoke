@@ -77,8 +77,6 @@ export const resolvers = {
       if (!campaignPhoneNumbersEnabled(organization)) {
         return [];
       }
-      // Note: phone numbers are currently shared across organizations, so this doesn't
-      // actually filter by the current organization. This behavior may change in the future.
       return await db.TwilioPhoneNumber.countByAreaCode({
         status: Status.AVAILABLE
       });

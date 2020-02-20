@@ -53,7 +53,10 @@
       "description": "for twilio integration and connected to twilio account",
       "required": true
     },
-
+    "CONTACTS_PER_PHONE_NUMBER": {
+      "description": "the number of contacts to assign to each phone number",
+      "required": true
+    },
     "TWILIO_APPLICATION_SID": {
       "description": "for twilio integration and connected to twilio account",
       "required": true

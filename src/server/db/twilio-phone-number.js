@@ -106,8 +106,8 @@ async function assignToCampaign(campaignId, opts) {
 
 async function countByAreaCode(where, opts) {
   let builder = queryBuilder(Table.TWILIO_PHONE_NUMBER, opts)
-    .select("area_code as areaCode")
-    .groupBy("areaCode")
+    .select("area_code as areaCode", "reserved_at as reservedAt")
+    .groupBy("areaCode", "reservedAt")
     .count("*");
   if (where) {
     builder = builder.where(decamelize(where));
@@ -115,7 +115,8 @@ async function countByAreaCode(where, opts) {
   // convert count results to numbers, see: https://github.com/knex/knex/issues/387
   return (await builder).map(r => ({
     areaCode: r.areaCode,
-    count: parseInt(r.count, 10)
+    count: parseInt(r.count, 10),
+    reservedAt: r.reservedAt
   }));
 }
 

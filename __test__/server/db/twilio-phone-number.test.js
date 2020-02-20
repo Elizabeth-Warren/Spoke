@@ -77,7 +77,8 @@ describe("phone number reservation and release", () => {
       campaignId,
       status: "RESERVED"
     });
-    expect(count).toEqual([{ areaCode: "808", count: 3 }]);
+    expect(count).toHaveProperty([0, "areaCode"], "808");
+    expect(count).toHaveProperty([0, "count"], 3);
   });
 
   test("reserveCampaign numbers exceeding limit", async () => {
@@ -127,7 +128,8 @@ describe("phone number reservation and release", () => {
     });
     expect(success).toBeTruthy();
     const count = await db.TwilioPhoneNumber.countByAreaCode({ campaignId });
-    expect(count).toEqual([{ areaCode: "310", count: 1 }]);
+    expect(count).toHaveProperty([0, "areaCode"], "310");
+    expect(count).toHaveProperty([0, "count"], 1);
   });
 
   test("release and reserve fail in a transaction", async () => {
@@ -154,6 +156,7 @@ describe("phone number reservation and release", () => {
     expect(failed).toBeTruthy();
 
     const count = await db.TwilioPhoneNumber.countByAreaCode({ campaignId });
-    expect(count).toEqual([{ areaCode: "808", count: 2 }]);
+    expect(count).toHaveProperty([0, "areaCode"], "808");
+    expect(count).toHaveProperty([0, "count"], 2);
   });
 });

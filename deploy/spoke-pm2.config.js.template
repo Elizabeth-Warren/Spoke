@@ -31,6 +31,7 @@ const env_production = {
   NEXMO_API_KEY:'',
   NEXMO_API_SECRET:'',
   TWILIO_ACCOUNT_SID:'',
+  CONTACTS_PER_PHONE_NUMBER: '',
   TWILIO_APPLICATION_SID:'',
   TWILIO_AUTH_TOKEN:'',
   TWILIO_STATUS_CALLBACK_URL:'http://example.com:3000/twilio',
