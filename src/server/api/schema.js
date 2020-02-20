@@ -32,7 +32,6 @@ import {
 import {
   accessRequired,
   assignmentRequired,
-  assignmentAndNotSuspended,
   authRequired,
   superAdminRequired,
   requireAuthStrategy,

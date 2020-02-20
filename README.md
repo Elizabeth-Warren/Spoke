@@ -106,6 +106,113 @@ The default size for batch assign is 300, but when testing you can change the ba
 DYNAMIC_ASSIGN_MAX_BATCH_SIZE=10
 ```
 
+### Phone number provisioning
+
+There are two ways to provision Twilio phone numbers and Messaging Services in the Warren fork of Spoke:
+
+- Using the `campaignPhoneNumbers` feature, which provisions Messaging Services for
+  campaigns on-the-fly and adds numbers from a shared inventory. This feature allows
+  Spoke to scale beyond the limits of a single Messaging Service (400 numbers or about
+  80,000 texts a day). Numbers and Messaging Services are managed by the application.
+
+- Using the global Messaging Service set by the TWILIO_MESSAGE_SERVICE_SID env var.
+  We also support setting a message_service_sid in organization features, but this is
+  not used currently and may be removed in the future. The messaging service needs to
+  be created and managed manually. See `dev-tools/` for scripts to help with this.
+
+The rest of this section describes `campaignPhoneNumbers` feature.
+
+#### Enabling `campaignPhoneNumbers`
+
+You must be an OWNER of an organization to enable the `campaignPhoneNumbers`.
+There is no UI for this but it can be done through a mutation in Graphiql:
+
+```
+mutation {
+  enableCampaignPhoneNumbers(organizationId: "12345") {
+    campaignPhoneNumbersEnabled
+  }
+}
+```
+
+#### The phone number inventory
+
+`campaignPhoneNumbers` relies on an inventory of phone numbers managed by the Spoke application.
+Managed phone numbers are tracked in the `twilio_phone_number` table and can be in one
+of three states:
+
+- `AVAILABLE`: available to be claimed by a new campaign
+- `RESERVED`: claimed by an unstarted campaign. Reservations expire to prevent
+  campaigns from holding numbers without using them.
+- `ASSIGNED`: claimed by an active campaign and added to the Twilio Messaging Service
+  created for that campaign.
+
+The phone number inventory is shared by all organizations in a Spoke instance. This was
+desirable for Warren for President but might not be suitable for all Spoke deployments.
+
+#### Campaign creation
+
+When the `campaignPhoneNumbers` feature is enabled, admins will have to configure
+phone numbers when building a campaign. The "Phone Numbers" section in the
+campaign creation flow allows admins to select the area codes they want to use from
+the list of available phone numbers in the inventory.
+
+This also enforces a ratio of 150 contacts per number to stay well within the
+recommended limit of 200 texts/day for P2P texting. A campaign cannot start until enough
+numbers have been reserved.
+
+By design, an admin cannot purchase numbers or make modifications to Twilio while
+editing a draft campaign. Starting a campaign creates a Messaging Service and
+transfers already-purchased numbers to it. Once a campaign is started, the Messaging
+Service and phone number configuration cannot be changed.
+
+#### Purchasing numbers for the inventory
+
+To buy more numbers and make them available to campaign creators, SUPERADMINS can
+run a mutation in Graphiql.
+
+Example: purchase 3 numbers in the 952 area code:
+
+```
+mutation {
+  buyNumbers(areaCode: "952", limit: 3) {
+    id
+  }
+}
+```
+
+_IMPORTANT: the `twilio_phone_numbers` table and buy-numbers background job are not
+intended to be used with the global Twilio messaging service. Instead, use
+`dev-tools/buy-numbers.js` to buy numbers if you don't have `campaignPhoneNumbers`
+turned on._
+
+#### Voice responses
+
+To override the default voice response for Spoke-managed numbers set the TWILIO_VOICE_URL
+env var. We use a simple TwiML Bin response:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+  <Play>https://ew-spoke-public.s3.amazonaws.com/2020-01-12_DTC_Text+Incoming+Message.wav</Play>
+</Response>
+```
+
+#### Sticky sender
+
+The `campaignPhoneNumbers` feature was designed to avoid texting contacts with the same number from
+different campaigns. This solves two problems:
+
+1. It avoids threading messages from different campaigns/volunteers on the contact's phone
+2. It allows us to route texts correctly for contacts who receive messages from more
+   than one campaign. By comparison, Spoke will route incoming messages to the campaign
+   that texted a contact most recently when using a shared Messaging Service.
+
+Note that phone numbers are re-used, so it is possible for a contact to receive messages
+from the same number from different campaigns, though it is unlikely at scale.
+It is not possible, however, for a number to be used by two active campaigns simultaneously,
+so we still manage to avoid routing problems.
+
 # Spoke
 
 Spoke is an open source text-distribution tool for organizations to mobilize supporters and members into action. Spoke allows you to upload phone numbers, customize scripts and assign volunteers to communicate with supporters while allowing organizations to manage the process.

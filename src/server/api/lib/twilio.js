@@ -529,7 +529,7 @@ async function searchForAvailableNumbers(areaCode, limit) {
 async function buyNumber(phoneNumber) {
   const response = await twilio.incomingPhoneNumbers.create({
     phoneNumber,
-    friendlyName: `Spoke [${process.env.BASE_URL}] ${phoneNumber}`,
+    friendlyName: `Managed by Spoke [${process.env.BASE_URL}]: ${phoneNumber}`,
     voiceUrl: process.env.TWILIO_VOICE_URL // will use default twilio recording if undefined
   });
   if (response.error) {

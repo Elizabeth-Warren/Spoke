@@ -41,6 +41,7 @@ export async function buyNumbers(job) {
       progress: totalPurchased / purchasedInBatch
     });
     if (purchasedInBatch === 0) {
+      log.warn("Failed buy as many numbers as requested");
       break;
     }
   }
@@ -49,6 +50,7 @@ export async function buyNumbers(job) {
     status: "COMPLETE",
     "Area Code": areaCode,
     "Total Requested": totalRequested,
+    "Total Purchased": totalPurchased,
     "Requested By": job.userId
   });
 }
