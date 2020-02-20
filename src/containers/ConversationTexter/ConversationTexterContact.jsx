@@ -871,6 +871,8 @@ export class ConversationTexterContactComponent extends React.Component {
               }
             />
             {this.renderNeedsResponseToggleButton(contact)}
+          </ToolbarGroup>
+          <ToolbarGroup lastChild>
             <RaisedButton
               {...dataTest("optOut")}
               label="Opt out"
