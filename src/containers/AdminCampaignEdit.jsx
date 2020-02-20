@@ -396,10 +396,23 @@ class AdminCampaignEdit extends React.Component {
         title: "Phone Numbers",
         content: CampaignPhoneNumbersForm,
         keys: ["phoneNumbers"],
-        checkCompleted: () =>
-          this.props.organizationData.organization
-            .campaignPhoneNumbersEnabled &&
-          this.props.campaignData.campaign.phoneNumbers.count > 20,
+        checkCompleted: () => {
+          const {
+            contactsCount,
+            phoneNumbers
+          } = this.props.campaignData.campaign;
+          const numbersNeeded = Math.ceil(
+            contactsCount / window.CONTACTS_PER_PHONE_NUMBER
+          );
+          const numbersReserved = phoneNumbers.reduce(
+            (acc, entry) => (acc = acc + entry.count),
+            0
+          );
+          return (
+            this.props.organizationData.organization
+              .campaignPhoneNumbersEnabled && numbersReserved >= numbersNeeded
+          );
+        },
         hidden: !this.props.organizationData.organization
           .campaignPhoneNumbersEnabled,
         blocksStarting: true,
