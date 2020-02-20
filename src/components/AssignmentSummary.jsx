@@ -10,6 +10,7 @@ import { withRouter } from "react-router";
 import { dataTest } from "../lib/attributes";
 import theme from "../styles/theme";
 import RequestBatchButton from "src/containers/RequestBatchButton";
+import { getBlackOrWhiteTextForBg } from "../lib/color-helpers";
 
 const inlineStyles = {
   badge: {
@@ -127,7 +128,11 @@ export class AssignmentSummary extends Component {
       introHtml,
       useDynamicAssignment
     } = assignment.campaign;
+
     const maxContacts = assignment.maxContacts;
+    const textColor =
+      (primaryColor && getBlackOrWhiteTextForBg(primaryColor)) || null;
+
     return (
       <div className={css(styles.container)}>
         <Card key={assignment.id}>
@@ -135,6 +140,8 @@ export class AssignmentSummary extends Component {
             title={title}
             subtitle={`${description} - ${moment(dueBy).format("MMM D YYYY")}`}
             style={{ backgroundColor: primaryColor }}
+            subtitleColor={textColor}
+            titleColor={textColor}
             children={
               logoImageUrl ? (
                 <img src={logoImageUrl} className={css(styles.image)} />
