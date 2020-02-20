@@ -7,13 +7,12 @@ export const schema = `
     email: String
     cell: String
     organizations(role: String): [Organization]
-    todos(organizationId: String): [Assignment]
+    assignmentSummaries(organizationId: String!): [AssignmentSummary]
     roles(organizationId: String!): [String]
     allRoles: [RolesForOrg]
     assignedCell: Phone
     assignment(campaignId: String): Assignment
     terms: Boolean
-    cacheable: Boolean
   }
 
 type UsersList {
@@ -23,6 +22,16 @@ type UsersList {
 type PaginatedUsers {
   users: [User]
   pageInfo: PageInfo
+}
+
+type ContactCountByMessageStatus {
+  messageStatus: String!
+  count: Int!
+}
+
+type AssignmentSummary {
+  assignment: Assignment!
+  contactCounts: [ContactCountByMessageStatus]!
 }
 
 union UsersReturn = PaginatedUsers | UsersList

@@ -1,6 +1,14 @@
 import gql from "graphql-tag";
 
 export const schema = gql`
+  enum CampaignStatus {
+    ACTIVE
+    ARCHIVED
+    CLOSED_FOR_INITIAL_SENDS
+    CLOSED_FOR_ALL_SENDS
+    NOT_STARTED
+  }
+
   input CampaignsFilter {
     isArchived: Boolean
     campaignId: Int
@@ -22,6 +30,7 @@ export const schema = gql`
     title: String
     description: String
     dueBy: Date
+    status: CampaignStatus
     isStarted: Boolean
     isArchived: Boolean
     creator: User

@@ -10,7 +10,7 @@ import Empty from "src/components/Empty";
 import Check from "material-ui/svg-icons/action/check-circle";
 import RaisedButton from "material-ui/RaisedButton";
 import _ from "lodash";
-import { getTopMostParent, isBetweenTextingHours } from "../../lib";
+import { getTopMostParent, campaignIsBetweenTextingHours } from "src/lib";
 import { applyScript } from "src/lib/scripts";
 
 const contactDataFragment = `
@@ -36,38 +36,6 @@ class InitialMessageTexter extends Component {
       loading: false
     };
   }
-
-  getUnmessagedContacts = () => {
-    const contacts = _.get(this.props, "assignment.contacts", []);
-    return contacts.filter(
-      contact => !this.state.contactsMessaged.has(contact.id)
-    );
-  };
-
-  canRequestBatch = () => {
-    const dynamicAssignments = _.get(
-      this.props,
-      "data.assignment.campaign.useDynamicAssignment"
-    );
-
-    const onLastContact = this.getUnmessagedContacts().length === 0;
-    return dynamicAssignments && onLastContact;
-  };
-
-  requestBatch = async () => {
-    const { assignment } = this.props.data;
-    if (assignment.campaign.useDynamicAssignment) {
-      const result = await this.props.mutations.findNewCampaignContact(
-        assignment.id
-      );
-      if (result.errors) {
-        // TODO[matteo] handle batch assign error;
-        console.log(result.errors);
-        throw new Error(`requestBatch failed: ${result.errors}`);
-      }
-      return result.data.findNewCampaignContact.found;
-    }
-  };
 
   exitTexter = () => {
     this.props.router.push("/app/" + (this.props.params.organizationId || ""));
@@ -97,27 +65,7 @@ class InitialMessageTexter extends Component {
 
   campaignIsBetweenTextingHours() {
     const { campaign } = this.props.data.assignment;
-    const {
-      textingHoursStart,
-      textingHoursEnd,
-      textingHoursEnforced
-    } = campaign.organization;
-    const config = {
-      textingHoursStart,
-      textingHoursEnd,
-      textingHoursEnforced
-    };
-
-    if (campaign.overrideOrganizationTextingHours) {
-      config.campaignTextingHours = {
-        textingHoursStart: campaign.textingHoursStart,
-        textingHoursEnd: campaign.textingHoursEnd,
-        textingHoursEnforced: campaign.textingHoursEnforced,
-        timezone: campaign.timezone
-      };
-    }
-
-    return isBetweenTextingHours(null, config);
+    return campaignIsBetweenTextingHours(campaign);
   }
 
   sendMessage = async (messageInput, contactId) => {
@@ -150,30 +98,7 @@ class InitialMessageTexter extends Component {
     }
   };
 
-  renderBatchButton = () => {
-    return (
-      <RaisedButton
-        onTouchTap={async () => {
-          this.setState({
-            loading: true
-          });
-          const received = await this.requestBatch();
-          if (!received) {
-            // TODO: show some feedback that there are no more contacts
-            this.exitTexter();
-          }
-          this.setState({
-            loading: false,
-            currentContactIndex: 0
-          });
-        }}
-        label="Request a Batch!"
-      />
-    );
-  };
-
   renderEmpty = () => {
-    // TODO: style me!
     return (
       <div>
         <Empty
@@ -181,15 +106,6 @@ class InitialMessageTexter extends Component {
           icon={<Check />}
           content={
             <div>
-              {!this.canRequestBatch() ? (
-                ""
-              ) : (
-                <div>
-                  {this.renderBatchButton()}
-                  <br />
-                  OR:
-                </div>
-              )}
               <RaisedButton label="Back To Todos" onClick={this.exitTexter} />
             </div>
           }
@@ -218,7 +134,7 @@ class InitialMessageTexter extends Component {
     );
 
     if (contacts.length === 0) {
-      return null;
+      return this.renderEmpty();
     }
 
     const currentContact = contacts[0];
@@ -308,27 +224,6 @@ const mapQueriesToProps = ({ ownProps }) => ({
 });
 
 const mapMutationsToProps = () => ({
-  findNewCampaignContact: assignmentId => ({
-    mutation: gql`
-      mutation findNewCampaignContact(
-        $assignmentId: String!
-        $numberContacts: Int
-      ) {
-        findNewCampaignContact(
-          assignmentId: $assignmentId
-          numberContacts: $numberContacts
-        ) {
-          found
-        }
-      }
-    `,
-    variables: {
-      assignmentId,
-      // Note: lower the batch size by passing this param:
-      numberContacts: null
-    },
-    refetchQueries: ["getContactsForInitialMessageTexter"]
-  }),
   sendMessage: (message, campaignContactId) => ({
     mutation: gql`
       mutation sendMessage(

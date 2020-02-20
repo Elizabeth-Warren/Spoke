@@ -23,6 +23,7 @@ function getAssignment(
     id: "1",
     campaign: {
       id: "1",
+      status: "ACTIVE",
       title: "New Campaign",
       description: "asdf",
       useDynamicAssignment: isDynamic,
@@ -43,8 +44,7 @@ describe("AssignmentSummary text", function t() {
           assignment={getAssignment()}
           unmessagedCount={1}
           conversationCount={0}
-          badTimezoneCount={0}
-          skippedMessagesCount={0}
+          isWithinTextingHours
         />
       </MuiThemeProvider>
     );
@@ -69,7 +69,13 @@ describe("AssignmentSummary text", function t() {
 
 describe("AssignmentSummary actions inUSA and NOT AllowSendAll", () => {
   injectTapEventPlugin(); // prevents warning
-  function create(unmessaged, conversations, badTimezone, skipped, isDynamic) {
+  function create(
+    unmessaged,
+    conversations,
+    needsResponseCount,
+    isWithinTextingHours,
+    isDynamic
+  ) {
     window.NOT_IN_USA = 0;
     window.ALLOW_SEND_ALL = false;
     return mount(
@@ -78,15 +84,15 @@ describe("AssignmentSummary actions inUSA and NOT AllowSendAll", () => {
           assignment={getAssignment(isDynamic)}
           unmessagedCount={unmessaged}
           conversationCount={conversations}
-          badTimezoneCount={badTimezone}
-          skippedMessagesCount={skipped}
+          needsResponseCount={needsResponseCount}
+          isWithinTextingHours
         />
       </MuiThemeProvider>
     ).find(CardActions);
   }
 
   it('renders "send first texts (1)" with unmessaged (dynamic assignment)', () => {
-    const actions = create(5, 0, 0, 0, true);
+    const actions = create(5, 0, 0, true, true);
     expect(
       actions
         .find(RequestBatchButton)
@@ -98,11 +104,11 @@ describe("AssignmentSummary actions inUSA and NOT AllowSendAll", () => {
         .find(RequestBatchButton)
         .at(0)
         .prop("buttonLabel")
-    ).toBe("Send Initial Texts");
+    ).toBe("Finish Text Batch");
   });
 
   it('renders "send first texts (1)" with unmessaged (non-dynamic)', () => {
-    const actions = create(1, 0, 0, 0, false);
+    const actions = create(1, 0, 0, true, false);
     expect(
       actions
         .find(RequestBatchButton)
@@ -114,11 +120,11 @@ describe("AssignmentSummary actions inUSA and NOT AllowSendAll", () => {
         .find(RequestBatchButton)
         .at(0)
         .prop("buttonLabel")
-    ).toBe("Send Initial Texts");
+    ).toBe("Finish Text Batch");
   });
 
   it('renders "send first texts" with no unmessaged (dynamic assignment)', () => {
-    const actions = create(0, 0, 0, 0, true);
+    const actions = create(0, 0, 0, true, true);
     expect(
       actions
         .find(RequestBatchButton)
@@ -133,64 +139,42 @@ describe("AssignmentSummary actions inUSA and NOT AllowSendAll", () => {
     ).toBe("Send Initial Texts");
   });
 
-  it('renders a "conversations" badge after messaged contacts', () => {
-    const actions = create(0, 7, 0, 0, false);
+  it('renders the "conversations" button with no badge if no conversations need a response', () => {
+    const actions = create(0, 7, 0, true, false);
+    expect(actions.find(RaisedButton).length).toBe(1);
+    expect(actions.find(Badge).at(0)).toEqual({});
+  });
+
+  it('renders the "conversations" button with a badge for conversations that need response', () => {
+    const actions = create(0, 7, 3, true, false);
     expect(actions.find(RaisedButton).length).toBe(1);
     expect(
       actions
         .find(Badge)
         .at(0)
         .prop("badgeContent")
-    ).toBe(7);
+    ).toBe(3);
   });
 });
 
-it('renders "Send later" when there is a badTimezoneCount', () => {
+it('renders "Send Later" when out of texting hours', () => {
   const actions = mount(
     <MuiThemeProvider>
       <AssignmentSummary
         assignment={getAssignment()}
-        unmessagedCount={0}
-        conversationCount={0}
-        badTimezoneCount={4}
-        skippedMessagesCount={0}
+        unmessagedCount={4}
+        conversationCount={2}
+        isWithinTextingHours={false}
       />
     </MuiThemeProvider>
   ).find(CardActions);
+  console.log(actions);
   expect(
     actions
-      .find(Badge)
+      .find(RaisedButton)
       .at(0)
-      .prop("badgeContent")
-  ).toBe(4);
-});
-
-describe("contacts filters", () => {
-  // These are an attempt to confirm that the buttons will work.
-  // It would be better to simulate clicking them, but I can't
-  // get it to work right now because of 'react-tap-event-plugin'
-  // some hints are here https://github.com/mui-org/material-ui/issues/4200#issuecomment-217738345
-
-  it("filters correctly in USA", () => {
-    window.NOT_IN_USA = 0;
-    window.ALLOW_SEND_ALL = false;
-    const mockRender = jest.fn();
-    AssignmentSummary.prototype.renderBadgedButton = mockRender;
-    mount(
-      <MuiThemeProvider>
-        <AssignmentSummary
-          assignment={getAssignment()}
-          unmessagedCount={1}
-          conversationCount={1}
-          badTimezoneCount={4}
-          skippedMessagesCount={0}
-        />
-      </MuiThemeProvider>
-    );
-    const sendFirstTexts = mockRender.mock.calls[0][0];
-    expect(sendFirstTexts.title).toBe("Conversations");
-    expect(sendFirstTexts.contactsFilter).toBe("conversations");
-  });
+      .prop("label")
+  ).toBe("Send Later");
 });
 
 // https://github.com/Khan/aphrodite/issues/62#issuecomment-267026726

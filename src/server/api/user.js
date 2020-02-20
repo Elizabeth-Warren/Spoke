@@ -1,6 +1,6 @@
 import { mapFieldsToModel } from "./lib/utils";
 import { r, User, cacheableData } from "../models";
-import { addCampaignsFilterToQuery } from "./campaign";
+import db from "src/server/db";
 
 const firstName = '"user"."first_name"';
 const lastName = '"user"."last_name"';
@@ -276,17 +276,21 @@ export const resolvers = {
     },
     roles: async (user, { organizationId }) =>
       cacheableData.user.orgRoles(user.id, organizationId),
-    allRoles: async (user) => cacheableData.user.allRoles(user.id),
-    todos: async (user, { organizationId }) =>
-      r
-        .table("assignment")
-        .getAll(user.id, { index: "assignment.user_id" })
-        .eqJoin("campaign_id", r.table("campaign"))
-        .filter({
-          is_started: true,
-          organization_id: organizationId,
-          is_archived: false
-        })("left"),
-    cacheable: () => Boolean(r.redis)
+    allRoles: async user => cacheableData.user.allRoles(user.id),
+    assignmentSummaries: async (user, { organizationId }) => {
+      // snake_case assignments to pass them to the resolver while camelCasing
+      // counts to return them using the default resolver :(
+      const assignments = await db.Assignment.listActiveAssignmentsForUser(
+        { userId: user.id, organizationId },
+        { snakeCase: true }
+      );
+      const summaries = await db.Assignment.countsByStatus(
+        assignments.map(a => a.id)
+      );
+      return assignments.map(assignment => ({
+        assignment,
+        contactCounts: summaries[assignment.id] || []
+      }));
+    }
   }
 };

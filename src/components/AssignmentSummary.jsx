@@ -1,4 +1,4 @@
-import PropTypes from "prop-types";
+import types from "prop-types";
 import React, { Component } from "react";
 import { Card, CardActions, CardTitle } from "material-ui/Card";
 import { StyleSheet, css } from "aphrodite";
@@ -49,8 +49,14 @@ const styles = StyleSheet.create({
 });
 
 export class AssignmentSummary extends Component {
-  state = {
-    badTimezoneTooltipOpen: false
+  static propTypes = {
+    organizationId: types.string,
+    router: types.object,
+    assignment: types.object,
+    isWithinTextingHours: types.bool,
+    unmessagedCount: types.number,
+    conversationCount: types.number,
+    needsResponseCount: types.number
   };
 
   goToTodos(contactsFilter, assignmentId) {
@@ -112,11 +118,9 @@ export class AssignmentSummary extends Component {
       assignment,
       unmessagedCount,
       conversationCount,
-      skippedMessagesCount,
-      // TODO: simplify this, because we don't use per-contact location data we can just
-      //  disable stuff by checking the campaign texting hours
-      badTimezoneCount,
-      organizationId
+      isWithinTextingHours,
+      organizationId,
+      needsResponseCount
     } = this.props;
     const {
       title,
@@ -126,12 +130,28 @@ export class AssignmentSummary extends Component {
       primaryColor,
       logoImageUrl,
       introHtml,
-      useDynamicAssignment
+      useDynamicAssignment,
+      status
     } = assignment.campaign;
-
-    const maxContacts = assignment.maxContacts;
     const textColor =
       (primaryColor && getBlackOrWhiteTextForBg(primaryColor)) || null;
+    // TODO: style summaries based on campaign status.
+    //  In particular, if a campaign is CLOSED_FOR_INITIAL_SENDS and there are
+    //  no conversations, or if a campaign is CLOSED_FOR_ALL_SENDS, the card
+    //  will have no buttons
+
+    const renderRequestBatchButton =
+      status === "ACTIVE" &&
+      isWithinTextingHours &&
+      (unmessagedCount > 0 ||
+        (useDynamicAssignment &&
+          hasUnassignedContactsForTexter &&
+          !needsResponseCount));
+
+    const renderConversationsButton =
+      (status === "ACTIVE" || status === "CLOSED_FOR_INITIAL_SENDS") &&
+      isWithinTextingHours &&
+      conversationCount > 0;
 
     return (
       <div className={css(styles.container)}>
@@ -155,32 +175,33 @@ export class AssignmentSummary extends Component {
             <div dangerouslySetInnerHTML={{ __html: introHtml }} />
           </div>
           <CardActions>
-            {unmessagedCount > 0 ||
-            (useDynamicAssignment &&
-              badTimezoneCount === 0 &&
-              hasUnassignedContactsForTexter) ? (
+            {renderRequestBatchButton ? (
               <RequestBatchButton
                 organizationId={organizationId}
                 assignmentId={assignment.id}
-                buttonLabel="Send Initial Texts"
+                buttonLabel={
+                  unmessagedCount ? "Finish Text Batch" : "Send Initial Texts"
+                }
                 unsentCount={unmessagedCount}
               />
             ) : null}
-            {this.renderBadgedButton({
-              dataTestText: "conversations",
-              assignment,
-              title: "Conversations",
-              count: conversationCount + skippedMessagesCount,
-              primary: false,
-              disabled: false,
-              contactsFilter: "conversations", // TODO: introduce our own filter
-              hideIfZero: true
-            })}
+            {renderConversationsButton
+              ? this.renderBadgedButton({
+                  dataTestText: "conversations",
+                  assignment,
+                  title: "Conversations",
+                  count: needsResponseCount,
+                  primary: false,
+                  disabled: false,
+                  contactsFilter: "conversations",
+                  hideIfZero: false
+                })
+              : null}
             {/*  TODO: better messaging around texting hours */}
             {this.renderBadgedButton({
               assignment,
-              title: "Send later",
-              count: badTimezoneCount,
+              title: "Send Later",
+              count: isWithinTextingHours ? 0 : unmessagedCount,
               primary: false,
               disabled: true,
               contactsFilter: null,
@@ -192,17 +213,5 @@ export class AssignmentSummary extends Component {
     );
   }
 }
-
-AssignmentSummary.propTypes = {
-  organizationId: PropTypes.string,
-  router: PropTypes.object,
-  assignment: PropTypes.object,
-  unmessagedCount: PropTypes.number,
-  conversationCount: PropTypes.number,
-  badTimezoneCount: PropTypes.number,
-  skippedMessagesCount: PropTypes.number,
-  data: PropTypes.object,
-  mutations: PropTypes.object
-};
 
 export default withRouter(AssignmentSummary);

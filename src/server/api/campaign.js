@@ -6,6 +6,7 @@ import { campaignPhoneNumbersEnabled } from "./organization";
 import db from "src/server/db";
 import config from "src/server/config";
 import urlJoin from "url-join";
+import moment from "moment";
 
 const Status = db.TwilioPhoneNumber.Status;
 
@@ -395,7 +396,6 @@ export const resolvers = {
         return null;
       }
 
-      const status = campaign.isStarted ? Status.RESERVED : Status.ASSIGNED;
       return await db.TwilioPhoneNumber.countByAreaCode({
         campaignId: campaign.id
       });
@@ -415,6 +415,24 @@ export const resolvers = {
     contactImportJob: async campaign =>
       campaign.contactImportJob ||
       (await cacheableData.campaign.dbContactImportJob(campaign.id)) ||
-      null
+      null,
+    status: campaign => {
+      if (!campaign.is_started) {
+        return "NOT_STARTED";
+      }
+      if (campaign.is_archived) {
+        return "ARCHIVED";
+      }
+      if (
+        moment
+          .utc()
+          .startOf("day")
+          .isAfter(moment(campaign.due_by))
+      ) {
+        return "CLOSED_FOR_INITIAL_SENDS";
+      }
+      // TODO: CLOSED_FOR_ALL_SENDS not implemented yet
+      return "ACTIVE";
+    }
   }
 };

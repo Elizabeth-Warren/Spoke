@@ -45,13 +45,17 @@ function decamelize(obj) {
   return humps.decamelizeKeys(obj, { separator: "_" });
 }
 
+function convertCase(obj, opts) {
+  return opts && opts.snakeCase ? obj : camelize(obj);
+}
+
 // Generic get function
 async function getAny(tableName, fieldName, fieldValue, opts = {}) {
   const result = await queryBuilder(tableName, opts)
     .where(fieldName, fieldValue)
     .first();
 
-  return opts.snakeCase ? result : camelize(result);
+  return convertCase(result, opts);
 }
 
 async function insertAndReturn(tableName, fields, opts) {
@@ -103,5 +107,6 @@ export {
   transaction,
   withTransaction,
   insertAndReturn,
-  updateAndReturn
+  updateAndReturn,
+  convertCase
 };

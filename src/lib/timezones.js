@@ -234,3 +234,27 @@ export const getOffsets = config => {
   const convertedInvalid = convertOffsetsToStrings(invalid);
   return [convertedValid, convertedInvalid];
 };
+
+export const campaignIsBetweenTextingHours = campaign => {
+  const {
+    textingHoursStart,
+    textingHoursEnd,
+    textingHoursEnforced
+  } = campaign.organization;
+  const config = {
+    textingHoursStart,
+    textingHoursEnd,
+    textingHoursEnforced
+  };
+
+  if (campaign.overrideOrganizationTextingHours) {
+    config.campaignTextingHours = {
+      textingHoursStart: campaign.textingHoursStart,
+      textingHoursEnd: campaign.textingHoursEnd,
+      textingHoursEnforced: campaign.textingHoursEnforced,
+      timezone: campaign.timezone
+    };
+  }
+
+  return isBetweenTextingHours(null, config);
+};
