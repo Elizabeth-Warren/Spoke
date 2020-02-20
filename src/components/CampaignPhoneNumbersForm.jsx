@@ -6,7 +6,7 @@ import yup from "yup";
 import Form from "react-formal";
 import CampaignFormSectionHeading from "../components/CampaignFormSectionHeading";
 import { ListItem, List } from "material-ui/List";
-import { dataSourceItem } from "../components/utils.jsx";
+import { dataSourceItem } from "../components/utils";
 import AutoComplete from "material-ui/AutoComplete";
 import IconButton from "material-ui/IconButton/IconButton";
 import DeleteIcon from "material-ui/svg-icons/action/delete";
