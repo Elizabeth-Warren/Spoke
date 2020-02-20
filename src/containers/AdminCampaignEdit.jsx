@@ -397,6 +397,12 @@ class AdminCampaignEdit extends React.Component {
         content: CampaignPhoneNumbersForm,
         keys: ["phoneNumbers"],
         checkCompleted: () => {
+          if (
+            !this.props.organizationData.organization
+              .campaignPhoneNumbersEnabled
+          ) {
+            return true;
+          }
           const {
             contactsCount,
             phoneNumbers
@@ -405,13 +411,10 @@ class AdminCampaignEdit extends React.Component {
             contactsCount / window.CONTACTS_PER_PHONE_NUMBER
           );
           const numbersReserved = (phoneNumbers || []).reduce(
-            (acc, entry) => (acc = acc + entry.count),
+            (acc, entry) => acc + entry.count,
             0
           );
-          return (
-            this.props.organizationData.organization
-              .campaignPhoneNumbersEnabled && numbersReserved >= numbersNeeded
-          );
+          return numbersReserved >= numbersNeeded;
         },
         hidden: !this.props.organizationData.organization
           .campaignPhoneNumbersEnabled,
