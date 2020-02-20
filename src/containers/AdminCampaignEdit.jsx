@@ -404,7 +404,7 @@ class AdminCampaignEdit extends React.Component {
           const numbersNeeded = Math.ceil(
             contactsCount / window.CONTACTS_PER_PHONE_NUMBER
           );
-          const numbersReserved = phoneNumbers.reduce(
+          const numbersReserved = (phoneNumbers || []).reduce(
             (acc, entry) => (acc = acc + entry.count),
             0
           );
