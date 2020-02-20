@@ -416,7 +416,7 @@ class AdminCampaignEdit extends React.Component {
         hidden: !this.props.organizationData.organization
           .campaignPhoneNumbersEnabled,
         blocksStarting: true,
-        expandAfterCampaignStarts: true,
+        expandAfterCampaignStarts: false,
         expandableBySuperVolunteers: true,
         extraProps: {
           availablePhoneNumbers: this.props.organizationData.organization
