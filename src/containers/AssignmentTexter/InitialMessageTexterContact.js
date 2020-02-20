@@ -1,19 +1,27 @@
 import PropTypes from "prop-types";
 import React, { Component } from "react";
 import { StyleSheet, css } from "aphrodite";
-import ContactToolbar from "../ConversationTexter/components/ContactToolbar";
+import Form from "react-formal";
+import yup from "yup";
+import confetti from "canvas-confetti";
+
+import { Tabs, Tab } from "material-ui";
 import { grey100 } from "material-ui/styles/colors";
 import { Toolbar, ToolbarGroup } from "material-ui/Toolbar";
-import yup from "yup";
-import GSForm from "../../components/forms/GSForm";
-import Form from "react-formal";
-import SendButton from "../../components/SendButton";
-import CircularProgress from "material-ui/CircularProgress";
-import { withRouter } from "react-router";
-import Empty from "../../components/Empty";
 import CreateIcon from "material-ui/svg-icons/content/create";
-import { dataTest } from "../../lib/attributes";
-import theme from "../../styles/theme";
+import CircularProgress from "material-ui/CircularProgress";
+
+import GSForm from "src/components/forms/GSForm";
+import SendButton from "src/components/SendButton";
+import { withRouter } from "react-router";
+import Empty from "src/components/Empty";
+import { dataTest } from "src/lib/attributes";
+import theme from "src/styles/theme";
+import CampaignTopBar from "src/containers/CampaignTopBar";
+
+import ContactToolbar from "../ConversationTexter/components/ContactToolbar";
+
+const CONFETTI_INTERVAL = 10;
 
 // TODO: share styles with conversationtexter
 const styles = StyleSheet.create({
@@ -30,13 +38,12 @@ const styles = StyleSheet.create({
   container: {
     margin: 0,
     position: "absolute",
-    top: 0,
+    top: 48,
     bottom: 0,
     left: 0,
     right: 0,
     display: "flex",
-    flexDirection: "column",
-    height: "100%"
+    flexDirection: "column"
   },
   overlay: {
     margin: 0,
@@ -71,7 +78,7 @@ const styles = StyleSheet.create({
   },
   mainSectionContainer: {
     display: "flex",
-    height: "calc(100vh - 58px)"
+    height: "calc(100vh - 48px)"
   },
   messageSection: {
     width: "calc(100% - 650px)",
@@ -139,7 +146,6 @@ const styles = StyleSheet.create({
     boxSizing: "border-box"
   },
   countdown: {
-    marginTop: 20,
     borderRadius: 40,
     backgroundColor: theme.colors.EWlibertyGreen,
     color: theme.colors.EWnavy,
@@ -149,6 +155,11 @@ const styles = StyleSheet.create({
     height: "auto",
     textAlign: "center",
     padding: "2px 10px"
+  },
+
+  confettiCanvas: {
+    width: "100%",
+    height: "calc(100vh - 100px)"
   }
 });
 
@@ -230,6 +241,10 @@ export class InitialMessageTexterContact extends Component {
     // https://unixpapa.com/js/testkey.html
     // note: key*down* is necessary to stop propagation of keyup for the textarea element
     document.body.addEventListener("keyup", this.onEnter);
+
+    this.confetti = confetti.create(this.confettiCanvas, {
+      resize: true
+    });
   }
 
   componentWillUnmount() {
@@ -277,6 +292,17 @@ export class InitialMessageTexterContact extends Component {
 
   handleClickSendMessageButton = async () => {
     await this.refs.form.submit();
+
+    if (this.props.contactsRemaining % CONFETTI_INTERVAL === 0) {
+      this.confetti({
+        spread: 20,
+        startVelocity: 60,
+        origin: {
+          y: 1.2
+        },
+        colors: ["#232444", "#b61b28"]
+      });
+    }
   };
 
   renderFirstMessagePlaceholder() {
@@ -359,27 +385,47 @@ export class InitialMessageTexterContact extends Component {
 
   renderInitialSendProgress() {
     return (
-      <div className={css(styles.countdownContainer)}>
-        <span className={css(styles.countdown)}>
-          {this.props.contactsRemaining}
-        </span>
-      </div>
+      <Tabs value="left-to-send">
+        <Tab value="left-to-send" label="Left To Send">
+          <div className={css(styles.countdownContainer)}>
+            <span className={css(styles.countdown)}>
+              {this.props.contactsRemaining}
+            </span>
+          </div>
+        </Tab>
+      </Tabs>
+    );
+  }
+
+  renderResponsesPlaceholder() {
+    return (
+      <Tabs value="confetti">
+        <Tab value="confetti" label="You Are Awesome">
+          <canvas
+            className={css(styles.confettiCanvas)}
+            ref={c => (this.confettiCanvas = c)}
+          />
+        </Tab>
+      </Tabs>
     );
   }
 
   render() {
     return (
       <div>
+        <CampaignTopBar
+          campaign={this.props.campaign}
+          organizationId={this.props.campaign.organization.id}
+        />
         <div className={css(styles.container)}>
-          <div className={css(styles.topFixedSection)}>
-            {this.renderTopFixedSection()}
-          </div>
-
           <div className={css(styles.mainSectionContainer)}>
             <div className={css(styles.contactsSection)}>
               {this.renderInitialSendProgress()}
             </div>
             <div className={css(styles.messageSection)}>
+              <div className={css(styles.topFixedSection)}>
+                {this.renderTopFixedSection()}
+              </div>
               <div
                 {...dataTest("messageList")}
                 ref="messageScrollContainer"
@@ -389,7 +435,9 @@ export class InitialMessageTexterContact extends Component {
                 {this.renderBottomFixedSection()}
               </div>
             </div>
-            <div className={css(styles.responsesSection)}></div>
+            <div className={css(styles.responsesSection)}>
+              {this.renderResponsesPlaceholder()}
+            </div>
           </div>
         </div>
       </div>

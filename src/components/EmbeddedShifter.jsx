@@ -1,9 +1,11 @@
 import React from "react";
 
 const wrapperStyles = {
-  height: "100%",
-  padding: "10px"
+  height: "calc(100% - 10px)",
+  padding: "10px",
+  overflowY: "hidden"
 };
+
 const iframeStyles = {
   height: "100%",
   width: "100%",
@@ -23,8 +25,6 @@ function cleanPhoneNumber(phone) {
 }
 
 export default function EmbeddedShifter({ shiftingConfiguration, contact }) {
-  console.log({ shiftingConfiguration, contact });
-
   let customFields = {};
   if (contact.customFields) {
     customFields = JSON.parse(contact.customFields) || {};

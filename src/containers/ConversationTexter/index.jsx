@@ -11,18 +11,18 @@ import loadData from "../hoc/load-data";
 import { ConversationsMenu } from "./components";
 import ConversationTexterContact from "./ConversationTexterContact";
 import EmptyState from "./components/EmptyState";
+import CampaignTopBar from "../CampaignTopBar";
 
 const styles = StyleSheet.create({
   container: {
     margin: 0,
     position: "absolute",
-    top: 0,
+    top: 48,
     bottom: 0,
     left: 0,
     right: 0,
     display: "flex",
-    flexDirection: "row",
-    height: "100%"
+    flexDirection: "row"
   },
 
   contactsSection: {
@@ -186,8 +186,18 @@ export class ConversationTexterComponent extends React.Component {
   }
 
   render() {
+    const {
+      data: { assignment }
+    } = this.props;
+
     return (
       <div>
+        {assignment && (
+          <CampaignTopBar
+            campaign={assignment.campaign}
+            organizationId={assignment.campaign.organization.id}
+          />
+        )}
         <div className={css(styles.container)}>
           <div className={css(styles.contactsSection)}>
             {this.renderConversationList()}

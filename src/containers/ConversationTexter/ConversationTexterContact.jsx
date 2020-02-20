@@ -60,6 +60,18 @@ const styles = StyleSheet.create({
     flexDirection: "column",
     height: "100%"
   },
+  mainSectionContainer: {
+    display: "flex",
+    flexDirection: "row",
+    height: "100%"
+  },
+  centerContainer: {
+    display: "flex",
+    flexDirection: "column",
+    flex: "1",
+    width: "calc(100vw - 700px)"
+  },
+
   overlay: {
     margin: 0,
     display: "flex",
@@ -88,25 +100,20 @@ const styles = StyleSheet.create({
     top: 5
   },
   topFixedSection: {
-    flex: "0 0 auto",
+    height: "48px",
     borderBottom: `2px solid ${theme.colors.white}`
   },
-  mainSectionContainer: {
-    display: "flex",
-    height: "calc(100vh - 58px)"
-  },
   messageSection: {
-    width: "calc(100% - 300px)",
-    height: "100%",
+    flex: "1",
     display: "flex",
-    flexDirection: "column"
+    flexDirection: "column",
+    height: "calc(100% - 50px)"
   },
-
   responsesSection: {
     backgroundColor: theme.colors.EWlibertyGreen,
     height: "100%",
     width: "400px",
-    overflowY: "scroll"
+    flexShrink: "0"
   },
 
   navButtonsWrapper: {
@@ -991,11 +998,11 @@ export class ConversationTexterContactComponent extends React.Component {
     return (
       <div className={css(styles.container)}>
         {this.state.errorModalOpen && this.renderErrorModal()}
-        <div className={css(styles.container)}>
-          <div className={css(styles.topFixedSection)}>
-            {this.renderTopFixedSection()}
-          </div>
-          <div className={css(styles.mainSectionContainer)}>
+        <div className={css(styles.mainSectionContainer)}>
+          <div className={css(styles.centerContainer)}>
+            <div className={css(styles.topFixedSection)}>
+              {this.renderTopFixedSection()}
+            </div>
             <div className={css(styles.messageSection)}>
               {this.renderMiddleScrollingSection()}
               <div className={css(styles.bottomFixedSection)}>
@@ -1010,9 +1017,9 @@ export class ConversationTexterContactComponent extends React.Component {
                 )}
               </div>
             </div>
-            <div className={css(styles.responsesSection)}>
-              {this.renderReplyTools()}
-            </div>
+          </div>
+          <div className={css(styles.responsesSection)}>
+            {this.renderReplyTools()}
           </div>
         </div>
         <Snackbar

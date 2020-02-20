@@ -68,6 +68,7 @@
     "axios": "^0.19.2",
     "body-parser": "^1.15.2",
     "camelcase-keys": "^4.1.0",
+    "canvas-confetti": "^1.0.3",
     "chart.js": "^1.1.1",
     "classnames": "^2.2.6",
     "cookie-session": "^2.0.0-alpha.1",
