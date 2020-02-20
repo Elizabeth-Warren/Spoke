@@ -1315,6 +1315,18 @@ const rootMutations = {
       await db.User.addToOrganization({ userId, organizationId, role });
 
       return "USER_ADDED";
+    },
+    buyNumbers: async (_, { areaCode, limit }, { user }) => {
+      await superAdminRequired(user);
+      const job = await BackgroundJob.create({
+        type: "buy_numbers",
+        campaignId: null,
+        organizationId: null,
+        userId: user.id,
+        config: JSON.stringify({ areaCode, limit })
+      });
+      await dispatchJob(job);
+      return job;
     }
   }
 };

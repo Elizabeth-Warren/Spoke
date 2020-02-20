@@ -9,6 +9,7 @@ import preconditions from "src/server/preconditions";
 import crypto from "crypto";
 import randomSecret from "src/server/random-secret";
 import url from "url";
+import db from "src/server/db";
 
 let twilio = null;
 const MAX_SEND_ATTEMPTS = 5;
@@ -510,12 +511,34 @@ async function createMessagingService(friendlyName) {
   });
 }
 
-async function buyNumber(phoneNumber, opts) {
-  return twilio.incomingPhoneNumbers.create({
+/**
+ * Search for phone numbers available for purchase
+ */
+async function searchForAvailableNumbers(areaCode, limit) {
+  const count = Math.min(limit, 30); // Twilio limit
+  return await twilio.availablePhoneNumbers("US").local.list({
+    areaCode,
+    limit: count,
+    capabilities: ["SMS", "MMS"]
+  });
+}
+
+/**
+ * Buy a phone number and add it to the twilio_phone_number table
+ */
+async function buyNumber(phoneNumber) {
+  const response = await twilio.incomingPhoneNumbers.create({
     phoneNumber,
-    friendlyName:
-      opts.friendlyName || `Spoke [${process.env.BASE_URL}] ${phoneNumber}`,
+    friendlyName: `Spoke [${process.env.BASE_URL}] ${phoneNumber}`,
     voiceUrl: process.env.TWILIO_VOICE_URL // will use default twilio recording if undefined
+  });
+  if (response.error) {
+    throw new Error(`Error buying twilio number: ${response.error}`);
+  }
+  log.debug(`Bought number ${phoneNumber} [${response.sid}]`);
+  return await db.TwilioPhoneNumber.create({
+    sid: response.sid,
+    phoneNumber: response.phoneNumber
   });
 }
 
@@ -588,5 +611,7 @@ export default {
   createMessagingService,
   deleteMessagingService,
   removeNumbersFromMessagingService,
-  addNumbersToMessagingService
+  addNumbersToMessagingService,
+  buyNumber,
+  searchForAvailableNumbers
 };

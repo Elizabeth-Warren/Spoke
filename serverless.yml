@@ -102,6 +102,7 @@ provider:
     TWILIO_AUTH_TOKEN: ${ssm:/${self:custom.stage}/spoke/TWILIO_AUTH_TOKEN~true}
     TWILIO_MESSAGE_SERVICE_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_MESSAGE_SERVICE_SID~true}
     TWILIO_STATUS_CALLBACK_URL: ${self:custom.baseUrl.${self:custom.stage}}/twilio-message-report
+    TWILIO_VOICE_URL: ${ssm:/${self:custom.stage}/spoke/TWILIO_VOICE_URL~true}
     JOB_EXECUTOR: LAMBDA
     JOB_LAMBDA_WORKER_FUNCTION_NAME: internal-spoke-${self:custom.stage}-worker
     ASSETS_DIR: ./build/client/assets

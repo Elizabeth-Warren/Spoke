@@ -2,6 +2,7 @@ const AWS = require("aws-sdk");
 import { assignTexters } from "./assign-texters";
 import { uploadContacts } from "./upload-contacts";
 import { exportCampaign } from "./export-campaign";
+import { buyNumbers } from "./buy-numbers";
 import log from "src/server/log";
 import config, { JobExecutor } from "../config";
 import BackgroundJob from "../db/background-job";
@@ -9,7 +10,8 @@ import BackgroundJob from "../db/background-job";
 export const JobType = {
   ASSIGN_TEXTERS: "assign_texters",
   UPLOAD_CONTACTS: "upload_contacts",
-  EXPORT_CAMPAIGN: "export"
+  EXPORT_CAMPAIGN: "export",
+  BUY_NUMBERS: "buy_numbers"
 };
 
 function wrapJob(jobFn) {
@@ -40,7 +42,8 @@ function wrapJob(jobFn) {
 export const WORKER_MAP = {
   [JobType.ASSIGN_TEXTERS]: wrapJob(assignTexters),
   [JobType.UPLOAD_CONTACTS]: wrapJob(uploadContacts),
-  [JobType.EXPORT_CAMPAIGN]: wrapJob(exportCampaign)
+  [JobType.EXPORT_CAMPAIGN]: wrapJob(exportCampaign),
+  [JobType.BUY_NUMBERS]: wrapJob(buyNumbers)
 };
 
 let lambdaClient;

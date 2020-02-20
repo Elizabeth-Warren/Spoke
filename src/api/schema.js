@@ -318,6 +318,7 @@ const rootSchema = gql`
     ): AddUserByEmailResult
     createPresignedUploadUrl(organizationId: ID!): String
     uploadContacts(campaignId: String!, s3Key: String!): Int
+    buyNumbers(areaCode: String!, limit: Int!): BackgroundJob
   }
 
   schema {
