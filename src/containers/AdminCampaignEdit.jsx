@@ -598,7 +598,7 @@ class AdminCampaignEdit extends React.Component {
             primary
             label="Start This Campaign!"
             disabled={!isCompleted}
-            onTouchTap={async () => this.handleStartCampaign()}
+            onTouchTap={async () => isCompleted && this.handleStartCampaign()}
           />
         </div>
       </div>
