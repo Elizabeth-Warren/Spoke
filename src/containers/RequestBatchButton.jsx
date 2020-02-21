@@ -62,7 +62,6 @@ class RequestBatchButton extends Component {
 
     if (!unsentCount) {
       const result = await mutations.findNewCampaignContact(assignmentId);
-      console.log("RESULT", result);
 
       if (result.errors) {
         this.setState({
@@ -107,7 +106,7 @@ class RequestBatchButton extends Component {
           <Badge
             badgeStyle={inlineStyles.badge}
             badgeContent={this.props.unsentCount}
-            secondary
+            secondary={!this.props.secondary}
           >
             {this.renderButton()}
           </Badge>

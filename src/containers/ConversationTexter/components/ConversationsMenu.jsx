@@ -37,7 +37,8 @@ class ConversationsMenu extends React.Component {
 
     organizationId: types.string.isRequired,
     assignmentId: types.string.isRequired,
-    moreBatchesAvailable: types.bool.isRequired
+    moreBatchesAvailable: types.bool.isRequired,
+    unsentInitialCount: types.number.isRequired
   };
 
   constructor(props) {
@@ -113,6 +114,7 @@ class ConversationsMenu extends React.Component {
   renderBatchRequestIfAvailable() {
     const {
       moreBatchesAvailable,
+      unsentInitialCount,
       organizationId,
       assignmentId,
       conversations
@@ -142,6 +144,7 @@ class ConversationsMenu extends React.Component {
           organizationId={organizationId}
           assignmentId={assignmentId}
           buttonLabel="LFG"
+          unsentCount={unsentInitialCount}
           secondary
         />
       </div>

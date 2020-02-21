@@ -20,6 +20,7 @@ const styles = StyleSheet.create({
   scrollWrapper: {
     flex: "1 1 auto",
     overflowY: "scroll",
+    overflowX: "hidden",
     overflow: "-moz-scrollbars-vertical"
   }
 });

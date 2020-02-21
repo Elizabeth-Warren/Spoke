@@ -54,6 +54,7 @@ class CannedResponseMenu extends React.Component {
     return (
       <div style={styles.searchWrapper}>
         <TextField
+          type="search"
           style={styles.searchStyle}
           underlineShow={false}
           hintText="Search replies..."
@@ -69,8 +70,6 @@ class CannedResponseMenu extends React.Component {
   }
 
   render() {
-    const { campaignCannedResponses, shouldShowReplies } = this.props;
-
     return (
       <div style={{ height: "100%", overflowY: "auto" }}>
         <List>

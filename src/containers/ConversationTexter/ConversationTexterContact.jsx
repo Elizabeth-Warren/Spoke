@@ -5,6 +5,7 @@ import gql from "graphql-tag";
 import yup from "yup";
 import Form from "react-formal";
 import { withRouter } from "react-router";
+import ReactDOM from "react-dom";
 
 import RaisedButton from "material-ui/RaisedButton";
 import { grey100 } from "material-ui/styles/colors";
@@ -246,45 +247,19 @@ export class ConversationTexterContactComponent extends React.Component {
         }, 1500);
       }
     }
-
-    // note: key*down* is necessary to stop propagation of keyup for the textarea element
-    document.body.addEventListener("keydown", this.onEnter);
   }
 
   componentWillReceiveProps(nextProps) {
     if (nextProps.contactId !== this.props.contactId) {
       this.setState(this.resetStateForProps(nextProps));
-
-      if (this.refs.form) {
-        this.refs.form.resetFormErrors();
-      }
     }
   }
 
   componentDidUpdate(prevProps) {
-    if (prevProps.contactId !== this.props.contactId && this.refs.form) {
-      this.refs.form.resetFormErrors();
+    if (prevProps.contactId !== this.props.contactId && this.refs.msgInput) {
+      this.focusTextArea();
     }
   }
-
-  componentWillUnmount() {
-    document.body.removeEventListener("keydown", this.onEnter);
-  }
-
-  onEnter = async evt => {
-    if (evt.keyCode === 13) {
-      evt.preventDefault();
-      // pressing the Enter key submits
-      if (this.state.optOutDialogOpen) {
-        this.handleOptOut();
-      } else if (this.state.skipDialogOpen) {
-        await this.handleSkipContact();
-        this.handleCloseSkipDialog();
-      } else {
-        this.handleClickSendMessageButton();
-      }
-    }
-  };
 
   setDisabled = async (disabled = true) => {
     this.setState({ disabled });
@@ -351,6 +326,35 @@ export class ConversationTexterContactComponent extends React.Component {
       : this.getMessageTextFromScript(
           getTopMostParent(campaign.interactionSteps).script
         );
+  }
+
+  onMessageInputKeyDown = evt => {
+    if (evt.keyCode !== 13) {
+      // not an enter press
+      return;
+    }
+
+    // pressing the Enter key submits
+    evt.preventDefault();
+    this.handleClickSendMessageButton();
+  };
+
+  focusTextArea() {
+    if (!this.refs.msgInput) {
+      return;
+    }
+
+    const node = ReactDOM.findDOMNode(this.refs.msgInput);
+    if (!node) {
+      return;
+    }
+
+    const textArea = node.querySelector("textarea[name=messageText]");
+    if (!textArea) {
+      return;
+    }
+
+    textArea.focus();
   }
 
   resetStateForProps(props) {
@@ -473,6 +477,11 @@ export class ConversationTexterContactComponent extends React.Component {
   };
 
   handleMessageFormSubmit = async ({ messageText }) => {
+    if (!messageText) {
+      this.refs.form.setFormError("messageText", "Can't send empty message");
+      return;
+    }
+
     try {
       const { contact } = this.props.data;
 
@@ -641,9 +650,12 @@ export class ConversationTexterContactComponent extends React.Component {
   handleChangeScript = newScript => {
     const messageText = this.getMessageTextFromScript(newScript);
 
-    this.setState({
-      messageText
-    });
+    this.setState(
+      {
+        messageText
+      },
+      () => this.focusTextArea()
+    );
   };
 
   handleQuestionResponseChange = ({
@@ -735,13 +747,12 @@ export class ConversationTexterContactComponent extends React.Component {
   };
 
   messageSchema = yup.object({
-    messageText: yup
-      .string()
-      .required("Can't send empty message")
-      .max(window.MAX_MESSAGE_LENGTH)
+    messageText: yup.string().max(window.MAX_MESSAGE_LENGTH)
   });
 
   handleMessageFormChange = ({ messageText }) => {
+    this.refs.form.resetFormErrors();
+
     const newState = { messageText };
     // Clear out the canned response id if it's set and the message gets
     // cleared completely.
@@ -885,6 +896,7 @@ export class ConversationTexterContactComponent extends React.Component {
               label="Opt out"
               onTouchTap={this.handleOpenDialog}
               style={inlineStyles.buttonWidth}
+              secondary
             />
           </ToolbarGroup>
         </Toolbar>
@@ -974,6 +986,9 @@ export class ConversationTexterContactComponent extends React.Component {
               multiLine
               fullWidth
               rowsMax={6}
+              autoFocus
+              ref="msgInput"
+              onKeyDown={this.onMessageInputKeyDown}
             />
             {this.renderCorrectSendButton()}
           </GSForm>

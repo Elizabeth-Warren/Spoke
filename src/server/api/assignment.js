@@ -1,6 +1,7 @@
 import { mapFieldsToModel } from "./lib/utils";
 import { Assignment, r, cacheableData } from "../models";
 import { getOffsets, defaultTimezoneIsBetweenTextingHours } from "../../lib";
+import db from "src/server/db";
 
 export function addWhereClauseForContactsFilterMessageStatusIrrespectiveOfPastDue(
   queryParameter,
@@ -156,6 +157,10 @@ export const resolvers = {
       await cacheableData.cannedResponse.query({
         userId: assignment.user_id,
         campaignId: assignment.campaign_id
-      })
+      }),
+    contactCounts: async assignment => {
+      const summaries = await db.Assignment.countsByStatus([assignment.id]);
+      return summaries[assignment.id];
+    }
   }
 };

@@ -29,6 +29,15 @@ export default class GSForm extends React.Component {
     globalErrorMessage: null
   };
 
+  setFormError = (field, message) => {
+    this.setState({
+      formErrors: {
+        ...(this.state.formErrors || {}),
+        [field]: [{ message }]
+      }
+    });
+  };
+
   resetFormErrors = () => {
     // called by parent components if they want to discard
     // the current error state

@@ -62,6 +62,35 @@ export class ConversationTexterComponent extends React.Component {
     }
   }
 
+  componentWillReceiveProps(newProps) {
+    if (this.state.currentContactId == null) {
+      // we were on the empty state, let's see if we have a conversation that
+      // we can auto-select
+      const newFirstConvoId = this.getFirstConversationId(newProps);
+      if (newFirstConvoId) {
+        this.setState({
+          currentContactId: newFirstConvoId
+        });
+      }
+    }
+  }
+
+  getUnsentInitialCount() {
+    const { assignment } = this.props.data;
+
+    if (assignment && assignment.contactCounts) {
+      const unsentInitials = assignment.contactCounts.find(
+        ({ messageStatus }) => messageStatus === "needsMessage"
+      );
+
+      if (unsentInitials != null) {
+        return unsentInitials.count;
+      }
+    }
+
+    return 0;
+  }
+
   getSortedConversations() {
     const {
       contactsForAssignment: conversations
@@ -74,10 +103,8 @@ export class ConversationTexterComponent extends React.Component {
     return _.sortBy(conversations, c => (c.updatedAt ? -c.updatedAt : 0));
   }
 
-  getFirstConversationId() {
-    const {
-      contactsForAssignment: conversations
-    } = this.props.conversationData;
+  getFirstConversationId(props = this.props) {
+    const { contactsForAssignment: conversations } = props.conversationData;
 
     const firstActiveConversation = conversations.find(
       c => c.messageStatus !== "closed"
@@ -143,6 +170,7 @@ export class ConversationTexterComponent extends React.Component {
         conversations={this.props.conversationData.contactsForAssignment}
         organizationId={this.props.params.organizationId}
         assignmentId={this.props.params.assignmentId}
+        unsentInitialCount={this.getUnsentInitialCount()}
         moreBatchesAvailable={
           this.state.currentContactId != null &&
           assignment &&
@@ -169,6 +197,7 @@ export class ConversationTexterComponent extends React.Component {
           campaign={assignment.campaign}
           assignment={assignment}
           organizationId={assignment.campaign.organization.id}
+          unsentInitialCount={this.getUnsentInitialCount()}
         />
       );
     }
@@ -235,6 +264,10 @@ const mapQueriesToProps = ({ ownProps }) => ({
             firstName
             lastName
             displayName
+          }
+          contactCounts {
+            messageStatus
+            count
           }
           campaign {
             id

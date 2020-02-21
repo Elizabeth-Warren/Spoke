@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
   },
 
   fullHeight: {
-    height: "100vh",
+    height: "calc(100vh - 48px)",
     display: "flex",
     flexDirection: "column",
     alignItems: "flex-start",
@@ -27,7 +27,12 @@ const styles = StyleSheet.create({
   }
 });
 
-export default function EmptyState({ campaign, assignment, organizationId }) {
+export default function EmptyState({
+  campaign,
+  assignment,
+  organizationId,
+  unsentInitialCount
+}) {
   return (
     <div className={css(styles.fullHeight)}>
       <div className={css(styles.toolbarWrapper)}>
@@ -50,7 +55,10 @@ export default function EmptyState({ campaign, assignment, organizationId }) {
             <RequestBatchButton
               organizationId={organizationId}
               assignmentId={assignment.id}
-              buttonLabel="Send Another Batch"
+              buttonLabel={
+                unsentInitialCount > 0 ? "Send Initials" : "Send Another Batch"
+              }
+              unsentCount={unsentInitialCount}
             />
           </div>
         ) : null}
@@ -65,5 +73,6 @@ export default function EmptyState({ campaign, assignment, organizationId }) {
 EmptyState.propTypes = {
   campaign: types.object,
   assignment: types.object,
-  organizationId: types.string
+  organizationId: types.string,
+  unsentInitialCount: types.number
 };
