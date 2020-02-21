@@ -50,7 +50,18 @@ const OptOutDialog = props =>
           value={{ optOutMessageText: props.optOutMessageText }}
           onSubmit={props.onOptOut}
         >
-          <Form.Field name="optOutMessageText" fullWidth autoFocus multiLine />
+          <Form.Field
+            name="optOutMessageText"
+            fullWidth
+            autoFocus
+            multiLine
+            onKeyDown={e => {
+              if (e.keyCode === 13) {
+                e.preventDefault();
+                props.onOptOut();
+              }
+            }}
+          />
           <div className={css(styles.dialogActions)}>
             <FlatButton
               style={inlineStyles.dialogButton}

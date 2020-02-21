@@ -37,6 +37,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center"
   },
+  contactName: {
+    whiteSpace: "initial",
+    wordWrap: "break-word",
+    maxWidth: "90%"
+  },
   noIcon: {
     paddingLeft: 22
   }
@@ -62,9 +67,15 @@ export default function ConversationList(props) {
       >
         <div className={css(styles.itemRow)}>
           {needsMessage && <div className={css(styles.icon)} />}
-          <span className={needsMessage ? null : css(styles.noIcon)}>
+          <div
+            className={
+              needsMessage
+                ? css(styles.contactName)
+                : css(styles.contactName, styles.noIcon)
+            }
+          >
             {name}
-          </span>
+          </div>
         </div>
       </ListItem>
     );
