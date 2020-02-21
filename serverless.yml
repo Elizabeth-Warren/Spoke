@@ -136,9 +136,6 @@ functions:
     handler: preflight.handler
     vpc: ${self:custom.vpcConfig}
     timeout: 60
-    environment:
-      SUPPRESS_DB_PROPAGATE_ERROR: 1
-      RETHINK_KNEX_FORCE_INDEXCREATION: 1
 
 plugins:
   - serverless-domain-manager
