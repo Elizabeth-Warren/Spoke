@@ -35,7 +35,8 @@ import {
   authRequired,
   superAdminRequired,
   requireAuthStrategy,
-  ForbiddenError
+  ForbiddenError,
+  UserInputError
 } from "./errors";
 import { resolvers as interactionStepResolvers } from "./interaction-step";
 import { saveNewIncomingMessage } from "./lib/message-sending";
@@ -67,7 +68,7 @@ import preconditions from "src/server/preconditions";
 import BackgroundJob from "../db/background-job";
 import { assignTexters } from "src/server/workers/assign-texters";
 import config from "src/server/config";
-import { ApolloError } from "src/server/api/errors";
+import { ApolloError, NotFoundError } from "src/server/api/errors";
 
 const uuidv4 = require("uuid").v4;
 
@@ -813,11 +814,9 @@ const rootMutations = {
         campaign.hasOwnProperty("phoneNumbers") &&
         campaign.phoneNumbers
       ) {
-        throw new GraphQLError({
-          status: 400,
-          message:
-            "Not allowed to edit phone numbers after the campaign has started"
-        });
+        throw new UserInputError(
+          "Not allowed to edit phone numbers after the campaign has started"
+        );
       }
       return editCampaign(id, campaign, loaders, user, origCampaign);
     },
@@ -1006,10 +1005,7 @@ const rootMutations = {
         contact.assignment_id !== parseInt(message.assignmentId, 10) ||
         campaign.is_archived
       ) {
-        throw new GraphQLError({
-          status: 400,
-          message: "Your assignment has changed"
-        });
+        throw new NotFoundError("Your assignment has changed");
       }
       const organization = await r
         .table("campaign")
@@ -1027,10 +1023,10 @@ const rootMutations = {
       });
 
       if (optedOut) {
-        throw new GraphQLError({
-          status: 400,
-          message: "Skipped sending because this contact was already opted out"
-        });
+        throw new ApolloError(
+          "Skipped sending because this contact was already opted out",
+          "OPTED_OUT"
+        );
       }
 
       const { text, isInitialMessage } = message;
@@ -1038,10 +1034,7 @@ const rootMutations = {
       const contactNumber = contact.cell || message.contactNumber;
 
       if (text.length > (process.env.MAX_MESSAGE_LENGTH || 99999)) {
-        throw new GraphQLError({
-          status: 400,
-          message: "Message was longer than the limit"
-        });
+        throw new UserInputError("Message was longer than the limit");
       }
 
       const replaceCurlyApostrophes = rawText =>
@@ -1074,12 +1067,12 @@ const rootMutations = {
       const sendBeforeDate = sendBefore ? sendBefore.toDate() : null;
 
       if (sendBeforeDate && sendBeforeDate <= Date.now()) {
-        throw new GraphQLError({
-          status: 400,
-          message: "Outside permitted texting time for this recipient"
-        });
+        throw new ApolloError(
+          "Outside permitted texting time for this recipient",
+          "TEXTING_HOURS"
+        );
       }
-      // TODO[matteo]: throw some duplicate send detection in here
+
       const messageInstance = new Message({
         text: replaceCurlyApostrophes(text),
         contact_number: contactNumber,
@@ -1132,7 +1125,7 @@ const rootMutations = {
         await contact.save();
       }
 
-      log.info(
+      log.debug(
         `Sending (${sendingServiceName}): ${messageInstance.user_number} -> ${messageInstance.contact_number}\nMessage: ${messageInstance.text}`
       );
 
@@ -1397,6 +1390,9 @@ const rootResolvers = {
     ) => {
       authRequired(user);
       const assignment = await loaders.assignment.load(assignmentId);
+      if (!assignment) {
+        throw new NotFoundError(`Missing assignment for user ${user}`);
+      }
       const campaign = await loaders.campaign.load(assignment.campaign_id);
 
       if (assignment.user_id === user.id) {

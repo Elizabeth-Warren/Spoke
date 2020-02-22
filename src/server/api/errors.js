@@ -35,6 +35,13 @@ export class UserInputError extends ApolloError {
   }
 }
 
+export class NotFoundError extends ApolloError {
+  constructor(message) {
+    super(message, "NOT_FOUND");
+    this.name = "NotFoundError";
+  }
+}
+
 export function authRequired(user) {
   if (!user) {
     throw new ApolloError(

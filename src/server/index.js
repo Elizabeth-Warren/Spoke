@@ -23,6 +23,13 @@ import sourceMapSupport from "source-map-support";
 import telemetry from "./telemetry";
 import db from "src/server/db";
 
+const TELEMETRY_IGNORED_ERROR_CODES = [
+  "FORBIDDEN",
+  "NOT_FOUND",
+  "SUSPENDED",
+  "UNAUTHORIZED"
+];
+
 db.enableTracing();
 
 // Support source maps in stack traces
@@ -199,14 +206,23 @@ app.use(
         code = error.originalError.code || "INTERNAL_SERVER_ERROR";
       }
       error.code = code;
-      telemetry.reportError(error.originalError, {
+      log.error({
         userId: request.user && request.user.id,
-        code: code,
-        awsRequestId: request.awsContext
-          ? request.awsContext.awsRequestId
-          : undefined,
-        awsEvent: request.awsEvent
+        error,
+        msg: "GraphQL error"
       });
+
+      if (TELEMETRY_IGNORED_ERROR_CODES.indexOf(error.code) === -1) {
+        telemetry.reportError(error.originalError, {
+          userId: request.user && request.user.id,
+          code,
+          awsRequestId: request.awsContext
+            ? request.awsContext.awsRequestId
+            : undefined,
+          awsEvent: request.awsEvent,
+          path: JSON.stringify(error.path)
+        });
+      }
       return error;
     }
   }))
