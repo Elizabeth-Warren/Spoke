@@ -5,38 +5,49 @@ import gql from "graphql-tag";
 import wrapMutations from "./hoc/wrap-mutations";
 import { withRouter } from "react-router";
 import { StyleSheet, css } from "aphrodite";
-import theme from "../styles/theme";
+import RaisedButton from "material-ui/RaisedButton";
 
 const styles = StyleSheet.create({
-  greenBox: {
-    ...theme.layouts.greenBox
+  errorMessageWrapper: {
+    position: "relative",
+    top: "20vh",
+    margin: "20px",
+    textAlign: "center"
+  },
+  errorImage: {
+    width: "150px",
+    height: "150px"
+  },
+  errorHeader: {
+    fontFamily: "Ringside Compressed A",
+    textTransform: "uppercase"
   }
 });
 
 class JoinCampaign extends React.Component {
   state = {
-    errors: null
+    errorMessage: null
   };
 
   async componentWillMount() {
     let campaign;
-    let hasError;
+    let errorMessage;
     if (this.props.params.token) {
       try {
         const addResult = await this.props.mutations.assignUserToCampaign();
         if (addResult.errors) {
-          hasError = true;
+          errorMessage = addResult.errors.graphQLErrors[0].message;
         } else {
           campaign = addResult.data.assignUserToCampaign;
         }
       } catch (ex) {
-        hasError = true;
+        errorMessage =
+          "Something went wrong trying to join this campaign. Please post in Slack for help.";
       }
     }
-    if (hasError) {
+    if (errorMessage) {
       this.setState({
-        errors:
-          "Something went wrong trying to join this campaign. Please post in Slack for help."
+        errorMessage
       });
       return;
     }
@@ -45,15 +56,30 @@ class JoinCampaign extends React.Component {
     }
   }
 
-  renderErrors() {
-    if (this.state.errors) {
-      return <div className={css(styles.greenBox)}>{this.state.errors}</div>;
-    }
-    return <div />;
-  }
-
   render() {
-    return <div>{this.renderErrors()}</div>;
+    return this.state.errorMessage ? (
+      <div>
+        <div className={css(styles.errorMessageWrapper)}>
+          <img
+            src="https://ew-spoke-public.s3.amazonaws.com/ew-circle.png"
+            className={css(styles.errorImage)}
+            alt="EW Making Calls"
+          />
+          <h2 className={css(styles.errorHeader)}>Oops!</h2>
+          <p>{this.state.errorMessage}</p>
+          <RaisedButton
+            primary
+            label="Go Back Home"
+            type="button"
+            onClick={() => {
+              this.props.router.push(`/`);
+            }}
+          />
+        </div>
+      </div>
+    ) : (
+      <div />
+    );
   }
 }
 
