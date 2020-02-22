@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
 
 export default function FilePicker({ onPick }) {
   return (
-    <Dropzone onDrop={onPick} accept="text/csv">
+    <Dropzone onDrop={onPick}>
       {({ getRootProps, getInputProps, isDragActive }) => (
         <div
           {...getRootProps()}
