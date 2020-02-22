@@ -79,6 +79,12 @@ app.use((req, res, next) => {
   next();
 });
 
+if (process.env.SIMULATE_DELAY_MILLIS) {
+  app.use((req, res, next) => {
+    setTimeout(next, Number(1000));
+  });
+}
+
 /*
 
 TODO: Delete. We are not using nexmo

@@ -72,6 +72,13 @@ class InitialMessageTexter extends Component {
     if (this.state.contactsMessaged.has(contactId)) {
       throw new Error("Duplicate message send detected");
     }
+
+    if (this.isSending) {
+      return;
+    }
+
+    this.isSending = true;
+
     try {
       return await this.props.mutations.sendMessage(messageInput, contactId);
       // TODO: figure out what should happen in case of error
@@ -82,6 +89,8 @@ class InitialMessageTexter extends Component {
       console.error("Error sending message", e);
       this.exitTexter();
     } finally {
+      this.isSending = false;
+
       this.setState({
         contactsMessaged: this.state.contactsMessaged.add(contactId)
       });
@@ -137,7 +146,7 @@ class InitialMessageTexter extends Component {
       return this.renderEmpty();
     }
 
-    const currentContact = contacts[0];
+    const currentContact = _.sortBy(contacts, "id")[0];
     const { campaign, texter } = assignment;
     return (
       <InitialMessageTexterContact
@@ -218,8 +227,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
         validTimezone: true
       },
       assignmentId: ownProps.params.assignmentId
-    },
-    fetchPolicy: "network-only"
+    }
   }
 });
 

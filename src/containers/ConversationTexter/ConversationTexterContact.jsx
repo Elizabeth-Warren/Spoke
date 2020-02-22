@@ -168,6 +168,11 @@ const styles = StyleSheet.create({
     height: "auto",
     textAlign: "center",
     padding: "2px 10px"
+  },
+
+  loadingOverlay: {
+    textAlign: "center",
+    marginTop: "100px"
   }
 });
 
@@ -1010,6 +1015,15 @@ export class ConversationTexterContactComponent extends React.Component {
 
   // todo middle scrolling section needs to be 800px and then next to it needs to
   render() {
+    if (this.props.contactId !== this.props.data.contact.id) {
+      // still loading new contact
+      return (
+        <div className={css(styles.loadingOverlay)}>
+          <CircularProgress size={100} />
+        </div>
+      );
+    }
+
     return (
       <div className={css(styles.container)}>
         {this.state.errorModalOpen && this.renderErrorModal()}

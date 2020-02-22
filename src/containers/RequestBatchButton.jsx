@@ -7,6 +7,7 @@ import gql from "graphql-tag";
 
 import loadData from "src/containers/hoc/load-data";
 import wrapMutations from "src/containers/hoc/wrap-mutations";
+import ApolloClientSingleton from "src/network/apollo-client-singleton";
 
 const inlineStyles = {
   badge: {
@@ -81,6 +82,12 @@ class RequestBatchButton extends Component {
         });
         return;
       }
+
+      // XXX HACK[bsw]: normally we'd just make the initial send texter use networkPolicy: "network-only"
+      // to force it to re-load the assignments before showing them. But doing that causes it to re-fetch
+      // the assignments every time you request a new message, so we do this hack to clear the store and
+      // force a refetch just the first time.
+      ApolloClientSingleton.resetStore();
     }
 
     router.push(`/app/${organizationId}/todos/${assignmentId}/text`);
