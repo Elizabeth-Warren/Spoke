@@ -69,29 +69,30 @@ export default class CampaignInteractionStepsForm extends React.Component {
     this.props.onSubmit();
   };
 
-  addStep(parentInteractionId) {
-    return () => {
-      const newId =
-        "new" +
-        Math.random()
-          .toString(36)
-          .replace(/[^a-zA-Z1-9]+/g, "");
-      this.setState({
-        interactionSteps: [
-          ...this.state.interactionSteps,
-          {
-            id: newId,
-            parentInteractionId,
-            questionText: "",
-            script: "",
-            answerOption: "",
-            answerActions: "",
-            isDeleted: false
-          }
-        ]
-      });
-    };
-  }
+  // WARREN FORK: disable child interaction steps, we use canned responses for instead
+  // addStep(parentInteractionId) {
+  //   return () => {
+  //     const newId =
+  //       "new" +
+  //       Math.random()
+  //         .toString(36)
+  //         .replace(/[^a-zA-Z1-9]+/g, "");
+  //     this.setState({
+  //       interactionSteps: [
+  //         ...this.state.interactionSteps,
+  //         {
+  //           id: newId,
+  //           parentInteractionId,
+  //           questionText: "",
+  //           script: "",
+  //           answerOption: "",
+  //           answerActions: "",
+  //           isDeleted: false
+  //         }
+  //       ]
+  //     });
+  //   };
+  // }
 
   deleteStep(id) {
     return () => {
@@ -127,7 +128,8 @@ export default class CampaignInteractionStepsForm extends React.Component {
 
   formSchema = yup.object({
     script: yup.string(),
-    questionText: yup.string(),
+    // WARREN FORK: don't display question
+    // questionText: yup.string(),
     answerOption: yup.string(),
     answerActions: yup.string()
   });
@@ -222,44 +224,45 @@ export default class CampaignInteractionStepsForm extends React.Component {
                 multiLine
                 hintText="This is what your texters will send to your contacts. E.g. Hi, {firstName}. It's {texterFirstName} here."
               />
-              <Form.Field
-                {...dataTest("questionText")}
-                name="questionText"
-                label="Question"
-                fullWidth
-                hintText="A question for texters to answer. E.g. Can this person attend the event?"
-              />
+              {/*<Form.Field*/}
+              {/*  {...dataTest("questionText")}*/}
+              {/*  name="questionText"*/}
+              {/*  label="Question"*/}
+              {/*  fullWidth*/}
+              {/*  hintText="A question for texters to answer. E.g. Can this person attend the event?"*/}
+              {/*/>*/}
             </GSForm>
           </CardText>
         </Card>
-        <div style={styles.answerContainer}>
-          {/* {interactionStep.questionText &&
-          interactionStep.script &&
-          (!interactionStep.parentInteractionId ||
-            interactionStep.answerOption) ? (
-            <div>
-              <RaisedButton
-                {...dataTest("addResponse")}
-                label="+ Add a response"
-                onTouchTap={this.addStep(interactionStep.id).bind(this)}
-                style={{ marginBottom: "10px" }}
-              />
-            </div>
-          ) : (
-            ""
-          )} */}
-          {this.state.displayAllSteps &&
-            interactionStep.interactionSteps
-              .filter(is => !is.isDeleted)
-              .map(is => (
-                <div>
-                  {this.renderInteractionStep(
-                    is,
-                    `Question: ${interactionStep.questionText}`
-                  )}
-                </div>
-              ))}
-        </div>
+        {/* WARREN FORK: disable child interaction steps, we use canned responses instead*/}
+        {/*<div style={styles.answerContainer}>*/}
+        {/*  {interactionStep.questionText &&*/}
+        {/*  interactionStep.script &&*/}
+        {/*  (!interactionStep.parentInteractionId ||*/}
+        {/*    interactionStep.answerOption) ? (*/}
+        {/*    <div>*/}
+        {/*      <RaisedButton*/}
+        {/*        {...dataTest("addResponse")}*/}
+        {/*        label="+ Add a response"*/}
+        {/*        onTouchTap={this.addStep(interactionStep.id).bind(this)}*/}
+        {/*        style={{ marginBottom: "10px" }}*/}
+        {/*      />*/}
+        {/*    </div>*/}
+        {/*   ) : (*/}
+        {/*     ""*/}
+        {/*   )}*/}
+        {/*  {this.state.displayAllSteps &&*/}
+        {/*    interactionStep.interactionSteps*/}
+        {/*      .filter(is => !is.isDeleted)*/}
+        {/*      .map(is => (*/}
+        {/*        <div>*/}
+        {/*          {this.renderInteractionStep(*/}
+        {/*            is,*/}
+        {/*            `Question: ${interactionStep.questionText}`*/}
+        {/*          )}*/}
+        {/*        </div>*/}
+        {/*      ))}*/}
+        {/*</div>*/}
       </div>
     );
   }

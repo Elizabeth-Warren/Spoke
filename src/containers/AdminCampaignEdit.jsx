@@ -218,9 +218,9 @@ class AdminCampaignEdit extends React.Component {
         }));
       }
       if (newCampaign.hasOwnProperty("interactionSteps")) {
-        newCampaign.interactionSteps = Object.assign(
-          {},
-          newCampaign.interactionSteps
+        newCampaign.interactionSteps = _.omit(
+          newCampaign.interactionSteps,
+          "__typename"
         );
       }
       if (newCampaign.hasOwnProperty("cannedResponses")) {
