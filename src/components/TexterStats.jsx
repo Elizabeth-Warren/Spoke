@@ -30,7 +30,7 @@ class TexterStats extends React.Component {
 
     return (
       <div key={id}>
-        {texter.firstName}
+        {texter.firstName} {texter.lastName}
         <div>{contactsCount - unmessagedCount} initial messages sent</div>
       </div>
     );
@@ -39,9 +39,13 @@ class TexterStats extends React.Component {
   render() {
     const { campaign } = this.props;
     const { assignments } = campaign;
+    const sortedAssignments = assignments.sort((a, b) =>
+      a.texter.firstName.localeCompare(b.texter.firstName)
+    );
+
     return (
       <div>
-        {assignments.map(assignment =>
+        {sortedAssignments.map(assignment =>
           campaign.useDynamicAssignment
             ? this.renderAssignmentDynamic(assignment)
             : this.renderAssignment(assignment)

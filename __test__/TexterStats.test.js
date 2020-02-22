@@ -58,7 +58,7 @@ describe("TexterStats (Non-dynamic campaign)", () => {
   it("contains the right text", () => {
     const stats = shallow(<TexterStats campaign={campaign} />);
     expect(stats.text()).toEqual(
-      "Test Tester19%<LinearProgress />Someone Else99%<LinearProgress />"
+      "Someone Else99%<LinearProgress />Test Tester19%<LinearProgress />"
     );
   });
 
@@ -71,7 +71,7 @@ describe("TexterStats (Non-dynamic campaign)", () => {
       max: 100,
       min: 0,
       mode: "determinate",
-      value: 19
+      value: 99
     });
   });
 });
@@ -80,7 +80,7 @@ describe("TexterStats (Dynamic campaign)", () => {
   it("contains the right text", () => {
     const stats = shallow(<TexterStats campaign={campaignDynamic} />);
     expect(stats.text()).toEqual(
-      "Test45 initial messages sentSomeone541 initial messages sent"
+      "Someone Else541 initial messages sentTest Tester45 initial messages sent"
     );
   });
 });
