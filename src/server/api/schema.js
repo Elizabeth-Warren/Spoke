@@ -95,25 +95,24 @@ async function updateCampaignPhoneNumbers(
 
   await db.transaction(async transaction => {
     await db.TwilioPhoneNumber.releaseAllCampaignNumbers(id, { transaction });
-    await Promise.all(
-      cfg.map(async item => {
-        const success = await db.TwilioPhoneNumber.reserveForCampaign(
-          {
-            campaignId: id,
-            amount: Math.min(
-              item.count,
-              twilio.MAX_NUMBERS_PER_MESSAGING_SERVICE
-            ),
-            areaCode: item.areaCode
-          },
-          { transaction }
-        );
+    for (let i = 0; i < cfg.length; i++) {
+      const item = cfg[i];
+      const success = await db.TwilioPhoneNumber.reserveForCampaign(
+        {
+          campaignId: id,
+          amount: Math.min(
+            item.count,
+            twilio.MAX_NUMBERS_PER_MESSAGING_SERVICE
+          ),
+          areaCode: item.areaCode
+        },
+        { transaction }
+      );
 
-        if (!success) {
-          throw Error("Failed to find sufficient phone numbers");
-        }
-      })
-    );
+      if (!success) {
+        throw Error("Failed to find sufficient phone numbers");
+      }
+    }
   });
 }
 
