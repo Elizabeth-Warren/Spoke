@@ -32,7 +32,8 @@ class RequestBatchButton extends Component {
       findNewCampaignContact: types.func
     }),
     router: types.object,
-    secondary: types.bool
+    secondary: types.bool,
+    disabled: types.bool
   };
 
   constructor(props) {
@@ -45,7 +46,7 @@ class RequestBatchButton extends Component {
   }
 
   handleClick = async () => {
-    if (this.state.loading) {
+    if (this.state.loading || this.props.disabled) {
       return;
     }
     this.setState({
@@ -98,7 +99,7 @@ class RequestBatchButton extends Component {
       <RaisedButton
         onTouchTap={this.handleClick}
         label={this.props.buttonLabel}
-        disabled={this.loading}
+        disabled={this.loading || this.props.disabled}
         primary={!this.props.secondary}
         secondary={this.props.secondary}
         title="Send Another Batch"

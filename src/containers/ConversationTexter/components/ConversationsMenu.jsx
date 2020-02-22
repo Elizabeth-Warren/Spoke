@@ -122,33 +122,53 @@ class ConversationsMenu extends React.Component {
 
     const visible =
       this.state.tab === "active" &&
-      moreBatchesAvailable &&
       !conversations.find(c => c.messageStatus === "needsResponse");
 
-    return (
-      <div
-        className={css(styles.rebatchWrapper)}
-        style={visible ? {} : { display: "none" }}
-      >
-        <img
-          src="https://ew-spoke-public.s3.amazonaws.com/bailey-circle.png"
-          className={css(styles.rebatchImage)}
-          alt="Bailey Warren"
-        />
-        <h2 className={css(styles.rebatchHeader)}>Great Job!</h2>
-        <p>
-          You've replied to all your messages, but there's more texts to send!
-          Can Elizabeth and Bailey count on you to send another batch?
-        </p>
-        <RequestBatchButton
-          organizationId={organizationId}
-          assignmentId={assignmentId}
-          buttonLabel="LFG"
-          unsentCount={unsentInitialCount}
-          secondary
-        />
-      </div>
-    );
+    if (moreBatchesAvailable) {
+      return (
+        <div
+          className={css(styles.rebatchWrapper)}
+          style={visible ? {} : { display: "none" }}
+        >
+          <img
+            src="https://ew-spoke-public.s3.amazonaws.com/bailey-circle.png"
+            className={css(styles.rebatchImage)}
+            alt="Bailey Warren"
+          />
+          <h2 className={css(styles.rebatchHeader)}>Great Job!</h2>
+          <p>
+            You've replied to all your messages, but there's more texts to send!
+            Can Elizabeth and Bailey count on you to send another batch?
+          </p>
+          <RequestBatchButton
+            organizationId={organizationId}
+            assignmentId={assignmentId}
+            buttonLabel="LFG"
+            unsentCount={unsentInitialCount}
+            secondary
+          />
+        </div>
+      );
+    } else {
+      return (
+        <div
+          className={css(styles.rebatchWrapper)}
+          style={visible ? {} : { display: "none" }}
+        >
+          <img
+            src="https://ew-spoke-public.s3.amazonaws.com/ew-circle.png"
+            className={css(styles.rebatchImage)}
+            alt="Bailey Warren"
+          />
+          <h2 className={css(styles.rebatchHeader)}>Wow!</h2>
+          <p>
+            You've replied to all your messages, and there's no more batches to
+            send for this campaign! Keep an eye on this page for replies, and
+            check back in on the Slack for more campaigns.
+          </p>
+        </div>
+      );
+    }
   }
 
   render() {

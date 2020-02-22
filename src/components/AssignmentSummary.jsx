@@ -143,15 +143,24 @@ export class AssignmentSummary extends Component {
     const renderRequestBatchButton =
       status === "ACTIVE" &&
       isWithinTextingHours &&
-      (unmessagedCount > 0 ||
-        (useDynamicAssignment &&
-          hasUnassignedContactsForTexter &&
-          !needsResponseCount));
+      (unmessagedCount > 0 || !needsResponseCount);
+
+    const batchRequestButtonDisabled =
+      !hasUnassignedContactsForTexter && unmessagedCount === 0;
 
     const renderConversationsButton =
       (status === "ACTIVE" || status === "CLOSED_FOR_INITIAL_SENDS") &&
       isWithinTextingHours &&
       conversationCount > 0;
+
+    let requestBatchButtonLabel;
+    if (unmessagedCount > 0) {
+      requestBatchButtonLabel = "Finish Text Batch";
+    } else if (batchRequestButtonDisabled) {
+      requestBatchButtonLabel = "All Batches Sent";
+    } else {
+      requestBatchButtonLabel = "Send Initial Texts";
+    }
 
     return (
       <div className={css(styles.container)}>
@@ -179,10 +188,9 @@ export class AssignmentSummary extends Component {
               <RequestBatchButton
                 organizationId={organizationId}
                 assignmentId={assignment.id}
-                buttonLabel={
-                  unmessagedCount ? "Finish Text Batch" : "Send Initial Texts"
-                }
+                buttonLabel={requestBatchButtonLabel}
                 unsentCount={unmessagedCount}
+                disabled={batchRequestButtonDisabled}
               />
             ) : null}
             {renderConversationsButton

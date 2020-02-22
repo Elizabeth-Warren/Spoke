@@ -2,6 +2,8 @@ import PropTypes from "prop-types";
 import React from "react";
 import LinearProgress from "material-ui/LinearProgress";
 
+import _ from "lodash";
+
 class TexterStats extends React.Component {
   renderAssignment(assignment) {
     const { contactsCount, unmessagedCount, texter, id } = assignment;
@@ -39,9 +41,7 @@ class TexterStats extends React.Component {
   render() {
     const { campaign } = this.props;
     const { assignments } = campaign;
-    const sortedAssignments = assignments.sort((a, b) =>
-      a.texter.firstName.localeCompare(b.texter.firstName)
-    );
+    const sortedAssignments = _.sortBy(assignments, a => a.texter.firstName);
 
     return (
       <div>
