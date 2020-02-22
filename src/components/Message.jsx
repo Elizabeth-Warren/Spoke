@@ -45,7 +45,6 @@ const styles = StyleSheet.create({
     marginRight: "10px",
     marginLeft: "50px",
     alignSelf: "flex-end",
-    textAlign: "right",
     backgroundColor: theme.colors.EWlibertyGreen,
     color: theme.colors.EWnavy,
     position: "relative",
