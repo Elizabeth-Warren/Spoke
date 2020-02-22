@@ -593,6 +593,7 @@ const rootMutations = {
           "CAMPAIGN_ARCHIVED"
         );
       }
+
       const isMember = await db.User.isMemberOfOrganization(
         user.id,
         campaign.organization_id
@@ -607,7 +608,21 @@ const rootMutations = {
 
       const assigned = await db.Assignment.isAssigned(user.id, campaign.id);
       if (!assigned) {
-        const assignment = await Assignment.save({
+        // TODO: DRY this up, same code exists in server/api/campaign.js
+        // putting this check here allows people who are already in the campaign
+        // to use the link to get back to it.
+        const contacts = await r
+          .knex("campaign_contact")
+          .select("id")
+          .where({ campaign_id: campaign.id, assignment_id: null })
+          .limit(1);
+        const hasUnassignedContacts = contacts.length > 0;
+
+        if (!hasUnassignedContacts) {
+          throw new ApolloError("This campaign is full!", "CAMPAIGN_FULL");
+        }
+
+        await Assignment.save({
           user_id: user.id,
           campaign_id: campaign.id,
           // TODO: consider making this a property of the campaign
