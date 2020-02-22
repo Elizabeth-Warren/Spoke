@@ -411,8 +411,8 @@ export default class CampaignCannedResponsesForm extends React.Component {
     });
     this.props.onChange({
       cannedResponses: [
-        ...newResponses,
-        ...this.props.formValues.cannedResponses
+        ...this.props.formValues.cannedResponses,
+        ...newResponses
       ]
     });
   }
