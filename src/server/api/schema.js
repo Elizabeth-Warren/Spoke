@@ -579,12 +579,19 @@ const rootMutations = {
       return true;
     },
     assignUserToCampaign: async (_, { token }, { user }) => {
+      authRequired(user);
       // needs to be snake case to pass through the resolver
       const campaign = await db.Campaign.getByJoinToken(token, {
         snakeCase: true
       });
-      if (!campaign || campaign.is_archived) {
-        throw new ForbiddenError("Invalid join request");
+      if (!campaign) {
+        throw new NotFoundError("Campaign not found");
+      }
+      if (campaign.is_archived) {
+        throw new ApolloError(
+          "This campaign is no longer active",
+          "CAMPAIGN_ARCHIVED"
+        );
       }
       const isMember = await db.User.isMemberOfOrganization(
         user.id,
