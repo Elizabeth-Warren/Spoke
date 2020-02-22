@@ -5,8 +5,6 @@ import Toggle from "material-ui/Toggle";
 import type from "prop-types";
 import React, { Component } from "react";
 import theme from "../../styles/theme";
-import SelectedCampaigns from "../SelectedCampaigns";
-import CampaignFilter, { ALL_CAMPAIGNS } from "./Filters/CampaignsFilter";
 import MessageStatusFilter, {
   MESSAGE_STATUSES
 } from "./Filters/MessageStatusFilter";
@@ -46,9 +44,7 @@ class IncomingMessageFilter extends Component {
     super(props);
 
     this.state = {
-      selectedCampaigns: [],
       messageFilter: [],
-      campaignSearchText: "",
       texterSearchText: "",
       tagsFilter: props.defaultTagsFilter
     };
@@ -74,27 +70,6 @@ class IncomingMessageFilter extends Component {
     this.props.onMessageFilterChanged(messageStatusesString);
   };
 
-  onCampaignSelected = (selection, index) => {
-    let campaignId = undefined;
-    if (index === -1) {
-      const campaign = this.props.campaigns.find(
-        cmpgn => cmpgn.title === selection
-      );
-      if (campaign) {
-        campaignId = campaign.id;
-      }
-    } else {
-      campaignId = selection.value.key;
-    }
-    if (campaignId) {
-      const selectedCampaigns = this.makeSelectedCampaignsArray(
-        selection.rawValue,
-        selection.text
-      );
-      this.applySelectedCampaigns(selectedCampaigns);
-    }
-  };
-
   onTexterSelected = (selection, index) => {
     let texterUserId = undefined;
     if (index === -1) {
@@ -112,78 +87,12 @@ class IncomingMessageFilter extends Component {
     }
   };
 
-  applySelectedCampaigns = selectedCampaigns => {
-    this.setState({
-      selectedCampaigns,
-      campaignSearchText: ""
-    });
-
-    this.fireCampaignChanged(selectedCampaigns);
-  };
-
-  handleCampaignRemoved = campaignId => {
-    const selectedCampaigns = this.state.selectedCampaigns.filter(
-      campaign => campaign.key !== campaignId
-    );
-    this.applySelectedCampaigns(selectedCampaigns);
-  };
-
-  handleClearCampaigns = () => {
-    this.applySelectedCampaigns([]);
-  };
-
-  fireCampaignChanged = selectedCampaigns => {
-    this.props.onCampaignChanged(this.selectedCampaignIds(selectedCampaigns));
-  };
-
-  removeAllCampaignsFromCampaignsArray = campaign =>
-    campaign.key !== ALL_CAMPAIGNS;
-
-  makeSelectedCampaignsArray = (campaignId, campaignText) => {
-    const selectedCampaign = { key: campaignId, text: campaignText };
-    if (campaignId === ALL_CAMPAIGNS) {
-      return [];
-    }
-    return _.concat(
-      this.state.selectedCampaigns.filter(
-        this.removeAllCampaignsFromCampaignsArray
-      ),
-      selectedCampaign
-    );
-  };
-
-  selectedCampaignIds = selectedCampaigns =>
-    selectedCampaigns.map(campaign => parseInt(campaign.key, 10));
-
-  campaignsNotAlreadySelected = campaign => {
-    return !this.selectedCampaignIds(this.state.selectedCampaigns).includes(
-      parseInt(campaign.id, 10)
-    );
-  };
-
   render() {
     return (
       <Card>
         <CardHeader title="Message Filter" actAsExpander showExpandableButton />
         <CardText style={inlineStyles.containerOfContainers} expandable>
           <div className={css(styles.container)}>
-            <div className={css(styles.toggleFlexColumn)}>
-              <Toggle
-                label={"Active Campaigns"}
-                onToggle={this.props.onActiveCampaignsToggled}
-                toggled={
-                  this.props.includeActiveCampaigns ||
-                  !this.props.includeArchivedCampaigns
-                }
-              />
-              <br />
-              <Toggle
-                label={"Archived Campaigns"}
-                onToggle={this.props.onArchivedCampaignsToggled}
-                toggled={this.props.includeArchivedCampaigns}
-              />
-            </div>
-            <div className={css(styles.spacer)} />
             <div className={css(styles.toggleFlexColumn)}>
               <Toggle
                 label={"Not Opted Out"}
@@ -211,19 +120,6 @@ class IncomingMessageFilter extends Component {
             </div>
             <div className={css(styles.spacer)} />
             <div className={css(styles.flexColumn)}>
-              <CampaignFilter
-                campaigns={this.props.campaigns}
-                campaignsNotAlreadySelected={this.campaignsNotAlreadySelected}
-                onFocus={() => this.setState({ campaignSearchText: "" })}
-                onSearchTextUpdated={campaignSearchText =>
-                  this.setState({ campaignSearchText })
-                }
-                campaignSearchText={this.state.campaignSearchText}
-                onCampaignSelected={this.onCampaignSelected}
-              />
-            </div>
-            <div className={css(styles.spacer)} />
-            <div className={css(styles.flexColumn)}>
               <TexterFilter
                 texters={this.props.texters}
                 onFocus={() => this.setState({ texterSearchText: "" })}
@@ -242,14 +138,6 @@ class IncomingMessageFilter extends Component {
               tagsFilter={this.state.tagsFilter}
             />
           </div>
-
-          <div className={css(styles.container)}>
-            <SelectedCampaigns
-              campaigns={this.state.selectedCampaigns}
-              onDeleteRequested={this.handleCampaignRemoved}
-              onClear={this.handleClearCampaigns}
-            />
-          </div>
         </CardText>
       </Card>
     );
@@ -257,17 +145,11 @@ class IncomingMessageFilter extends Component {
 }
 
 IncomingMessageFilter.propTypes = {
-  onCampaignChanged: type.func.isRequired,
   onTexterChanged: type.func.isRequired,
-  onActiveCampaignsToggled: type.func.isRequired,
-  onArchivedCampaignsToggled: type.func.isRequired,
-  includeArchivedCampaigns: type.bool.isRequired,
-  includeActiveCampaigns: type.bool.isRequired,
   onNotOptedOutConversationsToggled: type.func.isRequired,
   onOptedOutConversationsToggled: type.func.isRequired,
   includeNotOptedOutConversations: type.bool.isRequired,
   includeOptedOutConversations: type.bool.isRequired,
-  campaigns: type.array.isRequired,
   texters: type.array.isRequired,
   onMessageFilterChanged: type.func.isRequired,
   onTagsFilterChanged: type.func.isRequired,

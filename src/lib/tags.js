@@ -14,7 +14,7 @@ TAG_META_FILTERS[IGNORE_TAGS.key] = IGNORE_TAGS;
 TAG_META_FILTERS[ANY_TAG.key] = ANY_TAG;
 TAG_META_FILTERS[NO_TAG.key] = NO_TAG;
 
-const makeTagMetafilter = (ignoreTags, anyTag, noTag, tagItem) => {
+export const makeTagMetafilter = (ignoreTags, anyTag, noTag, tagItem) => {
   const filter = {
     ignoreTags,
     anyTag,

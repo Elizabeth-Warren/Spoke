@@ -208,6 +208,14 @@ class AdminCampaignStats extends React.Component {
                       label="Edit"
                     />
                   ) : null}
+                  <RaisedButton
+                    onTouchTap={() =>
+                      this.props.router.push(
+                        `/admin/${organizationId}/campaigns/${campaignId}/review`
+                      )
+                    }
+                    label="Message Review"
+                  />
                   {adminPerms
                     ? [
                         // Buttons for Admins (and not Supervolunteers)

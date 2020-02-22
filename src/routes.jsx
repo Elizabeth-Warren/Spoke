@@ -6,7 +6,6 @@ import AdminCampaignStats from "./containers/AdminCampaignStats";
 import AdminPersonList from "./containers/AdminPersonList";
 import AdminIncomingMessageList from "./containers/AdminIncomingMessageList";
 import AdminCampaignEdit from "./containers/AdminCampaignEdit";
-import AdminReplySender from "./containers/AdminReplySender";
 import TexterDashboard from "./components/TexterDashboard";
 import TopNav from "./components/TopNav";
 import DashboardLoader from "./containers/DashboardLoader";
@@ -40,11 +39,10 @@ export default function makeRoutes(requireAuth = () => {}) {
             <Route path=":campaignId">
               <IndexRoute component={AdminCampaignStats} />
               <Route path="edit" component={AdminCampaignEdit} />
-              <Route path="send-replies" component={AdminReplySender} />
+              <Route path="review" component={AdminIncomingMessageList} />
             </Route>
           </Route>
           <Route path="people" component={AdminPersonList} />
-          <Route path="incoming" component={AdminIncomingMessageList} />
           <Route path="settings" component={Settings} />
         </Route>
       </Route>

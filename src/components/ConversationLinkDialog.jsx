@@ -34,7 +34,7 @@ ConversationLinkDialoag.propTypes = {
   requestClose: PropTypes.func,
   conversation: PropTypes.object,
   organizationId: PropTypes.string,
-  text: PropTypes.text
+  text: PropTypes.string
 };
 
 export default ConversationLinkDialoag;

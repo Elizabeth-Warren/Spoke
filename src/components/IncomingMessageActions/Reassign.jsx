@@ -75,7 +75,7 @@ class Reassign extends Component {
       ? []
       : this.props.people.map(user => {
           const userId = parseInt(user.id, 10);
-          const label = user.displayName + " " + getHighestRole(user.roles);
+          const label = user.displayName;
           return dataSourceItem(label, userId);
         });
     texterNodes.sort((left, right) => {

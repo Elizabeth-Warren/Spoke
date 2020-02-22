@@ -178,6 +178,13 @@ export function setupSlackPassport(app) {
 
   passport.deserializeUser(
     wrap(async (id, done) => {
+      if (typeof id !== "string") {
+        // probably switched from password auth to slack auth
+        log.error(`Got non-string ID in slack passport deserialize: ${id}`);
+        done(null, false);
+        return;
+      }
+
       const [loginType, teamId, userId] = id.split("|");
 
       if (loginType !== "slack") {

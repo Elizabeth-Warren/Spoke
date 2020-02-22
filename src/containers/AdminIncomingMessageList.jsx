@@ -1,46 +1,21 @@
 import PropTypes from "prop-types";
 import React, { Component } from "react";
 import _ from "lodash";
+import RaisedButton from "material-ui/RaisedButton";
 
 import IncomingMessageActions from "../components/IncomingMessageActions";
-import IncomingMessageFilter, {
-  ALL_CAMPAIGNS
-} from "../components/IncomingMessageFilter";
+import IncomingMessageFilter from "../components/IncomingMessageFilter";
 import IncomingMessageList from "../components/IncomingMessageList";
-import LoadingIndicator from "../components/LoadingIndicator";
-import PaginatedCampaignsRetriever from "./PaginatedCampaignsRetriever";
 import gql from "graphql-tag";
 import loadData from "./hoc/load-data";
 import { withRouter } from "react-router";
 import wrapMutations from "./hoc/wrap-mutations";
-import PaginatedUsersRetriever from "./PaginatedUsersRetriever";
-import { ANY_TAG_FILTER, IGNORE_TAGS_FILTER } from "../lib/tags";
+import { IGNORE_TAGS_FILTER } from "../lib/tags";
 
 const CONVERSATION_LIST_ROW_SIZES = (typeof window !== "undefined" &&
   window.CONVERSATION_LIST_ROW_SIZES &&
   JSON.parse(window.CONVERSATION_LIST_ROW_SIZES)) || [10, 30, 50, 100];
 const INITIAL_PAGE_SIZE = CONVERSATION_LIST_ROW_SIZES[0];
-
-function getCampaignsFilterForCampaignArchiveStatus(
-  includeActiveCampaigns,
-  includeArchivedCampaigns
-) {
-  let isArchived = undefined;
-  if (!includeActiveCampaigns && includeArchivedCampaigns) {
-    isArchived = true;
-  } else if (
-    (includeActiveCampaigns && !includeArchivedCampaigns) ||
-    (!includeActiveCampaigns && !includeArchivedCampaigns)
-  ) {
-    isArchived = false;
-  }
-
-  if (isArchived !== undefined) {
-    return { isArchived };
-  }
-
-  return {};
-}
 
 function getContactsFilterForConversationOptOutStatus(
   includeNotOptedOutConversations,
@@ -81,7 +56,6 @@ export class AdminIncomingMessageList extends Component {
     this.state = {
       page: 0,
       pageSize: INITIAL_PAGE_SIZE,
-      campaignsFilter: { isArchived: false },
       contactsFilter: {
         isOptedOut: false,
         includeResolvedTags: true,
@@ -93,8 +67,6 @@ export class AdminIncomingMessageList extends Component {
       needsRender: false,
       utc: Date.now().toString(),
       campaigns: [],
-      reassignmentTexters: [],
-      campaignTexters: [],
       includeArchivedCampaigns: false,
       conversationCount: 0,
       includeActiveCampaigns: true,
@@ -108,7 +80,6 @@ export class AdminIncomingMessageList extends Component {
     if (
       !nextState.needsRender &&
       _.isEqual(this.state.contactsFilter, nextState.contactsFilter) &&
-      _.isEqual(this.state.campaignsFilter, nextState.campaignsFilter) &&
       _.isEqual(this.state.assignmentsFilter, nextState.assignmentsFilter)
     ) {
       return false;
@@ -125,21 +96,12 @@ export class AdminIncomingMessageList extends Component {
     }
   };
 
-  handleCampaignChanged = async campaignIds => {
-    const campaignsFilter = getCampaignsFilterForCampaignArchiveStatus(
-      this.state.includeActiveCampaigns,
-      this.state.includeArchivedCampaigns
-    );
-    if (!campaignIds.find(campaignId => campaignId === ALL_CAMPAIGNS)) {
-      campaignsFilter.campaignIds = campaignIds;
-    }
+  getSelectedCampaignContactIds = () =>
+    this.state.campaignIdsContactIds.map(contact => contact.campaignContactId);
 
-    await this.setState({
-      clearSelectedMessages: true,
-      campaignsFilter,
-      needsRender: true
-    });
-  };
+  campaignsFilter = () => ({
+    campaignId: this.props.params.campaignId
+  });
 
   handleTexterChanged = async texterId => {
     const assignmentsFilter = {};
@@ -149,6 +111,7 @@ export class AdminIncomingMessageList extends Component {
     await this.setState({
       clearSelectedMessages: true,
       assignmentsFilter,
+      page: 0,
       needsRender: true
     });
   };
@@ -161,6 +124,7 @@ export class AdminIncomingMessageList extends Component {
     await this.setState({
       clearSelectedMessages: true,
       contactsFilter,
+      page: 0,
       needsRender: true
     });
   };
@@ -179,6 +143,7 @@ export class AdminIncomingMessageList extends Component {
       clearSelectedMessages: true,
       contactsFilter,
       tagsFilter,
+      page: 0,
       needsRender: true
     });
   };
@@ -199,7 +164,7 @@ export class AdminIncomingMessageList extends Component {
   handleReassignAllMatchingRequested = async newTexterUserId => {
     await this.props.mutations.bulkReassignCampaignContacts(
       this.props.params.organizationId,
-      this.state.campaignsFilter || {},
+      this.campaignsFilter(),
       this.state.assignmentsFilter || {},
       this.state.contactsFilter || {},
       newTexterUserId
@@ -219,7 +184,7 @@ export class AdminIncomingMessageList extends Component {
   };
 
   handlePageSizeChange = async pageSize => {
-    await this.setState({ needsRender: true, pageSize });
+    await this.setState({ needsRender: true, pageSize, page: 0 });
   };
 
   handleRowSelection = async data => {
@@ -230,16 +195,12 @@ export class AdminIncomingMessageList extends Component {
     });
   };
 
-  handleCampaignsReceived = async campaigns => {
-    this.setState({ campaigns, needsRender: true });
-  };
-
   handleCampaignTextersReceived = async campaignTexters => {
-    this.setState({ campaignTexters, needsRender: true });
-  };
-
-  handleReassignmentTextersReceived = async reassignmentTexters => {
-    this.setState({ reassignmentTexters, needsRender: true });
+    this.setState({
+      campaignTexters,
+      reassignmentTexters: campaignTexters,
+      needsRender: true
+    });
   };
 
   handleNotOptedOutConversationsToggled = async () => {
@@ -263,6 +224,7 @@ export class AdminIncomingMessageList extends Component {
     this.setState({
       clearSelectedMessages: true,
       contactsFilter,
+      page: 0,
       includeNotOptedOutConversations: !this.state
         .includeNotOptedOutConversations
     });
@@ -286,49 +248,11 @@ export class AdminIncomingMessageList extends Component {
     this.setState({
       clearSelectedMessages: true,
       contactsFilter,
+      page: 0,
       includeNotOptedOutConversations,
       includeOptedOutConversations: !this.state.includeOptedOutConversations
     });
   };
-
-  handleActiveCampaignsToggled = async () => {
-    if (
-      this.state.includeActiveCampaigns &&
-      !this.state.includeArchivedCampaigns
-    ) {
-      return;
-    }
-
-    const campaignsFilter = getCampaignsFilterForCampaignArchiveStatus(
-      !this.state.includeActiveCampaigns,
-      this.state.includeArchivedCampaigns
-    );
-    this.setState({
-      clearSelectedMessages: true,
-      campaignsFilter,
-      includeActiveCampaigns: !this.state.includeActiveCampaigns
-    });
-  };
-
-  handleArchivedCampaignsToggled = async () => {
-    const includeActiveCampaigns =
-      this.state.includeActiveCampaigns || !this.state.includeArchivedCampaigns;
-
-    const campaignsFilter = getCampaignsFilterForCampaignArchiveStatus(
-      includeActiveCampaigns,
-      !this.state.includeArchivedCampaigns
-    );
-
-    this.setState({
-      clearSelectedMessages: true,
-      campaignsFilter,
-      includeActiveCampaigns,
-      includeArchivedCampaigns: !this.state.includeArchivedCampaigns
-    });
-  };
-
-  getSelectedCampaignContactIds = () =>
-    this.state.campaignIdsContactIds.map(contact => contact.campaignContactId);
 
   handleAssignTags = async tags => {
     const campaignContactIds = this.getSelectedCampaignContactIds();
@@ -369,112 +293,100 @@ export class AdminIncomingMessageList extends Component {
       offset: this.state.page * this.state.pageSize,
       limit: this.state.pageSize
     };
+
+    const { campaign } = this.props.campaign;
+
     return (
       <div>
-        <h3> Message Review </h3>
-        {this.props.organization && this.props.organization.loading ? (
-          <LoadingIndicator />
-        ) : (
-          <div>
-            <PaginatedUsersRetriever
-              organizationId={this.props.params.organizationId}
-              onUsersReceived={this.handleReassignmentTextersReceived}
-              pageSize={1000}
-            />
-            <PaginatedUsersRetriever
-              organizationId={this.props.params.organizationId}
-              onUsersReceived={this.handleCampaignTextersReceived}
-              pageSize={1000}
-              campaignsFilter={this.state.campaignsFilter}
-            />
-            <PaginatedCampaignsRetriever
-              organizationId={this.props.params.organizationId}
-              campaignsFilter={_.pick(this.state.campaignsFilter, "isArchived")}
-              onCampaignsReceived={this.handleCampaignsReceived}
-              pageSize={1000}
-            />
-            <IncomingMessageFilter
-              campaigns={this.state.campaigns}
-              texters={this.state.campaignTexters}
-              onCampaignChanged={this.handleCampaignChanged}
-              onTexterChanged={this.handleTexterChanged}
-              onMessageFilterChanged={this.handleMessageFilterChange}
-              onTagsFilterChanged={this.handleTagsFilterChanged}
-              assignmentsFilter={this.state.assignmentsFilter}
-              onActiveCampaignsToggled={this.handleActiveCampaignsToggled}
-              onArchivedCampaignsToggled={this.handleArchivedCampaignsToggled}
-              includeActiveCampaigns={this.state.includeActiveCampaigns}
-              includeArchivedCampaigns={this.state.includeArchivedCampaigns}
-              onNotOptedOutConversationsToggled={
-                this.handleNotOptedOutConversationsToggled
-              }
-              onOptedOutConversationsToggled={
-                this.handleOptedOutConversationsToggled
-              }
-              includeNotOptedOutConversations={
-                this.state.includeNotOptedOutConversations
-              }
-              includeOptedOutConversations={
-                this.state.includeOptedOutConversations
-              }
-              defaultTagsFilter={IGNORE_TAGS_FILTER}
-            />
-            <br />
-            <IncomingMessageActions
-              people={this.state.reassignmentTexters}
-              onReassignRequested={this.handleReassignRequested}
-              onReassignAllMatchingRequested={
-                this.handleReassignAllMatchingRequested
-              }
-              conversationCount={this.state.conversationCount}
-              tagsFilter={this.state.tagsFilter}
-              onAssignTags={this.handleAssignTags}
-              onRemoveTags={this.handleRemoveTags}
-            />
-            <br />
-            <IncomingMessageList
-              organizationId={this.props.params.organizationId}
-              cursor={cursor}
-              contactsFilter={this.state.contactsFilter}
-              campaignsFilter={this.state.campaignsFilter}
-              assignmentsFilter={this.state.assignmentsFilter}
-              utc={this.state.utc}
-              onPageChanged={this.handlePageChange}
-              onPageSizeChanged={this.handlePageSizeChange}
-              onConversationSelected={this.handleRowSelection}
-              onConversationCountChanged={this.conversationCountChanged}
-              clearSelectedMessages={this.state.clearSelectedMessages}
-              rowSizeList={CONVERSATION_LIST_ROW_SIZES.slice(0).sort(
-                (a, b) => a - b
-              )}
-              onForceRefresh={this.handleForceRefresh}
-              toolbarTop
-              toolbarBottom
-            />
-          </div>
-        )}
+        <div>
+          <h3> Message Review - {campaign.title} </h3>
+          <RaisedButton
+            onTouchTap={() =>
+              this.props.router.push(
+                `/admin/${this.props.params.organizationId}/campaigns/${this.props.params.campaignId}`
+              )
+            }
+            label="Back To Campaign"
+          />
+        </div>
+        <div>
+          <IncomingMessageFilter
+            texters={campaign.texters}
+            onTexterChanged={this.handleTexterChanged}
+            onMessageFilterChanged={this.handleMessageFilterChange}
+            onTagsFilterChanged={this.handleTagsFilterChanged}
+            assignmentsFilter={this.state.assignmentsFilter}
+            onNotOptedOutConversationsToggled={
+              this.handleNotOptedOutConversationsToggled
+            }
+            onOptedOutConversationsToggled={
+              this.handleOptedOutConversationsToggled
+            }
+            includeNotOptedOutConversations={
+              this.state.includeNotOptedOutConversations
+            }
+            includeOptedOutConversations={
+              this.state.includeOptedOutConversations
+            }
+            defaultTagsFilter={IGNORE_TAGS_FILTER}
+          />
+          <br />
+          <IncomingMessageActions
+            people={campaign.texters}
+            onReassignRequested={this.handleReassignRequested}
+            onReassignAllMatchingRequested={
+              this.handleReassignAllMatchingRequested
+            }
+            conversationCount={this.state.conversationCount}
+            tagsFilter={this.state.tagsFilter}
+            onAssignTags={this.handleAssignTags}
+            onRemoveTags={this.handleRemoveTags}
+          />
+          <br />
+          <IncomingMessageList
+            organizationId={this.props.params.organizationId}
+            cursor={cursor}
+            contactsFilter={this.state.contactsFilter}
+            campaignsFilter={this.campaignsFilter()}
+            assignmentsFilter={this.state.assignmentsFilter}
+            utc={this.state.utc}
+            onPageChanged={this.handlePageChange}
+            onPageSizeChanged={this.handlePageSizeChange}
+            onConversationSelected={this.handleRowSelection}
+            onConversationCountChanged={this.conversationCountChanged}
+            clearSelectedMessages={this.state.clearSelectedMessages}
+            rowSizeList={CONVERSATION_LIST_ROW_SIZES.slice(0).sort(
+              (a, b) => a - b
+            )}
+            onForceRefresh={this.handleForceRefresh}
+            toolbarTop
+            toolbarBottom
+          />
+        </div>
       </div>
     );
   }
 }
 
-// TODO(lmp) don't need mapQueriesToProps
 const mapQueriesToProps = ({ ownProps }) => ({
-  organization: {
+  campaign: {
     query: gql`
-      query Q($organizationId: String!) {
-        organization(id: $organizationId) {
+      query getCampaign($campaignId: String!) {
+        campaign(id: $campaignId) {
           id
-          people {
+          dueBy
+          title
+          id
+          texters {
             id
             displayName
-            roles(organizationId: $organizationId)
+            email
           }
         }
       }
     `,
     variables: {
-      organizationId: ownProps.params.organizationId
+      campaignId: ownProps.params.campaignId
     },
     fetchPolicy: "network-only"
   }
@@ -573,10 +485,10 @@ const mapMutationsToProps = () => ({
 });
 
 AdminIncomingMessageList.propTypes = {
-  conversations: PropTypes.object,
   mutations: PropTypes.object,
   params: PropTypes.object,
-  organization: PropTypes.object
+  campaign: PropTypes.object,
+  router: PropTypes.object
 };
 
 export default loadData(withRouter(wrapMutations(AdminIncomingMessageList)), {

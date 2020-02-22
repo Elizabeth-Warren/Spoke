@@ -12,7 +12,8 @@ import {
   IGNORE_TAGS_FILTER,
   ANY_TAG_FILTER,
   NO_TAG_FILTER,
-  EMPTY_TAG_FILTER
+  EMPTY_TAG_FILTER,
+  makeTagMetafilter
 } from "../lib/tags";
 
 import _ from "lodash";
