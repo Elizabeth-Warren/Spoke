@@ -5,7 +5,7 @@ import { exportCampaign } from "./export-campaign";
 import { buyNumbers } from "./buy-numbers";
 import log from "src/server/log";
 import config, { JobExecutor } from "../config";
-import BackgroundJob from "../db/background-job";
+import db from "src/server/db";
 
 export const JobType = {
   ASSIGN_TEXTERS: "assign_texters",
@@ -17,21 +17,34 @@ export const JobType = {
 function wrapJob(jobFn) {
   return async job => {
     try {
-      await BackgroundJob.updateStatus(job.id, {
-        progress: 0,
-        status: BackgroundJob.STATUS.RUNNING
+      await db.transaction(async transaction => {
+        const j = await db.BackgroundJob.get(job.id, {
+          transaction,
+          forUpdate: true
+        });
+        if (j.status !== db.BackgroundJob.STATUS.PENDING) {
+          throw Error(`Attempting to start a job with status ${j.status}`);
+        }
+        await db.BackgroundJob.updateStatus(
+          job.id,
+          {
+            progress: 0,
+            status: db.BackgroundJob.STATUS.RUNNING
+          },
+          { transaction }
+        );
       });
 
       const resultMessage = await jobFn(job);
 
-      await BackgroundJob.updateStatus(job.id, {
+      await db.BackgroundJob.updateStatus(job.id, {
         progress: 1,
-        status: BackgroundJob.STATUS.DONE,
+        status: db.BackgroundJob.STATUS.DONE,
         resultMessage: resultMessage || "Done"
       });
     } catch (e) {
-      await BackgroundJob.updateStatus(job.id, {
-        status: BackgroundJob.STATUS.FAILED,
+      await db.BackgroundJob.updateStatus(job.id, {
+        status: db.BackgroundJob.STATUS.FAILED,
         resultMessage: e.message
       });
       throw e;
@@ -90,8 +103,8 @@ export async function dispatchJob(job) {
     try {
       await invokeLambdaWorker(job);
     } catch (e) {
-      await BackgroundJob.updateStatus(job.id, {
-        status: BackgroundJob.STATUS.FAILED,
+      await db.BackgroundJob.updateStatus(job.id, {
+        status: db.BackgroundJob.STATUS.FAILED,
         resultMessage: e.message
       });
       throw e;

@@ -1,4 +1,5 @@
 import Assignment from "./assignment";
+import BackgroundJob from "./background-job";
 import Campaign from "./campaign";
 import OptOut from "./opt-out";
 import TwilioPhoneNumber from "./twilio-phone-number";
@@ -22,6 +23,7 @@ export default {
   Table,
   // Queries
   Assignment,
+  BackgroundJob,
   Campaign,
   OptOut,
   TwilioPhoneNumber,

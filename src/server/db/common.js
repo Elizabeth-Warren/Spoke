@@ -26,7 +26,11 @@ async function withTransaction(existingTransaction, fn) {
 
 function queryBuilder(tableName, opts) {
   const trx = opts && opts.transaction;
-  return trx ? trx(tableName) : r.knex(tableName);
+  const builder = trx ? trx(tableName) : r.knex(tableName);
+  if (opts && opts.forUpdate) {
+    return builder.forUpdate();
+  }
+  return builder;
 }
 
 function camelize(obj) {

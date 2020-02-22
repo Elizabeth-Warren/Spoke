@@ -2,7 +2,6 @@ import db from "src/server/db";
 import log from "src/server/log";
 import telemetry from "src/server/telemetry";
 import { WORKER_MAP } from "src/server/workers";
-import BackgroundJob from "src/server/db/background-job";
 
 db.enableTracing();
 
@@ -11,17 +10,20 @@ exports.handler = async (event, context) => {
   if (!event.jobId) {
     log.error({ msg: "Missing jobId in event", event });
   }
-  const job = await BackgroundJob.get(event.jobId);
-  const workerFn = WORKER_MAP[job.type];
-  if (!workerFn) {
-    log.error({
-      msg: "Could not find a worker for job",
-      job,
-      workers: Object.keys(WORKER_MAP)
-    });
-    return;
-  }
+
   try {
+    const job = await db.BackgroundJob.get(event.jobId);
+
+    const workerFn = WORKER_MAP[job.type];
+    if (!workerFn) {
+      log.error({
+        msg: "Could not find a worker for job",
+        job,
+        workers: Object.keys(WORKER_MAP)
+      });
+      return;
+    }
+
     await workerFn(job);
   } catch (e) {
     // For now suppress Lambda retries by not raising the exception.
