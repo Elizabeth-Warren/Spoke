@@ -885,23 +885,15 @@ export class ConversationTexterContactComponent extends React.Component {
     return (
       <div>
         <Toolbar style={inlineStyles.actionToolbarFirst}>
-          <ToolbarGroup firstChild>
+          <ToolbarGroup firstChild></ToolbarGroup>
+          <ToolbarGroup>
+            {this.renderNeedsResponseToggleButton(contact)}
             <SendButton
               threeClickEnabled={campaign.organization.threeClickEnabled}
               onFinalTouchTap={this.handleClickSendMessageButton}
               disabled={
                 this.state.disabled || this.state.notSendableButForceDisplay
               }
-            />
-            {this.renderNeedsResponseToggleButton(contact)}
-          </ToolbarGroup>
-          <ToolbarGroup lastChild>
-            <RaisedButton
-              {...dataTest("optOut")}
-              label="Opt out"
-              onTouchTap={this.handleOpenDialog}
-              style={inlineStyles.buttonWidth}
-              secondary
             />
           </ToolbarGroup>
         </Toolbar>

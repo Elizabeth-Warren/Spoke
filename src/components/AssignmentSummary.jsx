@@ -185,6 +185,13 @@ export class AssignmentSummary extends Component {
           <div style={{ margin: "20px" }}>
             <div dangerouslySetInnerHTML={{ __html: introHtml }} />
           </div>
+          {!isWithinTextingHours && (
+            <div style={{ margin: "20px", fontStyle: "italic" }}>
+              It is outside of texting hours for this campain. Check back at{" "}
+              {assignment.campaign.textingHoursStart}:00{" "}
+              {assignment.campaign.timezone}
+            </div>
+          )}
           <CardActions>
             {renderRequestBatchButton ? (
               <RequestBatchButton
@@ -211,7 +218,7 @@ export class AssignmentSummary extends Component {
             {this.renderBadgedButton({
               assignment,
               title: "Send Later",
-              count: isWithinTextingHours ? 0 : unmessagedCount,
+              count: isWithinTextingHours ? 0 : needsResponseCount,
               primary: false,
               disabled: true,
               contactsFilter: null,
