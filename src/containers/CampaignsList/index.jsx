@@ -1,7 +1,9 @@
+import React from "react";
 import gql from "graphql-tag";
 import SpeakerNotesIcon from "material-ui/svg-icons/action/speaker-notes";
 import PropTypes from "prop-types";
-import React from "react";
+import Dialog from "material-ui/Dialog";
+import FlatButton from "material-ui/FlatButton";
 import { withRouter } from "react-router";
 import loadData from "../hoc/load-data";
 import wrapMutations from "../hoc/wrap-mutations";
@@ -34,7 +36,8 @@ export class CampaignList extends React.Component {
 
     this.state = {
       page: 0,
-      pageSize: INITIAL_ROW_SIZE
+      pageSize: INITIAL_ROW_SIZE,
+      currentlyArchivingId: null
     };
   }
 
@@ -92,6 +95,10 @@ export class CampaignList extends React.Component {
     this.setState({ pageSize: value });
   };
 
+  handleArchiveCampaign = id => {
+    this.setState({ currentlyArchivingId: id });
+  };
+
   renderRow = campaign => (
     <Campaign
       campaign={campaign}
@@ -100,7 +107,7 @@ export class CampaignList extends React.Component {
       router={this.props.router}
       handleChecked={this.props.handleChecked}
       organizationId={this.props.organizationId}
-      archiveCampaign={this.props.mutations.archiveCampaign}
+      archiveCampaign={this.handleArchiveCampaign}
       unarchiveCampaign={this.props.mutations.unarchiveCampaign}
     />
   );
@@ -116,17 +123,43 @@ export class CampaignList extends React.Component {
     return campaigns.length === 0 ? (
       <Empty title="No campaigns" icon={<SpeakerNotesIcon />} />
     ) : (
-      <PaginatedList
-        rowSizeList={ROW_SIZES}
-        page={displayPage}
-        rowSize={this.state.pageSize}
-        count={total}
-        onNextPageClick={this.handleNextPageClick}
-        onPreviousPageClick={this.handlePreviousPageClick}
-        onRowSizeChange={this.handleRowSizeChanged}
-      >
-        {campaigns.map(campaign => this.renderRow(campaign))}
-      </PaginatedList>
+      <div>
+        <PaginatedList
+          rowSizeList={ROW_SIZES}
+          page={displayPage}
+          rowSize={this.state.pageSize}
+          count={total}
+          onNextPageClick={this.handleNextPageClick}
+          onPreviousPageClick={this.handlePreviousPageClick}
+          onRowSizeChange={this.handleRowSizeChanged}
+        >
+          {campaigns.map(campaign => this.renderRow(campaign))}
+        </PaginatedList>
+        <Dialog
+          title="Archive Campaign?"
+          open={!!this.state.currentlyArchivingId}
+          actions={[
+            <FlatButton
+              secondary
+              label="Cancel"
+              onClick={() => this.setState({ currentlyArchivingId: null })}
+            />,
+            <FlatButton
+              label="OK"
+              primary
+              onClick={async () => {
+                await this.props.mutations.archiveCampaign(
+                  this.state.currentlyArchivingId
+                );
+                this.setState({
+                  currentlyArchivingId: null
+                });
+              }}
+            />
+          ]}
+          onRequestClose={() => this.setState({ currentlyArchivingId: null })}
+        />
+      </div>
     );
   }
 }

@@ -13,19 +13,23 @@ import { dataTest } from "../../lib/attributes";
 
 const inlineStyles = {
   past: {
-    opacity: 0.6
+    opacity: 0.6,
+    paddingRight: 80
   },
   warn: {
     color: theme.colors.EWred,
-    fontWeight: 900
+    fontWeight: 900,
+    paddingRight: 80
   },
   good: {
     color: theme.colors.EWnavy,
-    fontWeight: 900
+    fontWeight: 900,
+    paddingRight: 80
   },
   warnUnsent: {
     color: theme.colors.EWred,
-    fontWeight: 900
+    fontWeight: 900,
+    paddingRight: 80
   }
 };
 
