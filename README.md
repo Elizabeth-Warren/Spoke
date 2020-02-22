@@ -21,6 +21,8 @@ Notable changes from upstream:
 - Changed the invite flow
 - Split the texter experience into separate components for initial sends and replies
 - Removed bulk send
+- Phone number management (see below)
+- Reworked dynamic assignment experience, removed support for static assignment
 
 ## Running for the first time
 

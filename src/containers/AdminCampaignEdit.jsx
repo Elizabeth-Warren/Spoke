@@ -5,18 +5,16 @@ import _ from "lodash";
 import { Dialog } from "material-ui";
 import WarningIcon from "material-ui/svg-icons/alert/warning";
 import DoneIcon from "material-ui/svg-icons/action/done";
-import CancelIcon from "material-ui/svg-icons/navigation/cancel";
 import Avatar from "material-ui/Avatar";
 import theme from "../styles/theme";
 import CircularProgress from "material-ui/CircularProgress";
-import { Card, CardHeader, CardText, CardActions } from "material-ui/Card";
+import { Card, CardHeader, CardText } from "material-ui/Card";
 import gql from "graphql-tag";
 import loadData from "./hoc/load-data";
 import wrapMutations from "./hoc/wrap-mutations";
 import RaisedButton from "material-ui/RaisedButton";
 import CampaignBasicsForm from "../components/CampaignBasicsForm";
 import CampaignContactsForm from "../components/CampaignContactsForm";
-import CampaignTextersForm from "../components/CampaignTextersForm";
 import CampaignPhoneNumbersForm from "../components/CampaignPhoneNumbersForm";
 import CampaignInteractionStepsForm from "../components/CampaignInteractionStepsForm";
 import CampaignCannedResponsesForm from "../components/CampaignCannedResponsesForm";
@@ -52,16 +50,6 @@ const campaignInfoFragment = `
     areaCode
     count
     reservedAt
-  }
-  texters {
-    id
-    firstName
-    lastName
-    assignment(campaignId:$campaignId) {
-      contactsCount
-      needsMessageCount: contactsCount(contactsFilter:{messageStatus:\"needsMessage\"})
-      maxContacts
-    }
   }
   interactionSteps {
     id
@@ -209,14 +197,6 @@ class AdminCampaignEdit extends React.Component {
       // Transform the campaign into an input understood by the server
       delete newCampaign.customFields;
       delete newCampaign.contactsCount;
-      if (newCampaign.hasOwnProperty("texters")) {
-        newCampaign.texters = newCampaign.texters.map(texter => ({
-          id: texter.id,
-          needsMessageCount: texter.assignment.needsMessageCount,
-          maxContacts: texter.assignment.maxContacts,
-          contactsCount: texter.assignment.contactsCount
-        }));
-      }
       if (newCampaign.hasOwnProperty("interactionSteps")) {
         newCampaign.interactionSteps = _.omit(
           newCampaign.interactionSteps,
@@ -258,12 +238,12 @@ class AdminCampaignEdit extends React.Component {
       sectionState[key] = this.state.campaignFormValues[key];
       sectionProps[key] = this.props.campaignData.campaign[key];
     });
-    console.log(
-      "CHECK SAVED section state:",
-      sectionState,
-      "section props",
-      sectionProps
-    );
+    // console.log(
+    //   "CHECK SAVED section state:",
+    //   sectionState,
+    //   "section props",
+    //   sectionProps
+    // );
     return JSON.stringify(sectionState) === JSON.stringify(sectionProps);
   }
 
@@ -313,27 +293,6 @@ class AdminCampaignEdit extends React.Component {
           optOuts: [], // this.props.organizationData.organization.optOuts, // <= doesn't scale
           datawarehouseAvailable: this.props.campaignData.campaign
             .datawarehouseAvailable
-        }
-      },
-      {
-        title: "Texters",
-        content: CampaignTextersForm,
-        keys: ["texters", "contactsCount", "useDynamicAssignment"],
-        checkCompleted: () =>
-          (this.state.campaignFormValues.texters.length > 0 &&
-            this.state.campaignFormValues.contactsCount ===
-              this.state.campaignFormValues.texters.reduce(
-                (left, right) => left + right.assignment.contactsCount,
-                0
-              )) ||
-          this.state.campaignFormValues.useDynamicAssignment === true,
-        blocksStarting: false,
-        expandAfterCampaignStarts: true,
-        expandableBySuperVolunteers: true,
-        extraProps: {
-          orgTexters: this.props.organizationData.organization.texters,
-          organizationUuid: this.props.organizationData.organization.uuid,
-          campaignId: this.props.campaignData.campaign.id
         }
       },
       {
@@ -485,7 +444,7 @@ class AdminCampaignEdit extends React.Component {
           {this.renderCurrentEditors()}
         </div>
         {useStaticAssign ? (
-          ""
+          "WARNING: Static Assignment is no longer supported."
         ) : (
           <div
             style={{
@@ -734,10 +693,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
   },
   organizationData: {
     query: gql`
-      query getOrganizationData(
-        $organizationId: String!
-        $sortBy: SortPeopleBy
-      ) {
+      query getOrganizationData($organizationId: String!) {
         organization(id: $organizationId) {
           id
           uuid
@@ -746,18 +702,11 @@ const mapQueriesToProps = ({ ownProps }) => ({
             areaCode
             count
           }
-          texters: people(sortBy: $sortBy) {
-            id
-            firstName
-            lastName
-            displayName
-          }
         }
       }
     `,
     variables: {
-      organizationId: ownProps.params.organizationId,
-      sortBy: "FIRST_NAME"
+      organizationId: ownProps.params.organizationId
     },
     fetchPolicy: "network-only",
     pollInterval: 20000

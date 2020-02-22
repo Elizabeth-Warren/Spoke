@@ -10,7 +10,6 @@ import {
   createCampaign,
   createContact,
   createTexter,
-  assignTexter,
   createScript,
   startCampaign,
   getCampaignContact
@@ -33,7 +32,6 @@ beforeEach(async () => {
   testCampaign = await createCampaign(testAdminUser, testOrganization);
   testContact = await createContact(testCampaign);
   testTexterUser = await createTexter(testOrganization, testAdminUser);
-  await assignTexter(testAdminUser, testTexterUser, testCampaign);
   const dbCampaignContact = await getCampaignContact(testContact.id);
   assignmentId = dbCampaignContact.assignment_id;
   organizationId = testOrganization.data.createOrganization.id;

@@ -27,7 +27,7 @@ beforeEach(async () => {
       // note: because these fixtures are so simple, both contacts have the same phone,
       // which is what we want for this test.
       const contact = await createContact(campaign);
-      await assignTexter(testAdminUser, testAdminUser, campaign);
+      await assignTexter(testAdminUser, campaign);
       await createScript(testAdminUser, campaign);
       await startCampaign(testAdminUser, campaign);
       return {

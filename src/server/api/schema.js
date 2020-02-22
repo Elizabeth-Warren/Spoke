@@ -66,7 +66,6 @@ import twilio from "./lib/twilio";
 import db from "src/server/db";
 import preconditions from "src/server/preconditions";
 import BackgroundJob from "../db/background-job";
-import { assignTexters } from "src/server/workers/assign-texters";
 import config from "src/server/config";
 import { ApolloError, NotFoundError } from "src/server/api/errors";
 
@@ -128,7 +127,6 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
     title,
     description,
     dueBy,
-    useDynamicAssignment,
     logoImageUrl,
     introHtml,
     primaryColor,
@@ -154,7 +152,6 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
     description,
     due_by: dueBy,
     organization_id: organizationId,
-    use_dynamic_assignment: useDynamicAssignment,
     logo_image_url: isUrl(logoImageUrl) ? logoImageUrl : "",
     primary_color: primaryColor,
     intro_html: introHtml,
@@ -173,20 +170,11 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
   });
 
   // Warren fork: removed contactSql option to load from data warehouse
+  //   and removed texters section
+
   // We use _.has instead of hasOwnProperty because sometimes we're working with
   // a model returned via humps.decamelize(), and humps returns an object with no
   // prototype so hasOwnProperty may not exist.
-  if (_.has(campaign, "texters")) {
-    // XXX: either delete this or move it back to a background job
-    await assignTexters({
-      campaignId: id,
-      config: JSON.stringify({
-        id,
-        texters: campaign.texters
-      })
-    });
-  }
-
   if (_.has(campaign, "interactionSteps")) {
     await accessRequired(
       user,
@@ -681,7 +669,8 @@ const rootMutations = {
         description: campaign.description,
         due_by: campaign.dueBy,
         is_started: false,
-        is_archived: false
+        is_archived: false,
+        use_dynamic_assignment: true
       });
 
       const newCampaign = await campaignInstance.save();

@@ -4,7 +4,8 @@ import {
   Campaign,
   User,
   CampaignContact,
-  r
+  r,
+  Assignment
 } from "../src/server/models/";
 import { graphql } from "graphql";
 import db from "src/server/db";
@@ -208,34 +209,11 @@ export async function createTexter(organization, addedBy) {
   return user;
 }
 
-export async function assignTexter(admin, user, campaign) {
-  const campaignEditQuery = `
-  mutation editCampaign($campaignId: String!, $campaign: CampaignInput!) {
-    editCampaign(id: $campaignId, campaign: $campaign) {
-      id
-    }
-  }`;
-  const context = getContext({ user: admin });
-  const updateCampaign = Object.assign({}, campaign);
-  const campaignId = updateCampaign.id;
-  updateCampaign.texters = [
-    {
-      id: user.id
-    }
-  ];
-  delete updateCampaign.id;
-  delete updateCampaign.contacts;
-  const variables = {
-    campaignId,
-    campaign: updateCampaign
-  };
-  return await graphql(
-    mySchema,
-    campaignEditQuery,
-    rootValue,
-    context,
-    variables
-  );
+export async function assignTexter(user, campaign) {
+  return await Assignment.save({
+    user_id: user.id,
+    campaign_id: campaign.id
+  });
 }
 
 export async function createScript(admin, campaign) {

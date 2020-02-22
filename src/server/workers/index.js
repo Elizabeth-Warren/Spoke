@@ -8,7 +8,7 @@ import config, { JobExecutor } from "../config";
 import db from "src/server/db";
 
 export const JobType = {
-  ASSIGN_TEXTERS: "assign_texters",
+  ASSIGN_TEXTERS: "assign_texters", // TODO[matteo]: delete this job
   UPLOAD_CONTACTS: "upload_contacts",
   EXPORT_CAMPAIGN: "export",
   BUY_NUMBERS: "buy_numbers"
