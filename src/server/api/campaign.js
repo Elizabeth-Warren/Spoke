@@ -257,6 +257,12 @@ export const resolvers = {
       campaign.due_by instanceof Date || !campaign.due_by
         ? campaign.due_by || null
         : new Date(campaign.due_by),
+    startedAt: campaign => {
+      const startedAtFallback = campaign.started_at || campaign.created_at;
+      return startedAtFallback instanceof Date || !startedAtFallback
+        ? startedAtFallback || null
+        : new Date(startedAtFallback);
+    },
     organization: async (campaign, _, { loaders }) =>
       getOrganization(campaign, loaders),
     datawarehouseAvailable: (campaign, _, { user }) =>

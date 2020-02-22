@@ -16,6 +16,7 @@ const Campaign = thinky.createModel(
       title: optionalString(),
       description: optionalString(),
       is_started: type.boolean().required(),
+      started_at: timestamp().allowNull(true),
       due_by: type
         .date()
         .required()

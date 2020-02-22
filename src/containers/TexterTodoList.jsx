@@ -29,11 +29,32 @@ class TexterTodoList extends React.Component {
     }
   }
 
+  getCounts(contactCounts) {
+    return _.chain(contactCounts)
+      .keyBy("messageStatus")
+      .mapValues("count")
+      .value();
+  }
   sortSummaries = summaries => {
-    return _.sortBy(summaries, [
-      s => s.assignment.campaign.status !== "ACTIVE",
-      s => s.assignment.campaign.dueBy
-    ]);
+    const hasNewMessages = contactCounts => {
+      const counts = this.getCounts(contactCounts);
+      return counts.needsMessage || 0;
+    };
+    const needsResponse = contactCounts => {
+      const counts = this.getCounts(contactCounts);
+      return counts.needsResponse || 0;
+    };
+
+    return _.orderBy(
+      summaries,
+      [
+        s => s.assignment.campaign.status !== "ACTIVE",
+        s => !!hasNewMessages(s.contactCounts),
+        s => !!needsResponse(s.contactCounts),
+        s => new Date(s.assignment.campaign.startedAt)
+      ],
+      ["asc", "desc", "desc", "desc"]
+    );
   };
 
   renderAssignmentList() {
@@ -43,10 +64,7 @@ class TexterTodoList extends React.Component {
         const isWithinTextingHours = campaignIsBetweenTextingHours(
           summary.assignment.campaign
         );
-        const counts = _.chain(summary.contactCounts)
-          .keyBy("messageStatus")
-          .mapValues("count")
-          .value();
+        const counts = this.getCounts(summary.contactCounts);
         const unmessagedCount = counts.needsMessage || 0;
         const conversationCount = _.sum([
           0,
@@ -113,6 +131,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
                 introHtml
                 primaryColor
                 dueBy
+                startedAt
                 status
                 logoImageUrl
                 timezone

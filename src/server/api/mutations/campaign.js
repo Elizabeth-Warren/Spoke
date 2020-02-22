@@ -78,6 +78,7 @@ export const mutations = {
     }
 
     campaign.is_started = true;
+    campaign.started_at = new Date();
     campaign.messaging_service_sid = messagingServiceSid;
     if (campaign.use_dynamic_assignment) {
       campaign.join_token = secureRandomString(32);

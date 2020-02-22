@@ -32,6 +32,7 @@ export const schema = gql`
     dueBy: Date
     status: CampaignStatus
     isStarted: Boolean
+    startedAt: DateTime
     isArchived: Boolean
     creator: User
     texters: [User]
