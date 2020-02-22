@@ -703,6 +703,7 @@ const rootMutations = {
         shifting_configuration: shiftingConfiguration,
         logo_image_url: campaign.logo_image_url,
         intro_html: campaign.intro_html,
+        use_dynamic_assignment: true,
         primary_color: campaign.primary_color
       });
       const newCampaign = await campaignInstance.save();
