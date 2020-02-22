@@ -83,13 +83,13 @@ class RequestBatchButton extends Component {
         });
         return;
       }
-
-      // XXX HACK[bsw]: normally we'd just make the initial send texter use networkPolicy: "network-only"
-      // to force it to re-load the assignments before showing them. But doing that causes it to re-fetch
-      // the assignments every time you request a new message, so we do this hack to clear the store and
-      // force a refetch just the first time.
-      ApolloClientSingleton.resetStore();
     }
+
+    // XXX HACK[bsw]: normally we'd just make the initial send texter use networkPolicy: "network-only"
+    // to force it to re-load the assignments before showing them. But doing that causes it to re-fetch
+    // the assignments every time you request a new message, so we do this hack to clear the store and
+    // force a refetch just the first time.
+    await ApolloClientSingleton.resetStore();
 
     router.push(`/app/${organizationId}/todos/${assignmentId}/text`);
   };

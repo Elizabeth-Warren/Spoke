@@ -12,6 +12,7 @@ import RaisedButton from "material-ui/RaisedButton";
 import _ from "lodash";
 import { getTopMostParent, campaignIsBetweenTextingHours } from "src/lib";
 import { applyScript } from "src/lib/scripts";
+import { checkForErrorCode } from "src/client/lib/error-helpers";
 
 const contactDataFragment = `
         id
@@ -80,11 +81,15 @@ class InitialMessageTexter extends Component {
     this.isSending = true;
 
     try {
-      return await this.props.mutations.sendMessage(messageInput, contactId);
-      // TODO: figure out what should happen in case of error
-      //  right now this gives no feedback to the user and moves on to the next
-      //  contact if there is a server error. It bails completely if there is
-      //  a frontend error.
+      const response = await this.props.mutations.sendMessage(
+        messageInput,
+        contactId
+      );
+      // This can happen if a user has the initial message texter open in multiple windows
+      const dupMessage = checkForErrorCode(response, "DUPLICATE_MESSAGE");
+      if (dupMessage) {
+        window.location.reload();
+      }
     } catch (e) {
       console.error("Error sending message", e);
       this.exitTexter();

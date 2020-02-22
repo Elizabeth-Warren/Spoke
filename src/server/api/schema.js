@@ -1096,9 +1096,9 @@ const rootMutations = {
         send_before: sendBeforeDate,
         canned_response_id: message.cannedResponseId
       });
+      // NOTE: save is deferred to after duplicate message detection
 
-      await messageInstance.save();
-
+      // TODO: get rid of service map
       const sendingServiceName =
         messageInstance.service ||
         process.env.DEFAULT_SERVICE ||
@@ -1106,23 +1106,29 @@ const rootMutations = {
 
       const service = serviceMap[sendingServiceName];
 
+      // TODO: migrate these models off of thinky and do this in a proper transaction
       if (isInitialMessage) {
-        const countUpdated = await r
-          .knex("campaign_contact")
-          .update({
-            message_status: "messaged",
-            updated_at: new Date()
-          })
-          .where({
-            id: contact.id,
-            message_status: "needsMessage"
-          });
-        if (countUpdated !== 1) {
-          throw new ApolloError(
-            "Duplicate initial message",
-            "DUPLICATE_MESSAGE"
-          );
-        }
+        await r.knex.transaction(async trx => {
+          const countUpdated = await trx("campaign_contact")
+            .update({
+              message_status: "messaged",
+              updated_at: new Date()
+            })
+            .where({
+              id: contact.id,
+              message_status: "needsMessage"
+            });
+
+          if (countUpdated !== 1) {
+            throw new ApolloError(
+              "Duplicate initial message",
+              "DUPLICATE_MESSAGE"
+            );
+          }
+          // Save message to db, if this throws the contact will remain in state
+          // needsMessage
+          await messageInstance.save();
+        });
       } else {
         contact.updated_at = new Date();
         if (
@@ -1134,6 +1140,7 @@ const rootMutations = {
           contact.message_status = "messaged";
         }
         await contact.save();
+        await messageInstance.save(); // save message, not transactional
       }
 
       log.debug(

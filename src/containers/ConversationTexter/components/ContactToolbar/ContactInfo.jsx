@@ -124,7 +124,7 @@ export default class ContactInfo extends React.Component {
 
   render = () => (
     <div>
-      {this.renderOptOutButton()}
+      {this.props.onClickOptOut ? this.renderOptOutButton() : null}
       {this.renderButton()}
       {this.state.open && this.renderDialog()}
     </div>
@@ -135,5 +135,6 @@ ContactInfo.propTypes = {
   open: PropTypes.bool,
   campaign: PropTypes.object,
   campaignContact: PropTypes.object,
-  assignment: PropTypes.object
+  assignment: PropTypes.object,
+  onClickOptOut: PropTypes.func
 };
