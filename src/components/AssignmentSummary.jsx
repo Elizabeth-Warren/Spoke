@@ -167,7 +167,9 @@ export class AssignmentSummary extends Component {
         <Card key={assignment.id}>
           <CardTitle
             title={title}
-            subtitle={`${description} - ${moment(dueBy).format("MMM D YYYY")}`}
+            subtitle={`${description} - ${moment(dueBy)
+              .utc()
+              .format("MMM D YYYY")}`}
             style={{ backgroundColor: primaryColor }}
             subtitleColor={textColor}
             titleColor={textColor}
