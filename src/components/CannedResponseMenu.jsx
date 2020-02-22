@@ -10,7 +10,11 @@ const styles = {
   searchWrapper: {
     width: "100%",
     boxSizing: "border-box",
-    padding: "10px 20px"
+    padding: "10px 20px",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    height: "100%"
   },
   searchStyle: {
     backgroundColor: theme.colors.white,
@@ -50,7 +54,7 @@ class CannedResponseMenu extends React.Component {
     this.setState({ results });
   }
 
-  renderCannedResponses({ scripts }) {
+  render() {
     return (
       <div style={styles.searchWrapper}>
         <TextField
@@ -62,22 +66,9 @@ class CannedResponseMenu extends React.Component {
           fullWidth
         />
         <ScriptList
-          scripts={scripts}
+          scripts={this.state.results}
           onSelectCannedResponse={this.handleSelectCannedResponse}
         />
-      </div>
-    );
-  }
-
-  render() {
-    return (
-      <div style={{ height: "100%", overflowY: "auto" }}>
-        <List>
-          {this.renderCannedResponses({
-            scripts: this.state.results,
-            showAddScriptButton: false
-          })}
-        </List>
       </div>
     );
   }

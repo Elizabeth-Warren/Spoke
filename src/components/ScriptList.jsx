@@ -8,7 +8,6 @@ import CreateIcon from "material-ui/svg-icons/content/create";
 // import IconMenu from 'material-ui/IconMenu'
 // import MenuItem from 'material-ui/MenuItem'
 import Divider from "material-ui/Divider";
-import Dialog from "material-ui/Dialog";
 import CannedResponseForm from "./CannedResponseForm";
 import GSSubmitButton from "./forms/GSSubmitButton";
 import Form from "react-formal";
@@ -18,8 +17,10 @@ import gql from "graphql-tag";
 // import { insert, update, remove } from '../../api/scripts/methods'
 
 const styles = {
-  dialog: {
-    zIndex: 10001
+  responseContainer: {
+    paddingBottom: 32,
+    flexGrow: 1,
+    overflow: "auto"
   }
 };
 
@@ -60,7 +61,7 @@ export default class ScriptList extends React.Component {
         </List>
       );
 
-    return <div style={{ paddingBottom: "32px" }}>{list}</div>;
+    return <div style={styles.responseContainer}>{list}</div>;
   }
 }
 
