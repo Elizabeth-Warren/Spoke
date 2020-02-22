@@ -223,6 +223,11 @@ class AdminCampaignEdit extends React.Component {
           newCampaign.interactionSteps
         );
       }
+      if (newCampaign.hasOwnProperty("cannedResponses")) {
+        newCampaign.cannedResponses = newCampaign.cannedResponses.map(cr =>
+          _.omit(cr, "__typename")
+        );
+      }
       await this.props.mutations.editCampaign(
         this.props.campaignData.campaign.id,
         newCampaign
