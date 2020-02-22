@@ -182,11 +182,6 @@ const inlineStyles = {
     height: "50px",
     zIndex: 100
   },
-  toolbarIconButton: {
-    position: "absolute",
-    top: 0
-    // without this the toolbar icons are not centered vertically
-  },
   actionToolbar: {
     backgroundColor: "white",
 

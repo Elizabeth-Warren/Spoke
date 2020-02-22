@@ -5,6 +5,10 @@ import { StyleSheet, css } from "aphrodite";
 import ActionInfoOutline from "material-ui/svg-icons/action/info-outline";
 import Dialog from "material-ui/Dialog";
 import FlatButton from "material-ui/FlatButton";
+import ProhibitedIcon from "material-ui/svg-icons/av/not-interested";
+import IconButton from "material-ui/IconButton";
+import theme from "src/styles/theme";
+import ClearIcon from "material-ui/svg-icons/content/clear";
 
 import ConversationLink from "src/components/ConversationLink";
 
@@ -17,12 +21,21 @@ const styles = StyleSheet.create({
     paddingTop: "25px"
   },
   button: {
-    width: "28px",
-    minWidth: "28px",
-    minHeight: "28px",
-    height: "28px",
-    paddingTop: "2px",
-    marginTop: "3px"
+    width: 28,
+    minWidth: 28,
+    minHeight: 28,
+    height: 28,
+    paddingTop: 2,
+    marginTop: 3,
+    marginLeft: 20
+  },
+  optOutButton: {
+    height: 33,
+    width: 33,
+    borderRadius: 6,
+    boxSizing: "border-box",
+    padding: 3,
+    backgroundColor: theme.colors.EWred
   }
 });
 
@@ -58,6 +71,17 @@ export default class ContactInfo extends React.Component {
     >
       <ActionInfoOutline color="white" />
     </FlatButton>
+  );
+
+  renderOptOutButton = () => (
+    <IconButton
+      className={css(styles.optOutButton)}
+      onTouchTap={this.props.onClickOptOut}
+      tooltip="Opt Out"
+      iconStyle={{ fill: theme.colors.white }}
+    >
+      <ProhibitedIcon />
+    </IconButton>
   );
 
   renderDialog = () => (
@@ -100,6 +124,7 @@ export default class ContactInfo extends React.Component {
 
   render = () => (
     <div>
+      {this.renderOptOutButton()}
       {this.renderButton()}
       {this.state.open && this.renderDialog()}
     </div>

@@ -916,6 +916,7 @@ export class ConversationTexterContactComponent extends React.Component {
         campaign={this.props.campaign}
         assignment={this.props.assignment}
         campaignContact={contact}
+        onClickOptOut={this.handleOpenDialog}
       />
     );
   }

@@ -27,7 +27,13 @@ const inlineStyles = {
   }
 };
 
-function ContactToolbar({ campaign, campaignContact, assignment, router }) {
+function ContactToolbar({
+  campaign,
+  campaignContact,
+  assignment,
+  router,
+  onClickOptOut
+}) {
   const contactName = campaignContact ? campaignContact.firstName : "";
 
   return (
@@ -46,6 +52,7 @@ function ContactToolbar({ campaign, campaignContact, assignment, router }) {
               campaign={campaign}
               campaignContact={campaignContact}
               assignment={assignment}
+              onClickOptOut={onClickOptOut}
             />
           )}
         </ToolbarGroup>
