@@ -1099,6 +1099,8 @@ const rootMutations = {
         );
       }
 
+      await messageDedupe(contact, message, isInitialMessage);
+
       const messageInstance = new Message({
         text: replaceCurlyApostrophes(text),
         contact_number: contactNumber,
@@ -1121,10 +1123,10 @@ const rootMutations = {
 
       const service = serviceMap[sendingServiceName];
 
-      await messageDedupe(contact, message);
-
       // TODO: migrate these models off of thinky and do this in a proper transaction
       if (isInitialMessage) {
+        // keep this check despite the redis dedupe in order to catch re-assignment
+        // weirdness
         await r.knex.transaction(async trx => {
           const countUpdated = await trx("campaign_contact")
             .update({

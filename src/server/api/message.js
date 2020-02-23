@@ -27,7 +27,7 @@ export const resolvers = {
   }
 };
 
-export async function messageDedupe(contact, message) {
+export async function messageDedupe(contact, message, isInitialMessage) {
   const hash = crypto.createHash("sha1");
   hash.update(message.text);
 
@@ -44,6 +44,10 @@ export async function messageDedupe(contact, message) {
   );
 
   if (!checkResult) {
+    if (isInitialMessage) {
+      throw new ApolloError("Duplicate initial message", "DUPLICATE_MESSAGE");
+    }
+
     throw new ApolloError("Duplicate reply message", "DUPLICATE_REPLY_MESSAGE");
   }
 }
