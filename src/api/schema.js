@@ -188,6 +188,11 @@ const rootSchema = gql`
     NO_USER_WITH_EMAIL
   }
 
+  type ContactCountByMessageStatus {
+    messageStatus: String!
+    count: Int!
+  }
+
   type RootQuery {
     currentUser: User
     currentUserWithAccess(organizationId: String!, role: String!): User

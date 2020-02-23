@@ -38,7 +38,7 @@ async function countsByStatus(assignmentIds, opts) {
     )
     .whereIn("assignment.id", assignmentIds)
     .whereNot("is_opted_out", true)
-    .groupBy("assignment.id", "campaign_contact.message_status");
+    .groupBy(["assignment.id", "campaign_contact.message_status"]);
   const groupedByAssignmentId = _.groupBy(counts, r => r.assignment_id);
   return convertCase(groupedByAssignmentId, opts);
 }

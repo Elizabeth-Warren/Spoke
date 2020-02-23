@@ -24,6 +24,18 @@ export const schema = gql`
     optOutsCount: Int
   }
 
+  type CampaignAssignmentSummary {
+    assignmentId: ID!
+    texterId: ID!
+    texterFirstName: String!
+    texterLastName: String
+    unmessagedCount: Int!
+    needsResponseCount: Int!
+    convoCount: Int!
+    closedCount: Int!
+    contactCount: Int!
+  }
+
   type Campaign {
     id: ID
     organization: Organization
@@ -45,6 +57,7 @@ export const schema = gql`
     hasUnsentInitialMessages: Boolean
     customFields: [String]
     cannedResponses(userId: String): [CannedResponse]
+    assignmentSummaries: [CampaignAssignmentSummary]
     stats: CampaignStats
     datawarehouseAvailable: Boolean
     useDynamicAssignment: Boolean
@@ -52,7 +65,6 @@ export const schema = gql`
     primaryColor: String
     logoImageUrl: String
     editors: String
-    cacheable: Boolean
     overrideOrganizationTextingHours: Boolean
     textingHoursEnforced: Boolean
     textingHoursStart: Int

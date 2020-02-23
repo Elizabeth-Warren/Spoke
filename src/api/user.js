@@ -24,11 +24,6 @@ type PaginatedUsers {
   pageInfo: PageInfo
 }
 
-type ContactCountByMessageStatus {
-  messageStatus: String!
-  count: Int!
-}
-
 type AssignmentSummary {
   assignment: Assignment!
   contactCounts: [ContactCountByMessageStatus]!

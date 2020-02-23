@@ -1,9 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 import RaisedButton from "material-ui/RaisedButton";
-import Chart from "../components/Chart";
 import { Card, CardTitle, CardText } from "material-ui/Card";
-import TexterStats from "../components/TexterStats";
 import Snackbar from "material-ui/Snackbar";
 import { withRouter } from "react-router";
 import { StyleSheet, css } from "aphrodite";
@@ -14,6 +12,10 @@ import wrapMutations from "./hoc/wrap-mutations";
 import { dataTest } from "../lib/attributes";
 import DisplayLink from "src/components/DisplayLink";
 import { Dialog } from "material-ui";
+import DataTables from "material-ui-datatables";
+import LinearProgress from "material-ui/LinearProgress";
+import _ from "lodash";
+import moment from "moment";
 
 const inlineStyles = {
   stat: {
@@ -75,8 +77,60 @@ const styles = StyleSheet.create({
   },
   secondaryHeader: {
     ...theme.text.secondaryHeader
+  },
+  progressBar: {
+    paddingBottom: "20px"
   }
 });
+
+const texterStatColumns = [
+  {
+    key: "texter",
+    label: "Texter",
+    style: {
+      textOverflow: "ellipsis",
+      overflow: "hidden",
+      whiteSpace: "pre-line"
+    }
+  },
+  {
+    key: "messagedCount",
+    label: "Messaged",
+    style: {
+      textOverflow: "ellipsis",
+      overflow: "hidden",
+      whiteSpace: "pre-line"
+    }
+  },
+  {
+    key: "unmessagedCount",
+    label: "Not Messaged",
+    style: {
+      textOverflow: "ellipsis",
+      overflow: "hidden",
+      whiteSpace: "pre-line"
+    }
+  },
+  {
+    key: "skippedCount",
+    label: "Skipped",
+    style: {
+      textOverflow: "ellipsis",
+      overflow: "hidden",
+      whiteSpace: "pre-line"
+    }
+  },
+
+  {
+    key: "contactCount",
+    label: "Total Contacts",
+    style: {
+      textOverflow: "ellipsis",
+      overflow: "hidden",
+      whiteSpace: "pre-line"
+    }
+  }
+];
 
 const Stat = ({ title, count }) => (
   <Card key={title} style={inlineStyles.stat}>
@@ -100,47 +154,6 @@ class AdminCampaignStats extends React.Component {
     };
   }
 
-  renderSurveyStats() {
-    const { interactionSteps } = this.props.data.campaign;
-
-    return interactionSteps.map(step => {
-      if (step.question === "") {
-        return <div></div>;
-      }
-
-      const totalResponseCount = step.question.answerOptions.reduce(
-        (prev, answer) => prev + answer.responderCount,
-        0
-      );
-      return (
-        <div key={step.id}>
-          <div className={css(styles.secondaryHeader)}>
-            {step.question.text}
-          </div>
-          {totalResponseCount > 0 ? (
-            <div className={css(styles.container)}>
-              <div className={css(styles.flexColumn)}>
-                <Stat title="responses" count={totalResponseCount} />
-              </div>
-              <div className={css(styles.flexColumn)}>
-                <div className={css(styles.rightAlign)}>
-                  <Chart
-                    data={step.question.answerOptions.map(answer => [
-                      answer.value,
-                      answer.responderCount
-                    ])}
-                  />
-                </div>
-              </div>
-            </div>
-          ) : (
-            "No responses yet"
-          )}
-        </div>
-      );
-    });
-  }
-
   openJoinDialog() {
     this.setState({ showJoinDialog: true });
   }
@@ -149,13 +162,32 @@ class AdminCampaignStats extends React.Component {
     this.setState({ showJoinDialog: false });
   }
 
+  renderTexterStats() {
+    const data = (this.props.data.campaign.assignmentSummaries || []).map(
+      summary => ({
+        texter: `${summary.texterFirstName} ${summary.texterLastName}`,
+        messagedCount: summary.contactCount - summary.unmessagedCount,
+        unmessagedCount: summary.unmessagedCount,
+        skippedCount: summary.closedCount,
+        contactCount: summary.contactCount
+      })
+    );
+    return (
+      <DataTables
+        data={_.sortBy(data, d => d.texter)}
+        columns={texterStatColumns}
+        rowSize={data.length}
+        count={data.length}
+      />
+    );
+  }
   render() {
     const { data, params } = this.props;
     const { organizationId, campaignId } = params;
     const campaign = data.campaign;
     const { adminPerms } = this.props.params;
 
-    // TODO[fuzzy]: load from new jobs API (right now it
+    // TODO[fuzzy]: load from new jobs API right now it
     // won't give feedback on job progress)
     const currentExportJob = null;
     const shouldDisableExport =
@@ -167,6 +199,26 @@ class AdminCampaignStats extends React.Component {
 
     const showInviteLink =
       !campaign.isArchived && campaign.useDynamicAssignment;
+    // TODO: clean up the stats resolver to pull contact stats in one query rather
+    //  than summing up texter stats here in the frontent, should be the same query
+    //  as campaign.contactsCount.
+    //  This under-counts skipped _with_ a reply.
+    let distinctContactsMessaged = 0;
+    let distinctContactsWithReplies = 0;
+    let skippedContacts = 0;
+    this.props.data.campaign.assignmentSummaries.forEach(summary => {
+      distinctContactsMessaged +=
+        summary.contactCount - summary.unmessagedCount;
+      distinctContactsWithReplies +=
+        summary.convoCount + summary.needsResponseCount;
+      skippedContacts += summary.closedCount;
+    });
+
+    const replyRate =
+      ((distinctContactsWithReplies - campaign.stats.optOutsCount) /
+        distinctContactsMessaged) *
+      100;
+
     return (
       <div>
         <div className={css(styles.container)}>
@@ -182,6 +234,8 @@ class AdminCampaignStats extends React.Component {
             {campaign.title}
             <br />
             Campaign ID: {campaign.id}
+            <br />
+            Due By: {moment(campaign.dueBy).format("MMM D, YYYY")}
           </div>
           <div className={css(styles.flexColumn)}>
             <div className={css(styles.rightAlign)}>
@@ -279,30 +333,42 @@ class AdminCampaignStats extends React.Component {
         </div>
         <div className={css(styles.container)}>
           <div className={css(styles.flexColumn, styles.spacer)}>
+            <Stat title="Texters" count={campaign.assignmentSummaries.length} />
+          </div>
+          <div className={css(styles.flexColumn, styles.spacer)}>
             <Stat title="Contacts" count={campaign.contactsCount} />
           </div>
           <div className={css(styles.flexColumn, styles.spacer)}>
-            <Stat title="Texters" count={campaign.assignments.length} />
+            <Stat title="Messaged" count={distinctContactsMessaged} />
           </div>
           <div className={css(styles.flexColumn, styles.spacer)}>
-            <Stat title="Sent" count={campaign.stats.sentMessagesCount} />
+            <Stat title="Replied" count={distinctContactsWithReplies} />
           </div>
           <div className={css(styles.flexColumn, styles.spacer)}>
-            <Stat
-              title="Replies"
-              count={campaign.stats.receivedMessagesCount}
-            />
+            <Stat title="Skipped" count={skippedContacts} />
           </div>
-          <div className={css(styles.flexColumn)}>
+          <div className={css(styles.flexColumn, styles.spacer)}>
             <Stat title="Opt-outs" count={campaign.stats.optOutsCount} />
           </div>
+          <div className={css(styles.flexColumn)}>
+            <Stat
+              title="Reply Rate (%)"
+              count={distinctContactsMessaged ? _.round(replyRate, 1) : "-"}
+            />
+          </div>
         </div>
-        <div className={css(styles.header)}>Survey Questions</div>
-        {this.renderSurveyStats()}
-
+        <div className={css(styles.progressBar)}>
+          <LinearProgress
+            mode={"determinate"}
+            color={theme.colors.EWlibertyGreen}
+            // Add style to make it thicker style={}
+            value={distinctContactsMessaged}
+            max={campaign.contactsCount}
+            min={0}
+          />
+        </div>
         <div className={css(styles.header)}>Texter stats</div>
-        <div className={css(styles.secondaryHeader)}>% of first texts sent</div>
-        <TexterStats campaign={campaign} />
+        {this.renderTexterStats()}
         <Snackbar
           open={this.state.exportMessageOpen}
           message="Export started - we'll e-mail you when it's done"
@@ -336,39 +402,27 @@ AdminCampaignStats.propTypes = {
 const mapQueriesToProps = ({ ownProps }) => ({
   data: {
     query: gql`
-      query getCampaign(
-        $campaignId: String!
-        $contactsFilter: ContactsFilter!
-      ) {
+      query getCampaign($campaignId: String!) {
         campaign(id: $campaignId) {
           id
           title
           isArchived
           useDynamicAssignment
-          assignments {
-            id
-            texter {
-              id
-              firstName
-              lastName
-            }
-            unmessagedCount: contactsCount(contactsFilter: $contactsFilter)
-            contactsCount
-          }
-          interactionSteps {
-            id
-            question {
-              text
-              answerOptions {
-                value
-                responderCount
-              }
-            }
+          dueBy
+          assignmentSummaries {
+            assignmentId
+            texterId
+            texterFirstName
+            texterLastName
+            unmessagedCount
+            unmessagedCount
+            needsResponseCount
+            convoCount
+            closedCount
+            contactCount
           }
           contactsCount
           stats {
-            sentMessagesCount
-            receivedMessagesCount
             optOutsCount
           }
           joinUrl
@@ -376,10 +430,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
       }
     `,
     variables: {
-      campaignId: ownProps.params.campaignId,
-      contactsFilter: {
-        messageStatus: "needsMessage"
-      }
+      campaignId: ownProps.params.campaignId
     },
     pollInterval: 5000
   }

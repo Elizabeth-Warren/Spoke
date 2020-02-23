@@ -8,8 +8,6 @@ import config from "src/server/config";
 import urlJoin from "url-join";
 import moment from "moment";
 
-const Status = db.TwilioPhoneNumber.Status;
-
 const title = 'lower("campaign"."title")';
 
 async function getOrganization(campaign, loaders) {
@@ -160,6 +158,7 @@ export async function getCampaigns(
 }
 
 export const resolvers = {
+  // TODO: optimize campaign stats resolver
   CampaignStats: {
     sentMessagesCount: async (campaign, _, { user }) => {
       await accessRequired(
@@ -380,8 +379,6 @@ export const resolvers = {
       campaign.customFields ||
       cacheableData.campaign.dbCustomFields(campaign.id),
     stats: async campaign => campaign,
-    // ???
-    cacheable: (campaign, _, { user }) => Boolean(r.redis),
     editors: async (campaign, _, { user }) => {
       await accessRequired(
         user,
@@ -439,6 +436,16 @@ export const resolvers = {
       }
       // TODO: CLOSED_FOR_ALL_SENDS not implemented yet
       return "ACTIVE";
+    },
+    assignmentSummaries: async (campaign, _, { user }) => {
+      await accessRequired(
+        user,
+        campaign.organization_id,
+        "SUPERVOLUNTEER",
+        true
+      );
+
+      return await db.Campaign.assignmentSummaries(campaign.id);
     }
   }
 };
