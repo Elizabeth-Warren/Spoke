@@ -18,7 +18,7 @@ async function assignmentSummaries(campaignId, opts) {
       "assignment.id as assignment_id",
       "user.id as texter_id",
       "user.first_name as texter_first_name",
-      "user.first_name as texter_last_name",
+      "user.last_name as texter_last_name",
       knex.raw(
         "count(message_status = 'needsMessage' OR NULL)::int as unmessaged_count"
       ),
