@@ -22,13 +22,14 @@ const styles = StyleSheet.create({
     maxWidth: "calc(100vw - 150px)",
     overflowX: "hidden",
     opacity: 0.7,
+    cursor: "pointer",
     ":hover": {
       opacity: 1
     }
   }
 });
 
-function CampaignTopBar({ campaign, organizationId, router }) {
+function CampaignTopBar({ campaign, organizationId, assignmentId, router }) {
   return (
     <Toolbar className={css(styles.campaignToolbar)}>
       <ToolbarGroup firstChild={true}>
@@ -45,6 +46,11 @@ function CampaignTopBar({ campaign, organizationId, router }) {
         <ToolbarTitle
           text={campaign.title}
           className={css(styles.campaignName)}
+          onTouchTap={() => {
+            router.push(
+              `/app/${organizationId}/todos/${assignmentId}/overview`
+            );
+          }}
         />
       </ToolbarGroup>
     </Toolbar>

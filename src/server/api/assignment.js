@@ -160,7 +160,7 @@ export const resolvers = {
       }),
     contactCounts: async assignment => {
       const summaries = await db.Assignment.countsByStatus([assignment.id]);
-      return summaries[assignment.id];
+      return summaries[assignment.id] || [];
     }
   }
 };

@@ -30,15 +30,22 @@ class JoinCampaign extends React.Component {
   };
 
   async componentWillMount() {
-    let campaign;
     let errorMessage;
+    let organizationId;
+    let assignmentId;
+
     if (this.props.params.token) {
       try {
         const addResult = await this.props.mutations.assignUserToCampaign();
         if (addResult.errors) {
           errorMessage = addResult.errors.graphQLErrors[0].message;
         } else {
-          campaign = addResult.data.assignUserToCampaign;
+          ({
+            id: assignmentId,
+            campaign: {
+              organization: { id: organizationId }
+            }
+          } = addResult.data.assignUserToCampaign);
         }
       } catch (ex) {
         errorMessage =
@@ -51,8 +58,11 @@ class JoinCampaign extends React.Component {
       });
       return;
     }
-    if (campaign) {
-      this.props.router.push(`/app/${campaign.organization.id}`);
+
+    if (assignmentId && organizationId) {
+      this.props.router.push(
+        `/app/${organizationId}/todos/${assignmentId}/overview`
+      );
     }
   }
 
@@ -95,8 +105,10 @@ const mapMutationsToProps = ({ ownProps }) => ({
       mutation assignUserToCampaign($token: String!) {
         assignUserToCampaign(token: $token) {
           id
-          organization {
-            id
+          campaign {
+            organization {
+              id
+            }
           }
         }
       }

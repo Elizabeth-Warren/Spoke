@@ -8,7 +8,6 @@ import { withRouter } from "react-router";
 import _ from "lodash";
 
 import AssignmentSummary from "src/components/AssignmentSummary";
-import { campaignIsBetweenTextingHours } from "src/lib";
 
 class TexterTodoList extends React.Component {
   static propTypes = {
@@ -60,43 +59,18 @@ class TexterTodoList extends React.Component {
   renderAssignmentList() {
     const organizationId = this.props.params.organizationId;
     return this.sortSummaries(this.props.data.currentUser.assignmentSummaries)
-      .map(summary => {
-        const isWithinTextingHours = campaignIsBetweenTextingHours(
-          summary.assignment.campaign
-        );
-        const counts = this.getCounts(summary.contactCounts);
-        const unmessagedCount = counts.needsMessage || 0;
-        const conversationCount = _.sum([
-          0,
-          counts.convo,
-          counts.needsResponse,
-          counts.closed
-        ]);
-        if (
-          !summary.assignment.campaign.useDynamicAssignment &&
-          unmessagedCount + conversationCount === 0
-        ) {
-          return null;
-        }
-        return (
-          <AssignmentSummary
-            organizationId={organizationId}
-            key={summary.assignment.id}
-            assignment={summary.assignment}
-            isWithinTextingHours={isWithinTextingHours}
-            campaignStatus={summary.assignment.campaign.status}
-            unmessagedCount={unmessagedCount}
-            conversationCount={conversationCount}
-            needsResponseCount={counts.needsResponse || 0}
-          />
-        );
-      })
+      .map(summary => (
+        <AssignmentSummary
+          organizationId={organizationId}
+          key={summary.assignment.id}
+          assignment={summary.assignment}
+          contactCounts={summary.contactCounts}
+        />
+      ))
       .filter(ele => ele !== null);
   }
 
   render() {
-    this.termsAgreed();
-
     if (this.props.data.errors && this.props.params.organizationId) {
       return null;
     }

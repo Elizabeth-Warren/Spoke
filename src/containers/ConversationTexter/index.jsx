@@ -225,6 +225,7 @@ export class ConversationTexterComponent extends React.Component {
           <CampaignTopBar
             campaign={assignment.campaign}
             organizationId={assignment.campaign.organization.id}
+            assignmentId={assignment.id}
           />
         )}
         <div className={css(styles.container)}>

@@ -1,16 +1,21 @@
 import types from "prop-types";
 import React, { Component } from "react";
-import { Card, CardActions, CardTitle } from "material-ui/Card";
+import _ from "lodash";
+import moment from "moment";
 import { StyleSheet, css } from "aphrodite";
+
+import { Card, CardActions, CardTitle } from "material-ui/Card";
 import RaisedButton from "material-ui/RaisedButton";
 import Badge from "material-ui/Badge";
-import moment from "moment";
 import Divider from "material-ui/Divider";
+
 import { withRouter } from "react-router";
-import { dataTest } from "../lib/attributes";
-import theme from "../styles/theme";
+
+import { dataTest } from "src/lib/attributes";
+import theme from "src/styles/theme";
 import RequestBatchButton from "src/containers/RequestBatchButton";
-import { getBlackOrWhiteTextForBg } from "../lib/color-helpers";
+import { getBlackOrWhiteTextForBg } from "src/lib/color-helpers";
+import { campaignIsBetweenTextingHours } from "src/lib";
 
 const inlineStyles = {
   badge: {
@@ -53,10 +58,7 @@ export class AssignmentSummary extends Component {
     organizationId: types.string,
     router: types.object,
     assignment: types.object,
-    isWithinTextingHours: types.bool,
-    unmessagedCount: types.number,
-    conversationCount: types.number,
-    needsResponseCount: types.number
+    contactCounts: types.array
   };
 
   goToTodos(contactsFilter, assignmentId) {
@@ -114,14 +116,8 @@ export class AssignmentSummary extends Component {
   }
 
   render() {
-    const {
-      assignment,
-      unmessagedCount,
-      conversationCount,
-      isWithinTextingHours,
-      organizationId,
-      needsResponseCount
-    } = this.props;
+    const { assignment, organizationId, contactCounts } = this.props;
+
     const {
       title,
       description,
@@ -133,6 +129,27 @@ export class AssignmentSummary extends Component {
       useDynamicAssignment,
       status
     } = assignment.campaign;
+
+    const isWithinTextingHours = campaignIsBetweenTextingHours(
+      assignment.campaign
+    );
+
+    const counts = _.chain(contactCounts)
+      .keyBy("messageStatus")
+      .mapValues("count")
+      .value();
+
+    const unmessagedCount = counts.needsMessage || 0;
+
+    const conversationCount = _.sum([
+      0,
+      counts.convo,
+      counts.needsResponse,
+      counts.closed
+    ]);
+
+    const needsResponseCount = counts.needsResponse || 0;
+
     const textColor =
       (primaryColor && getBlackOrWhiteTextForBg(primaryColor)) || null;
     // TODO: style summaries based on campaign status.

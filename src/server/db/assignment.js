@@ -1,12 +1,14 @@
 import { Table, queryBuilder, convertCase, knex } from "./common";
 import _ from "lodash";
 
-async function isAssigned(userId, campaignId, opts) {
-  const first = await queryBuilder(Table.ASSIGNMENT, opts)
+async function getByUserAndCampaign(userId, campaignId, opts) {
+  return await queryBuilder(Table.ASSIGNMENT, opts)
     .where({ user_id: userId, campaign_id: campaignId })
     .first();
+}
 
-  return !!first;
+async function isAssigned(userId, campaignId, opts) {
+  return !!(await getByUserAndCampaign(userId, campaignId, opts));
 }
 
 async function listActiveAssignmentsForUser({ userId, organizationId }, opts) {
@@ -42,6 +44,7 @@ async function countsByStatus(assignmentIds, opts) {
 }
 
 export default {
+  getByUserAndCampaign,
   isAssigned,
   listActiveAssignmentsForUser,
   countsByStatus

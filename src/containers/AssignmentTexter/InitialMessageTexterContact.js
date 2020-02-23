@@ -411,6 +411,7 @@ export class InitialMessageTexterContact extends Component {
         <CampaignTopBar
           campaign={this.props.campaign}
           organizationId={this.props.campaign.organization.id}
+          assignmentId={this.props.assignment.id}
         />
         <div className={css(styles.container)}>
           <div className={css(styles.mainSectionContainer)}>

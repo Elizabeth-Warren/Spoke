@@ -594,8 +594,12 @@ const rootMutations = {
         });
       }
 
-      const assigned = await db.Assignment.isAssigned(user.id, campaign.id);
-      if (!assigned) {
+      let assignment = await db.Assignment.getByUserAndCampaign(
+        user.id,
+        campaign.id
+      );
+
+      if (!assignment) {
         // TODO: DRY this up, same code exists in server/api/campaign.js
         // putting this check here allows people who are already in the campaign
         // to use the link to get back to it.
@@ -610,7 +614,7 @@ const rootMutations = {
           throw new ApolloError("This campaign is full!", "CAMPAIGN_FULL");
         }
 
-        await Assignment.save({
+        assignment = await Assignment.save({
           user_id: user.id,
           campaign_id: campaign.id,
           // TODO: consider making this a property of the campaign
@@ -619,7 +623,8 @@ const rootMutations = {
             : null
         });
       }
-      return campaign;
+
+      return assignment;
     },
     updateTextingHours: async (
       _,

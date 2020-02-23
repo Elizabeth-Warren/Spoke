@@ -3,6 +3,7 @@
  */
 
 jest.mock("src/containers/RequestBatchButton");
+jest.mock("src/lib");
 
 import React from "react";
 import { mount } from "enzyme";
@@ -14,6 +15,7 @@ import { AssignmentSummary } from "../src/components/AssignmentSummary";
 import Badge from "material-ui/Badge/Badge";
 import RaisedButton from "material-ui/RaisedButton/RaisedButton";
 import RequestBatchButton from "src/containers/RequestBatchButton";
+import { campaignIsBetweenTextingHours } from "src/lib";
 
 function getAssignment(
   isDynamic = false,
@@ -31,20 +33,40 @@ function getAssignment(
       introHtml: "yoyo",
       primaryColor: "#2052d8",
       logoImageUrl: "",
-      hasUnassignedContactsForTexter
+      hasUnassignedContactsForTexter,
+      organization: {
+        textingHoursStart: 0,
+        textingHoursEnd: 24,
+        textingHoursEnforced: true
+      }
     }
   };
 }
 
+function getContactCounts({
+  needsMessage = 0,
+  convo = 0,
+  needsResponse = 0,
+  closed = 0
+} = {}) {
+  return [
+    { messageStatus: "needsMessage", count: needsMessage },
+    { messageStatus: "convo", count: convo },
+    { messageStatus: "needsResponse", count: needsResponse },
+    { messageStatus: "closed", count: closed }
+  ];
+}
+
 describe("AssignmentSummary text", function t() {
   beforeEach(() => {
+    campaignIsBetweenTextingHours.mockReturnValue(true);
+
     this.summary = mount(
       <MuiThemeProvider>
         <AssignmentSummary
           assignment={getAssignment()}
-          unmessagedCount={1}
-          conversationCount={0}
-          isWithinTextingHours
+          organizationId={1}
+          contactCount={getContactCounts({ needsMessage: 1, convo: 0 })}
         />
       </MuiThemeProvider>
     );
@@ -69,27 +91,27 @@ describe("AssignmentSummary text", function t() {
 
 describe("AssignmentSummary actions inUSA and NOT AllowSendAll", () => {
   injectTapEventPlugin(); // prevents warning
-  function create(
-    unmessaged,
-    conversations,
-    needsResponseCount,
-    isWithinTextingHours,
-    isDynamic
-  ) {
+  function create(unmessaged, conversations, needsResponseCount, isDynamic) {
     window.NOT_IN_USA = 0;
     window.ALLOW_SEND_ALL = false;
     return mount(
       <MuiThemeProvider>
         <AssignmentSummary
           assignment={getAssignment(isDynamic)}
-          unmessagedCount={unmessaged}
-          conversationCount={conversations}
-          needsResponseCount={needsResponseCount}
-          isWithinTextingHours
+          organizationId={1}
+          contactCounts={getContactCounts({
+            needsMessage: unmessaged,
+            convo: conversations,
+            needsResponse: needsResponseCount
+          })}
         />
       </MuiThemeProvider>
     ).find(CardActions);
   }
+
+  beforeEach(() => {
+    campaignIsBetweenTextingHours.mockReturnValue(true);
+  });
 
   it('renders "send first texts (1)" with unmessaged (dynamic assignment)', () => {
     const actions = create(5, 0, 0, true, true);
@@ -158,17 +180,18 @@ describe("AssignmentSummary actions inUSA and NOT AllowSendAll", () => {
 });
 
 it('renders "Send Later" when out of texting hours', () => {
+  campaignIsBetweenTextingHours.mockReturnValue(false);
+
   const actions = mount(
     <MuiThemeProvider>
       <AssignmentSummary
         assignment={getAssignment()}
-        unmessagedCount={4}
-        conversationCount={2}
-        isWithinTextingHours={false}
+        organizationId={1}
+        contactCounts={getContactCounts({ needsMessage: 4, needsResponse: 2 })}
       />
     </MuiThemeProvider>
   ).find(CardActions);
-  console.log(actions);
+
   expect(
     actions
       .find(RaisedButton)

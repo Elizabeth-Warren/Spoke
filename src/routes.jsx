@@ -24,6 +24,7 @@ import TexterFaqs from "./components/TexterFrequentlyAskedQuestions";
 import FAQs from "./lib/faqs";
 import AdminCampaignCreate from "./containers/AdminCampaignCreate";
 import InitialMessageTexter from "src/containers/AssignmentTexter/InitialMessageTexter";
+import SingleAssignmentSummary from "./containers/SingleAssignmentSummary";
 
 export default function makeRoutes(requireAuth = () => {}) {
   return (
@@ -102,6 +103,15 @@ export default function makeRoutes(requireAuth = () => {}) {
               }}
             />
             <Route path=":assignmentId">
+              <Route
+                path="overview"
+                components={{
+                  main: SingleAssignmentSummary,
+                  topNav: p => (
+                    <TopNav title="Spoke" orgId={p.params.organizationId} />
+                  )
+                }}
+              />
               <Route
                 path="text"
                 components={{
