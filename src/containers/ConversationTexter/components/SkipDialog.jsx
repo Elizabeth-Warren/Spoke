@@ -50,7 +50,7 @@ const inlineStyles = {
 };
 
 const skipButtonLabel = tag =>
-  !!tag && tag !== NO_TAG.value ? "Skip" : "Skip without tag";
+  !!tag && tag !== NO_TAG.value ? "Skip" : "No Reply Needed";
 
 const SkipDialog = props =>
   props.open && (
