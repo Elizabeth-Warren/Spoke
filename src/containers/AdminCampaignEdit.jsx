@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 import _ from "lodash";
+import { withRouter } from "react-router";
 
 import { Dialog } from "material-ui";
 import WarningIcon from "material-ui/svg-icons/alert/warning";
@@ -440,6 +441,8 @@ class AdminCampaignEdit extends React.Component {
             fontWeight: 800
           }}
         >
+          {this.props.campaignData.campaign.title}
+          <br />
           This campaign is running!
           {this.renderCurrentEditors()}
         </div>
@@ -456,6 +459,14 @@ class AdminCampaignEdit extends React.Component {
               {...dataTest("inviteLink")}
               onTouchTap={() => this.openJoinDialog()}
               label="Invite"
+            />
+            <RaisedButton
+              onTouchTap={() =>
+                this.props.router.push(
+                  `/admin/${this.props.params.organizationId}/campaigns/${this.props.params.campaignId}`
+                )
+              }
+              label="Back To Campaign"
             />
           </div>
         )}
@@ -676,7 +687,8 @@ AdminCampaignEdit.propTypes = {
   organizationData: PropTypes.object,
   params: PropTypes.object,
   location: PropTypes.object,
-  availableActionsData: PropTypes.object
+  availableActionsData: PropTypes.object,
+  router: PropTypes.object
 };
 const mapQueriesToProps = ({ ownProps }) => ({
   campaignData: {
@@ -799,7 +811,7 @@ function AdminCampaignEditRouter(props) {
   return <AdminCampaignEdit {...props} />;
 }
 
-export default loadData(wrapMutations(AdminCampaignEditRouter), {
+export default loadData(wrapMutations(withRouter(AdminCampaignEditRouter)), {
   mapQueriesToProps,
   mapMutationsToProps
 });
