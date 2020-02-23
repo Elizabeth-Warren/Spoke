@@ -17,6 +17,7 @@ const IncomingMessageActions = props => (
         conversationCount={props.conversationCount}
         onReassignAllMatchingRequested={props.onReassignAllMatchingRequested}
         onReassignRequested={props.onReassignRequested}
+        organizationId={props.organizationId}
       />
       <ManageTags
         tagsFilter={props.tagsFilter}
@@ -34,7 +35,8 @@ IncomingMessageActions.propTypes = {
   onAssignTags: type.func.isRequired,
   onRemoveTags: type.func.isRequired,
   conversationCount: type.number,
-  tagsFilter: type.object
+  tagsFilter: type.object,
+  organizationId: type.string
 };
 
 export default IncomingMessageActions;

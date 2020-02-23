@@ -3,11 +3,14 @@ import type from "prop-types";
 import Dialog from "material-ui/Dialog";
 import AutoComplete from "material-ui/AutoComplete";
 import { css, StyleSheet } from "aphrodite";
-import { getHighestRole } from "../../lib/permissions";
 import FlatButton from "material-ui/FlatButton";
 import RaisedButton from "material-ui/RaisedButton";
 import { dataSourceItem } from "../utils";
 import theme from "../../styles/theme";
+import { CircularProgress } from "material-ui";
+import gql from "graphql-tag";
+import _ from "lodash";
+import ApolloClient from "src/network/apollo-client-singleton";
 
 const styles = StyleSheet.create({
   container: {
@@ -20,6 +23,14 @@ const styles = StyleSheet.create({
   flexColumn: {
     display: "flex",
     marginRight: "10px"
+  },
+  searchColumn: {
+    position: "relative"
+  },
+  loadingIndicator: {
+    position: "absolute",
+    right: 0,
+    top: "20px"
   }
 });
 
@@ -29,7 +40,8 @@ class Reassign extends Component {
 
     this.onReassignmentClicked = this.onReassignmentClicked.bind(this);
     this.state = {
-      confirmDialogOpen: false
+      confirmDialogOpen: false,
+      texters: []
     };
   }
 
@@ -44,10 +56,9 @@ class Reassign extends Component {
   onReassignChanged = (selection, index) => {
     let texterUserId = undefined;
     if (index === -1) {
-      const texter = this.props.people.find(person => {
-        this.setState({ reassignTo: undefined });
-        return person.displayName === selection;
-      });
+      const texter = this.state.texters.find(
+        person => person.displayName === selection
+      );
       if (texter) {
         texterUserId = texter.id;
       }
@@ -70,14 +81,90 @@ class Reassign extends Component {
     this.props.onReassignAllMatchingRequested(this.state.reassignTo);
   };
 
+  handleUpdateInput = texterSearchText => {
+    if (texterSearchText.length < 2) {
+      this.setState({
+        texterSearchText,
+        loading: false,
+        texters: []
+      });
+      return;
+    }
+
+    this.setState({ texterSearchText, loading: true, texters: [] });
+    this.searchForUsers(texterSearchText);
+  };
+
+  searchForUsers = _.debounce(texterSearchText => {
+    const qres = ApolloClient.query({
+      query: gql`
+        query getUsers(
+          $organizationId: String!
+          $cursor: OffsetLimitCursor
+          $sortBy: SortPeopleBy
+          $filterString: String
+          $filterBy: FilterPeopleBy
+        ) {
+          people(
+            organizationId: $organizationId
+            cursor: $cursor
+            sortBy: $sortBy
+            filterString: $filterString
+            filterBy: $filterBy
+          ) {
+            ... on PaginatedUsers {
+              pageInfo {
+                offset
+                limit
+                total
+              }
+              users {
+                id
+                displayName
+                email
+              }
+            }
+          }
+        }
+      `,
+      fetchPolicy: "network-only",
+      variables: {
+        organizationId: this.props.organizationId,
+        cursor: {
+          offset: 0,
+          limit: 8
+        },
+        sortBy: "FIRST_NAME",
+        filterBy: "ANY",
+        filterString: texterSearchText
+      }
+    }).then(res => {
+      if (this.state.texterSearchText !== texterSearchText) {
+        return;
+      }
+
+      const {
+        data: {
+          people: { users }
+        }
+      } = res;
+
+      this.setState({
+        loading: false,
+        texters: users
+      });
+    });
+
+    console.log(qres);
+  }, 250);
+
   render = () => {
-    const texterNodes = !this.props.people
-      ? []
-      : this.props.people.map(user => {
-          const userId = parseInt(user.id, 10);
-          const label = user.displayName;
-          return dataSourceItem(label, userId);
-        });
+    const texterNodes = this.state.texters.map(user => {
+      const userId = parseInt(user.id, 10);
+      const label = user.displayName;
+      return dataSourceItem(label, userId);
+    });
+
     texterNodes.sort((left, right) => {
       return left.text.localeCompare(right.text, "en", { sensitivity: "base" });
     });
@@ -97,9 +184,9 @@ class Reassign extends Component {
 
     return (
       <div className={css(styles.container)}>
-        <div className={css(styles.flexColumn)}>
+        <div className={css(styles.flexColumn, styles.searchColumn)}>
           <AutoComplete
-            filter={AutoComplete.caseInsensitiveFilter}
+            filter={() => true}
             maxSearchResults={8}
             onFocus={() =>
               this.setState({
@@ -107,15 +194,16 @@ class Reassign extends Component {
                 texterSearchText: ""
               })
             }
-            onUpdateInput={texterSearchText =>
-              this.setState({ texterSearchText })
-            }
+            onUpdateInput={this.handleUpdateInput}
             searchText={this.state.texterSearchText}
             dataSource={texterNodes}
             hintText={"Search for a texter"}
             floatingLabelText={"Reassign to ..."}
             onNewRequest={this.onReassignChanged}
           />
+          <div className={css(styles.loadingIndicator)}>
+            {this.state.loading ? <CircularProgress size={32} /> : null}
+          </div>
         </div>
         <div className={css(styles.flexColumn)}>
           <RaisedButton
@@ -149,7 +237,7 @@ class Reassign extends Component {
 }
 
 Reassign.propTypes = {
-  people: type.array.isRequired,
+  organizationId: type.string.isRequired,
   onReassignRequested: type.func.isRequired,
   onReassignAllMatchingRequested: type.func.isRequired,
   conversationCount: type.number.isRequired

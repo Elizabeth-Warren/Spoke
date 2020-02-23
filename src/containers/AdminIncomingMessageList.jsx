@@ -298,16 +298,18 @@ export class AdminIncomingMessageList extends Component {
 
     return (
       <div>
-        <div>
-          <h3> Message Review - {campaign.title} </h3>
-          <RaisedButton
-            onTouchTap={() =>
-              this.props.router.push(
-                `/admin/${this.props.params.organizationId}/campaigns/${this.props.params.campaignId}`
-              )
-            }
-            label="Back To Campaign"
-          />
+        <div style={{ display: "flex", flexDirection: "row" }}>
+          <h3 style={{ flex: "1" }}>Message Review - {campaign.title}</h3>
+          <div style={{ width: "200px", textAlign: "right" }}>
+            <RaisedButton
+              onTouchTap={() =>
+                this.props.router.push(
+                  `/admin/${this.props.params.organizationId}/campaigns/${this.props.params.campaignId}`
+                )
+              }
+              label="Back To Campaign"
+            />
+          </div>
         </div>
         <div>
           <IncomingMessageFilter
@@ -341,6 +343,7 @@ export class AdminIncomingMessageList extends Component {
             tagsFilter={this.state.tagsFilter}
             onAssignTags={this.handleAssignTags}
             onRemoveTags={this.handleRemoveTags}
+            organizationId={this.props.params.organizationId}
           />
           <br />
           <IncomingMessageList

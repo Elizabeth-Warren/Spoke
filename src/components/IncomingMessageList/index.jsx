@@ -23,7 +23,6 @@ const styles = StyleSheet.create({
 
 const prepareDataTableData = conversations =>
   conversations.map(conversation => ({
-    campaignTitle: conversation.campaign.title,
     texter: conversation.texter.displayName,
     to:
       conversation.contact.firstName +
@@ -97,15 +96,6 @@ export class IncomingMessageList extends Component {
   };
 
   prepareTableColumns = () => [
-    {
-      key: "campaignTitle",
-      label: "Campaign",
-      style: {
-        textOverflow: "ellipsis",
-        overflow: "hidden",
-        whiteSpace: "pre-line"
-      }
-    },
     {
       key: "texter",
       label: "Texter",

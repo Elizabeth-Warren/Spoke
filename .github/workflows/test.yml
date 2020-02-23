@@ -41,5 +41,7 @@ jobs:
           node-version: 10.18.x
       - name: Install Dependencies
         run: make install-deps
+      - name: Install psql
+        run: sudo apt-get install postgresql-client
       - name: Test
-        run: yarn test
+        run: yarn test-ci

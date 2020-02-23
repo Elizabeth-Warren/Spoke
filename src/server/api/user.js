@@ -88,26 +88,23 @@ export function buildUserOrganizationQuery(
 
     if (filterBy === "FIRST_NAME") {
       query = query.andWhere(
-        r.knex.raw("lower(first_name) like ?", [filterStringWithPercents])
+        r.knex.raw("first_name ILIKE ?", [filterStringWithPercents])
       );
     } else if (filterBy === "LAST_NAME") {
       query = query.andWhere(
-        r.knex.raw("lower(last_name) like ?", [filterStringWithPercents])
+        r.knex.raw("last_name ILIKE ?", [filterStringWithPercents])
       );
     } else if (filterBy === "EMAIL") {
       query = query.andWhere(
-        r.knex.raw("lower(email) like ?", [filterStringWithPercents])
+        r.knex.raw("email ILIKE ?", [filterStringWithPercents])
       );
     } else {
       query = query.andWhere(
-        r.knex.raw(
-          "lower(first_name) like ? OR lower(last_name) like ? OR lower(email) like ?",
-          [
-            filterStringWithPercents,
-            filterStringWithPercents,
-            filterStringWithPercents
-          ]
-        )
+        r.knex.raw("first_name ILIKE ? OR last_name ILIKE ? OR email ILIKE ?", [
+          filterStringWithPercents,
+          filterStringWithPercents,
+          filterStringWithPercents
+        ])
       );
     }
   }

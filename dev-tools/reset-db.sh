@@ -4,7 +4,7 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-./psql.sh -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public'
+./psql.sh -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public; CREATE EXTENSION pg_trgm;'
 ./redis-cli.sh flushdb
 yarn run dev-migrate
 
