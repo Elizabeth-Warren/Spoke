@@ -17,8 +17,7 @@ import { MenuItem } from "material-ui/Menu";
 import { dataTest } from "../lib/attributes";
 import IconButton from "material-ui/IconButton/IconButton";
 import SortBy, {
-  ID_ASC_SORT,
-  ID_DESC_SORT
+  DEFAULT_SORT_BY_VALUE
 } from "../components/AdminCampaignList/SortBy";
 import Paper from "material-ui/Paper";
 import Search from "../components/Search";
@@ -32,8 +31,7 @@ const styles = StyleSheet.create({
   }
 });
 
-const defaultSort = isArchived =>
-  isArchived ? ID_DESC_SORT.value : ID_ASC_SORT.value;
+const defaultSort = DEFAULT_SORT_BY_VALUE;
 
 class AdminCampaignList extends React.Component {
   state = {
@@ -44,7 +42,7 @@ class AdminCampaignList extends React.Component {
     },
     archiveMultiple: false,
     campaignsToArchive: {},
-    sortBy: defaultSort(false)
+    sortBy: defaultSort
   };
 
   handleClickNewButton = async () => {
@@ -69,7 +67,7 @@ class AdminCampaignList extends React.Component {
       campaignsFilter: {
         isArchived
       },
-      sortBy: defaultSort(isArchived)
+      sortBy: defaultSort
     });
   };
 

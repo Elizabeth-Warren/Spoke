@@ -36,7 +36,7 @@ const SORTS = [
   TITLE_SORT
 ];
 
-export const DEFAULT_SORT_BY_VALUE = ID_ASC_SORT.value;
+export const DEFAULT_SORT_BY_VALUE = ID_DESC_SORT.value;
 
 const SortBy = props => (
   <DropDownMenu
