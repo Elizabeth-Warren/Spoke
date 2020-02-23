@@ -487,6 +487,14 @@ export class ConversationTexterContactComponent extends React.Component {
       return;
     }
 
+    if (this.props.data.contact.messages.find(m => m.text === messageText)) {
+      this.refs.form.setFormError(
+        "messageText",
+        "You've already sent that message to this contact"
+      );
+      return;
+    }
+
     try {
       const { contact } = this.props.data;
 

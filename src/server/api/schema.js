@@ -41,7 +41,7 @@ import {
 import { resolvers as interactionStepResolvers } from "./interaction-step";
 import { saveNewIncomingMessage } from "./lib/message-sending";
 import serviceMap from "./lib/services";
-import { resolvers as messageResolvers } from "./message";
+import { resolvers as messageResolvers, messageDedupe } from "./message";
 import { resolvers as optOutResolvers } from "./opt-out";
 import {
   resolvers as organizationResolvers,
@@ -1106,6 +1106,8 @@ const rootMutations = {
         global.DEFAULT_SERVICE;
 
       const service = serviceMap[sendingServiceName];
+
+      await messageDedupe(contact, message);
 
       // TODO: migrate these models off of thinky and do this in a proper transaction
       if (isInitialMessage) {
