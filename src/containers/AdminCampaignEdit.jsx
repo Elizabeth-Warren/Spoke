@@ -209,6 +209,11 @@ class AdminCampaignEdit extends React.Component {
           _.omit(cr, "__typename")
         );
       }
+      if (newCampaign.hasOwnProperty("phoneNumbers")) {
+        newCampaign.phoneNumbers = newCampaign.phoneNumbers.map(cr =>
+          _.omit(cr, "__typename")
+        );
+      }
       await this.props.mutations.editCampaign(
         this.props.campaignData.campaign.id,
         newCampaign
