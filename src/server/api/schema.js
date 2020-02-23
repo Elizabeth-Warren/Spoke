@@ -989,7 +989,16 @@ const rootMutations = {
       { loaders, user }
     ) => {
       const contact = await loaders.campaignContact.load(campaignContactId);
-      await assignmentRequired(user, contact.assignment_id);
+      const campaign = await loaders.campaign.load(contact.campaign_id);
+      try {
+        await assignmentRequired(user, contact.assignment_id);
+      } catch (e) {
+        if (e instanceof ForbiddenError) {
+          await accessRequired(user, campaign.organization_id, "ADMIN");
+        } else {
+          throw e;
+        }
+      }
 
       const { assignmentId, cell, reason } = optOut;
       let organizationId = contact.organization_id;
