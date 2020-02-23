@@ -1,5 +1,5 @@
-import { cacheableData } from "src/server/models";
-import { accessRequired } from "src/server/api/errors";
+import { cacheableData, Campaign } from "src/server/models";
+import { accessRequired, UserInputError } from "src/server/api/errors";
 import { Notifications, sendUserNotification } from "src/server/notifications";
 import twilio from "src/server/api/lib/twilio";
 import db from "src/server/db";
@@ -9,6 +9,17 @@ import { secureRandomString } from "src/server/crypto";
 const Status = db.TwilioPhoneNumber.Status;
 
 async function prepareMessagingService(campaign) {
+  // This has a pretty bad race if startCampaign gets called concurrently (e.g. from two
+  // separate windows), but we are not going to fix it because it will be moved to a job,
+  // where we'll implement the check differently
+  if (campaign.messaging_service_sid) {
+    log.warn(
+      `Previous campaign creation failed, cleaning up messaging service ${campaign.messaging_service_sid}`
+    );
+    // This releases the numbers so they can be added to the new service we are creating
+    await twilio.deleteMessagingService(campaign.messaging_service_sid);
+  }
+
   const ts = Math.floor(new Date() / 1000);
   const friendlyName = `Campaign: ${campaign.organization_id}-${campaign.id}-${ts} [${process.env.BASE_URL}]`;
   const messagingService = await twilio.createMessagingService(friendlyName);
@@ -16,6 +27,11 @@ async function prepareMessagingService(campaign) {
   if (!msgSrvSid) {
     throw Error("Failed to create messaging service!");
   }
+
+  // NOTE! until we move this to a background job we save the messaging service
+  //  first so we can clean up if we retry
+  campaign.messaging_service_sid = msgSrvSid;
+  await campaign.save();
 
   await db.transaction(async transaction => {
     await db.TwilioPhoneNumber.assignToCampaign(campaign.id, { transaction });
@@ -35,7 +51,11 @@ async function prepareMessagingService(campaign) {
         messagingServiceSid: msgSrvSid,
         error: e
       });
-      await twilio.removeNumbersFromMessagingService(phoneSids, msgSrvSid);
+      campaign.messaging_service_sid = null;
+      await Promise.all([
+        campaign.save(),
+        twilio.deleteMessagingService(msgSrvSid)
+      ]);
       throw e; // abort transaction
     }
     log.info({
@@ -48,11 +68,14 @@ async function prepareMessagingService(campaign) {
 }
 
 export const mutations = {
-  // TODO: startCampaign might need to become a job
+  // TODO: startCampaign needs to become a job, this code will need to prevent duplicate jobs
   // TODO: pass request logger in context?
   startCampaign: async (_, { id }, { user, loaders }) => {
-    const campaign = await loaders.campaign.load(id);
+    const campaign = await Campaign.get(id);
     await accessRequired(user, campaign.organization_id, "ADMIN");
+    if (campaign.is_started) {
+      throw new UserInputError("Campaign already started!");
+    }
     const organization = await loaders.organization.load(
       campaign.organization_id
     );
