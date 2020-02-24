@@ -250,7 +250,8 @@ export const resolvers = {
         "textingHoursStart",
         "textingHoursEnd",
         "timezone",
-        "shiftingConfiguration"
+        "shiftingConfiguration",
+        "contactFileName"
       ],
       Campaign
     ),
