@@ -71,13 +71,10 @@ class Home extends React.Component {
     if (this.state.orgLessUser) {
       return (
         <div>
-          <div className={css(styles.header)}>
-            You currently aren't part of any organization!
-          </div>
+          <div className={css(styles.header)}>Welcome to Spoke!</div>
           <div>
-            If you got sent a link by somebody to start texting, ask that person
-            to send you the link to join their organization. Then, come back
-            here and start texting!
+            When you join a text campaign, it will show up here. Check Slack to
+            get a link!
             <br />
             <br />
             <a
