@@ -319,6 +319,13 @@ export const resolvers = {
       // TODO: should we include a limit() since this is only for send-replies
       return r.knex("campaign_contact").where({ campaign_id: campaign.id });
     },
+    contactsPreview: async (campaign, _, { user }) => {
+      await accessRequired(user, campaign.organization_id, "ADMIN", true);
+      return r
+        .knex("campaign_contact")
+        .where({ campaign_id: campaign.id })
+        .limit(3);
+    },
     contactsCount: async (campaign, _, { user }) => {
       await accessRequired(
         user,

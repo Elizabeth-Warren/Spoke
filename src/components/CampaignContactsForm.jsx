@@ -1,24 +1,26 @@
 import type from "prop-types";
 import React from "react";
+import humps from "humps";
 import RaisedButton from "material-ui/RaisedButton";
-import GSForm from "../components/forms/GSForm";
-import Form from "react-formal";
 import Subheader from "material-ui/Subheader";
-import Divider from "material-ui/Divider";
 import { ListItem, List } from "material-ui/List";
-import { parseCSV } from "../lib";
 import CampaignFormSectionHeading from "./CampaignFormSectionHeading";
 import CheckIcon from "material-ui/svg-icons/action/check-circle";
-import WarningIcon from "material-ui/svg-icons/alert/warning";
-import ErrorIcon from "material-ui/svg-icons/alert/error";
 import theme from "../styles/theme";
 import { StyleSheet, css } from "aphrodite";
-import yup from "yup";
 import { dataTest } from "../lib/attributes";
+import {
+  Table,
+  TableBody,
+  TableHeader,
+  TableHeaderColumn,
+  TableRow,
+  TableRowColumn
+} from "material-ui/Table";
+
+const fieldsToSkip = ["customFields", "id", "__typename"];
 
 const checkIcon = <CheckIcon color={theme.colors.EWnavy} />;
-const warningIcon = <WarningIcon color={theme.colors.EWred} />;
-const errorIcon = <ErrorIcon color={theme.colors.EWred} />;
 
 const innerStyles = {
   button: {
@@ -49,12 +51,61 @@ const styles = StyleSheet.create({
 });
 
 export default class CampaignContactsForm extends React.Component {
-  renderContactStats() {
-    const { customFields, contactsCount } = this.props.formValues;
+  getColumnHeaders(columns) {
+    return (
+      <TableHeader adjustForCheckbox={false} displaySelectAll={false}>
+        <TableRow>
+          {columns.map(col => (
+            <TableHeaderColumn>{humps.decamelize(col)}</TableHeaderColumn>
+          ))}
+        </TableRow>
+      </TableHeader>
+    );
+  }
 
+  getCellValues(contact, columns) {
+    const contactCustomFields = JSON.parse(contact.customFields);
+    return columns.map(col => (
+      <TableRowColumn>
+        {contact[col] || contactCustomFields[col]}
+      </TableRowColumn>
+    ));
+  }
+
+  getContactRows(contacts, columns) {
+    return contacts.map(contact => (
+      <TableRow>{this.getCellValues(contact, columns)}</TableRow>
+    ));
+  }
+
+  contactsGrid() {
+    const {
+      customFields = [],
+      contactsCount,
+      contactsPreview: contacts
+    } = this.props.formValues;
     if (contactsCount === 0) {
       return "";
     }
+    const columns = [...Object.keys(contacts[0]), ...customFields].filter(
+      col => !fieldsToSkip.includes(col)
+    ); //camel to snake
+    return (
+      <Table>
+        {this.getColumnHeaders(columns)}
+        <TableBody displayRowCheckbox={false}>
+          {this.getContactRows(contacts, columns)}
+        </TableBody>
+      </Table>
+    );
+  }
+
+  renderContactStats() {
+    const { customFields = [], contactsCount } = this.props.formValues;
+    if (contactsCount === 0) {
+      return "";
+    }
+
     return (
       <List>
         <Subheader>Uploaded</Subheader>
@@ -62,6 +113,7 @@ export default class CampaignContactsForm extends React.Component {
           {...dataTest("uploadedContacts")}
           primaryText={`${contactsCount} contacts`}
           leftIcon={checkIcon}
+          nestedItems={[[this.contactsGrid()]]}
         />
         <ListItem
           primaryText={`${customFields.length} custom fields`}
@@ -79,9 +131,11 @@ export default class CampaignContactsForm extends React.Component {
   }
 
   render() {
+    const { contactFileName = "file name" } = this.props.formValues;
     return (
       <div>
         <CampaignFormSectionHeading title="Who are you contacting?" />
+        Uploaded from file: <b>{contactFileName}</b>
         {this.renderContactStats()}
         <RaisedButton primary onClick={this.props.onSubmit} label="Continue" />
       </div>

@@ -34,6 +34,15 @@ const campaignInfoFragment = `
   isStarted
   isArchived
   contactsCount
+  contactsPreview {
+    firstName
+    lastName
+    cell
+    external_id
+    external_id_type
+    state_code
+    customFields
+  }
   datawarehouseAvailable
   customFields
   useDynamicAssignment
@@ -69,6 +78,7 @@ const campaignInfoFragment = `
     deleted
   }
   editors
+  contactFileName
   contactImportJob {
     id
     resultMessage
@@ -281,7 +291,12 @@ class AdminCampaignEdit extends React.Component {
       {
         title: "Contacts",
         content: CampaignContactsForm,
-        keys: ["contacts", "contactsCount", "customFields", "contactSql"],
+        keys: [
+          "contactsPreview",
+          "contactsCount",
+          "customFields",
+          "contactSql"
+        ],
         checkCompleted: () => this.state.campaignFormValues.contactsCount > 0,
         checkSaved: () =>
           // Must be false for save to be tried
@@ -290,13 +305,15 @@ class AdminCampaignEdit extends React.Component {
           //   from the campaignData query, so we must delete them after save/update
           //   at the right moment (see componentWillReceiveProps)
           this.state.campaignFormValues.contactsCount > 0 &&
-          this.state.campaignFormValues.hasOwnProperty("contacts") === false &&
+          this.state.campaignFormValues.hasOwnProperty("contactsPreview") ===
+            false &&
           this.state.campaignFormValues.hasOwnProperty("contactSql") === false,
         blocksStarting: true,
         expandAfterCampaignStarts: false,
         expandableBySuperVolunteers: false,
         extraProps: {
-          optOuts: [], // this.props.organizationData.organization.optOuts, // <= doesn't scale
+          optOuts: [], // this.props.organizationData.organization.optOuts, // <= doesn't scale,
+          contactFileName: this.state.campaignFormValues.contactFileName,
           datawarehouseAvailable: this.props.campaignData.campaign
             .datawarehouseAvailable
         }

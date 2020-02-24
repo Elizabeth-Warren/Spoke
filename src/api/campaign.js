@@ -52,6 +52,7 @@ export const schema = gql`
     interactionSteps: [InteractionStep]
     contacts: [CampaignContact]
     contactsCount: Int
+    contactsPreview: [CampaignContact]
     hasUnassignedContacts: Boolean
     hasUnassignedContactsForTexter: Boolean
     hasUnsentInitialMessages: Boolean
