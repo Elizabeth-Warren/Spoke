@@ -97,7 +97,7 @@ class RequestBatchButton extends Component {
   renderButton() {
     return (
       <RaisedButton
-        onTouchTap={this.handleClick}
+        onClick={this.handleClick}
         label={this.props.buttonLabel}
         disabled={this.loading || this.props.disabled}
         primary={!this.props.secondary}

@@ -13,12 +13,12 @@ const ConfirmChangePageWithConvosSelectedDialog = props => (
       <FlatButton
         label={`Move to the ${nextOrPrevious(props.pageDelta)} page`}
         secondary
-        onTouchTap={() => props.onRequestClose(true)}
+        onClick={() => props.onRequestClose(true)}
       />,
       <FlatButton
         label="Stay on this page"
         primary
-        onTouchTap={() => props.onRequestClose(false)}
+        onClick={() => props.onRequestClose(false)}
       />
     ]}
     modal

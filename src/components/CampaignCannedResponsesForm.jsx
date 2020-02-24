@@ -283,7 +283,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
         secondary
         label="Add new canned response"
         icon={<CreateIcon />}
-        onTouchTap={() => this.setState({ showAddForm: true })}
+        onClick={() => this.setState({ showAddForm: true })}
       />
     );
   }
@@ -327,7 +327,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
           secondaryText={response.text}
           rightIconButton={
             <IconButton
-              onTouchTap={() => {
+              onClick={() => {
                 this.handleDelete(response);
               }}
             >

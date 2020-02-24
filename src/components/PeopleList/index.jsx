@@ -159,7 +159,7 @@ export class PeopleList extends Component {
     });
   };
 
-  componentWillReceiveProps = nextProps => {
+  UNSAFE_componentWillReceiveProps = nextProps => {
     // this is a hack
     // without this, some graphql updates did not happen
     // until the next location pop
@@ -241,7 +241,7 @@ export class PeopleList extends Component {
       <FlatButton
         {...dataTest("editPerson")}
         label="Edit"
-        onTouchTap={() => {
+        onClick={() => {
           this.editUser(texterId);
         }}
       />
@@ -261,7 +261,7 @@ export class PeopleList extends Component {
         <FlatButton
           label="Reset Password"
           disabled={currentUser.id === texterId}
-          onTouchTap={() => {
+          onClick={() => {
             this.resetPassword(texterId);
           }}
         />

@@ -287,7 +287,7 @@ class AdminPersonList extends React.Component {
         <FloatingActionButton
           {...dataTest("addPerson")}
           style={theme.components.floatingButton}
-          onTouchTap={this.handleOpen}
+          onClick={this.handleOpen}
         >
           <ContentAdd />
         </FloatingActionButton>
@@ -300,7 +300,7 @@ class AdminPersonList extends React.Component {
                   {...dataTest("inviteOk")}
                   label="Close"
                   primary
-                  onTouchTap={this.handleClose}
+                  onClick={this.handleClose}
                 />
               ]}
               modal={false}

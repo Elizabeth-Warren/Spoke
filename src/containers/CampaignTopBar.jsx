@@ -34,7 +34,7 @@ function CampaignTopBar({ campaign, organizationId, assignmentId, router }) {
     <Toolbar className={css(styles.campaignToolbar)}>
       <ToolbarGroup firstChild={true}>
         <IconButton
-          onTouchTap={() => {
+          onClick={() => {
             router.push(`/app/${organizationId}/todos`);
           }}
           tooltip="Return Home"
@@ -46,7 +46,7 @@ function CampaignTopBar({ campaign, organizationId, assignmentId, router }) {
         <ToolbarTitle
           text={campaign.title}
           className={css(styles.campaignName)}
-          onTouchTap={() => {
+          onClick={() => {
             router.push(
               `/app/${organizationId}/todos/${assignmentId}/overview`
             );

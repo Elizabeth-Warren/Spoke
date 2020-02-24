@@ -38,7 +38,7 @@ class ManageTags extends Component {
     };
   }
 
-  componentWillReceiveProps = props => {
+  UNSAFE_componentWillReceiveProps = props => {
     if (props.tagsFilter) {
       this.setState({ tagsFilter: props.tagsFilter });
     }

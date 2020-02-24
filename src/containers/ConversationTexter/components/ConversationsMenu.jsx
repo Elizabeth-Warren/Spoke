@@ -54,7 +54,7 @@ class ConversationsMenu extends React.Component {
     this.state = { tab };
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     // If the selected contact went from being closed to being
     // active, then switch back to the active tab
     if (newProps.currentContactId === this.props.currentContactId) {
@@ -131,7 +131,7 @@ class ConversationsMenu extends React.Component {
           style={visible ? {} : { display: "none" }}
         >
           <img
-            src="https://ew-spoke-public.s3.amazonaws.com/bailey-circle.png"
+            src="https://ew-spoke-public.elizabethwarren.codes/bailey-circle.png"
             className={css(styles.rebatchImage)}
             alt="Bailey Warren"
           />
@@ -156,7 +156,7 @@ class ConversationsMenu extends React.Component {
           style={visible ? {} : { display: "none" }}
         >
           <img
-            src="https://ew-spoke-public.s3.amazonaws.com/ew-circle.png"
+            src="https://ew-spoke-public.elizabethwarren.codes/ew-circle.png"
             className={css(styles.rebatchImage)}
             alt="Bailey Warren"
           />

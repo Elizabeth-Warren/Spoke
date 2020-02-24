@@ -24,7 +24,7 @@ const loadData = (Component, connectArgs, { showTraceLog = false } = {}) => {
     // This ensures that the loading
     // indicator only shows on the first
     // load and not when refetch is called
-    componentWillReceiveProps(props) {
+    UNSAFE_componentWillReceiveProps(props) {
       traceLog("PROPS", this.dataProps(props));
 
       const isLoading = this.isLoading(props);

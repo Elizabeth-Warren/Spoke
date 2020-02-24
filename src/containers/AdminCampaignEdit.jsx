@@ -101,7 +101,7 @@ class AdminCampaignEdit extends React.Component {
     };
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     // This should only update the campaignFormValues sections that
     // are NOT expanded so the form data doesn't compete with the user
     // The basic flow of data:
@@ -303,7 +303,7 @@ class AdminCampaignEdit extends React.Component {
           // Must be true for green bar, etc.
           // This is a little awkward because neither of these fields are 'updated'
           //   from the campaignData query, so we must delete them after save/update
-          //   at the right moment (see componentWillReceiveProps)
+          //   at the right moment (see UNSAFE_componentWillReceiveProps)
           this.state.campaignFormValues.contactsCount > 0 &&
           this.state.campaignFormValues.hasOwnProperty("contactsPreview") ===
             false &&
@@ -479,11 +479,11 @@ class AdminCampaignEdit extends React.Component {
           >
             <RaisedButton
               {...dataTest("inviteLink")}
-              onTouchTap={() => this.openJoinDialog()}
+              onClick={() => this.openJoinDialog()}
               label="Invite"
             />
             <RaisedButton
-              onTouchTap={() =>
+              onClick={() =>
                 this.props.router.push(
                   `/admin/${this.props.params.organizationId}/campaigns/${this.props.params.campaignId}`
                 )
@@ -577,7 +577,7 @@ class AdminCampaignEdit extends React.Component {
           {this.props.campaignData.campaign.isArchived ? (
             <RaisedButton
               label="Unarchive"
-              onTouchTap={async () =>
+              onClick={async () =>
                 await this.props.mutations.unarchiveCampaign(
                   this.props.campaignData.campaign.id
                 )
@@ -586,7 +586,7 @@ class AdminCampaignEdit extends React.Component {
           ) : (
             <RaisedButton
               label="Archive"
-              onTouchTap={async () =>
+              onClick={async () =>
                 await this.props.mutations.archiveCampaign(
                   this.props.campaignData.campaign.id
                 )
@@ -598,7 +598,7 @@ class AdminCampaignEdit extends React.Component {
             primary
             label="Start This Campaign!"
             disabled={!isCompleted}
-            onTouchTap={async () => isCompleted && this.handleStartCampaign()}
+            onClick={async () => isCompleted && this.handleStartCampaign()}
           />
         </div>
       </div>

@@ -35,7 +35,7 @@ export function getContext(context) {
   };
 }
 import loadData from "../src/containers/hoc/load-data";
-jest.mock("../src/containers/hoc/load-data");
+jest.mock("../src/containers/hoc/load-data", () => null);
 /* Used to get graphql queries from components.
 *  Because of some limitations with the jest require cache that
 *  I can't find a way of getting around, it should only be called once

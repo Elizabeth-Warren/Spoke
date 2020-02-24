@@ -65,10 +65,7 @@ export default class ContactInfo extends React.Component {
   };
 
   renderButton = () => (
-    <FlatButton
-      className={css(styles.button)}
-      onTouchTap={this.handleOpenDialog}
-    >
+    <FlatButton className={css(styles.button)} onClick={this.handleOpenDialog}>
       <ActionInfoOutline color="white" />
     </FlatButton>
   );
@@ -76,7 +73,7 @@ export default class ContactInfo extends React.Component {
   renderOptOutButton = () => (
     <IconButton
       className={css(styles.optOutButton)}
-      onTouchTap={this.props.onClickOptOut}
+      onClick={this.props.onClickOptOut}
       tooltip="Opt Out"
       iconStyle={{ fill: theme.colors.white }}
     >

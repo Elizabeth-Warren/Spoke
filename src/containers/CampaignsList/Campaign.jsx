@@ -38,7 +38,7 @@ const renderRightIcon = (campaign, archiveCampaign, unarchiveCampaign) => {
     return (
       <IconButton
         tooltip="Unarchive"
-        onTouchTap={async e => {
+        onClick={async e => {
           e.stopPropagation();
           await unarchiveCampaign(campaign.id);
         }}
@@ -50,7 +50,7 @@ const renderRightIcon = (campaign, archiveCampaign, unarchiveCampaign) => {
   return (
     <IconButton
       tooltip="Archive"
-      onTouchTap={async e => {
+      onClick={async e => {
         e.stopPropagation();
         await archiveCampaign(campaign.id);
       }}
@@ -134,7 +134,7 @@ const Campaign = props => {
       style={listItemStyle}
       key={campaign.id}
       primaryText={primaryText}
-      onTouchTap={({
+      onClick={({
         currentTarget: {
           firstElementChild: {
             firstElementChild: { checked }

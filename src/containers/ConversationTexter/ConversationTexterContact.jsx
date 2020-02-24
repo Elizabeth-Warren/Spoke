@@ -254,7 +254,7 @@ export class ConversationTexterContactComponent extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     if (nextProps.contactId !== this.props.contactId) {
       this.setState(this.resetStateForProps(nextProps));
     }
@@ -868,7 +868,7 @@ export class ConversationTexterContactComponent extends React.Component {
     if (messageStatus === "closed") {
       button = (
         <RaisedButton
-          onTouchTap={() => this.handleEditMessageStatus("needsResponse")}
+          onClick={() => this.handleEditMessageStatus("needsResponse")}
           label="Reopen"
           style={inlineStyles.buttonWidth}
         />
@@ -876,7 +876,7 @@ export class ConversationTexterContactComponent extends React.Component {
     } else if (messageStatus === "needsResponse") {
       button = (
         <RaisedButton
-          onTouchTap={this.handleOpenSkipDialog}
+          onClick={this.handleOpenSkipDialog}
           label="Skip Reply"
           style={inlineStyles.buttonWidth}
         />

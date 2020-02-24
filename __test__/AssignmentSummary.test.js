@@ -8,7 +8,6 @@ jest.mock("src/lib");
 import React from "react";
 import { mount } from "enzyme";
 import { StyleSheetTestUtils } from "aphrodite";
-import injectTapEventPlugin from "react-tap-event-plugin";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import { CardActions, CardTitle } from "material-ui/Card";
 import { AssignmentSummary } from "../src/components/AssignmentSummary";
@@ -90,7 +89,6 @@ describe("AssignmentSummary text", function t() {
 });
 
 describe("AssignmentSummary actions inUSA and NOT AllowSendAll", () => {
-  injectTapEventPlugin(); // prevents warning
   function create(unmessaged, conversations, needsResponseCount, isDynamic) {
     window.NOT_IN_USA = 0;
     window.ALLOW_SEND_ALL = false;

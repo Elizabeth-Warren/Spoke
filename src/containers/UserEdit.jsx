@@ -39,7 +39,7 @@ class UserEdit extends React.Component {
     this.buildFormSchema = this.buildFormSchema.bind(this);
   }
 
-  async componentWillMount() {
+  async UNSAFE_componentWillMount() {
     if (!this.props.authType) {
       await this.props.mutations.editUser(null, {
         includeEmail: this.props.includeEmail
@@ -219,7 +219,7 @@ class UserEdit extends React.Component {
                 <div className={css(styles.container)}>
                   {window.PASSPORT_STRATEGY === "local" ? (
                     <RaisedButton
-                      onTouchTap={() => this.handleClick()}
+                      onClick={() => this.handleClick()}
                       label="Change password"
                       variant="outlined"
                     />
@@ -261,7 +261,7 @@ class UserEdit extends React.Component {
             onBackdropClick={this.handleClose}
             onEscapeKeyDown={this.handleClose}
           >
-            <RaisedButton onTouchTap={this.handleClose} label="OK" primary />
+            <RaisedButton onClick={this.handleClose} label="OK" primary />
           </Dialog>
         </div>
       </div>

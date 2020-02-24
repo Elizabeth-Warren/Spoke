@@ -55,14 +55,14 @@ export class ConversationTexterComponent extends React.Component {
     };
   }
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     const { assignment } = this.props.data;
     if (!assignment || assignment.campaign.isArchived) {
       this.props.router.push(`/app/${this.props.params.organizationId}/todos`);
     }
   }
 
-  componentWillReceiveProps(newProps) {
+  UNSAFE_componentWillReceiveProps(newProps) {
     if (this.state.currentContactId == null) {
       // we were on the empty state, let's see if we have a conversation that
       // we can auto-select

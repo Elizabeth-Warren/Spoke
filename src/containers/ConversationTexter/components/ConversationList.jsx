@@ -58,7 +58,7 @@ export default function ConversationList(props) {
     return (
       <ListItem
         value={name}
-        onTouchTap={() => onSelectConversation(convo)}
+        onClick={() => onSelectConversation(convo)}
         key={id}
         style={{ top: `${i * 48}px` }}
         className={classNames(css(styles.listItem), {

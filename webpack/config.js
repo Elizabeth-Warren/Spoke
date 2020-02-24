@@ -28,7 +28,7 @@ const jsxLoaders = [
           "@babel/preset-env",
           {
             targets: "> 2%",
-            modules: "commonjs"
+            modules: false
           }
         ]
       ],
@@ -58,7 +58,7 @@ if (!DEBUG) {
   );
 } else {
   plugins.push(new webpack.HotModuleReplacementPlugin());
-  jsxLoaders.unshift({ loader: "react-hot-loader" });
+  jsxLoaders.unshift({ loader: "react-hot-loader/webpack" });
 }
 
 const config = {

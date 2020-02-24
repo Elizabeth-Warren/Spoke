@@ -32,14 +32,14 @@ class InitiatePasswordResetDialog extends React.Component {
       <RaisedButton
         className={css(styles.button)}
         label="Initate Password Reset"
-        onTouchTap={async () => this.initiatePasswordReset()}
+        onClick={async () => this.initiatePasswordReset()}
         primary
       />
     ),
     <RaisedButton
       className={css(styles.button)}
       label="Close"
-      onTouchTap={async () => this.closeDialog()}
+      onClick={async () => this.closeDialog()}
       secondary
     />
   ];
@@ -87,7 +87,7 @@ class InitiatePasswordResetDialog extends React.Component {
     return this.props.currentUser.loading ? null : (
       <span>
         <RaisedButton
-          onTouchTap={this.openDialog}
+          onClick={this.openDialog}
           label="Reset password"
           variant="outlined"
           disabled={this.props.disabled}

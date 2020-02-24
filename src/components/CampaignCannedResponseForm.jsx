@@ -77,7 +77,7 @@ class CannedResponseForm extends React.Component {
             />
             <FlatButton
               label="Cancel"
-              onTouchTap={this.props.closeForm}
+              onClick={this.props.closeForm}
               style={{
                 marginLeft: 5,
                 display: "inline-block"

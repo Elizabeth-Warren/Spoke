@@ -1,13 +1,17 @@
-import React from "react";
+import "./webpack-config";
+import "./backcompat";
+import React, { Suspense } from "react";
 import ReactDOM from "react-dom";
 import { Router, browserHistory } from "react-router";
 import { syncHistoryWithStore } from "react-router-redux";
 import { StyleSheet } from "aphrodite";
 import { ApolloProvider } from "react-apollo";
+import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 
 import makeRoutes from "src/routes";
 import Store from "src/store";
 import ApolloClientSingleton from "src/network/apollo-client-singleton";
+import LoadingIndicator from "src/components/LoadingIndicator";
 
 import { login, logout } from "./auth-service";
 import errorCatcher from "./error-catcher";
@@ -30,7 +34,15 @@ StyleSheet.rehydrate(window.RENDERED_CLASS_NAMES);
 
 ReactDOM.render(
   <ApolloProvider store={store.data} client={ApolloClientSingleton}>
-    <Router history={history} routes={makeRoutes()} />
+    <Suspense
+      fallback={
+        <MuiThemeProvider>
+          <LoadingIndicator />
+        </MuiThemeProvider>
+      }
+    >
+      <Router history={history} routes={makeRoutes()} />
+    </Suspense>
   </ApolloProvider>,
   document.getElementById("mount")
 );

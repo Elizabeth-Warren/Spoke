@@ -55,7 +55,7 @@ export class TagsSelector extends React.Component {
     };
   }
 
-  componentWillReceiveProps = props => {
+  UNSAFE_componentWillReceiveProps = props => {
     const tagFilter = TagsSelector.cloneTagFilter(props);
     if (tagFilter) {
       this.setState({ tagFilter });

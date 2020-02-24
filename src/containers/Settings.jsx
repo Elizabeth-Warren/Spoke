@@ -129,7 +129,7 @@ class Settings extends React.Component {
             <FlatButton
               label="Cancel"
               style={inlineStyles.dialogButton}
-              onTouchTap={this.handleCloseTextingHoursDialog}
+              onClick={this.handleCloseTextingHoursDialog}
             />
             <Form.Button
               type="submit"
@@ -209,7 +209,7 @@ class Settings extends React.Component {
               <FlatButton
                 label="Change texting hours"
                 primary
-                onTouchTap={this.handleOpenTextingHoursDialog}
+                onClick={this.handleOpenTextingHoursDialog}
               />
             ) : (
               ""

@@ -45,7 +45,7 @@ custom:
 
 provider:
   name: aws
-  runtime: nodejs10.x
+  runtime: nodejs12.x
   deploymentBucket:
     name: ${self:custom.deploy.bucket_name}
     blockPublicAccess: true
@@ -117,6 +117,7 @@ provider:
     SLACK_TEAM_ID: ${ssm:/${self:custom.stage}/spoke/slack/TEAM_ID~true}
     EMBEDDED_SHIFTER_URL: ${ssm:/${self:custom.stage}/spoke/shifter/URL~true}
     MAX_CONTACTS: 25000
+    ASSET_DOMAIN: https://ew-spoke-public.elizabethwarren.codes/${self:custom.stage}
     # SUPPRESS_PHONE_VALIDATION: ${self:custom.suppressPhoneValidation.${self:custom.stage}}
     # SKIP_TWILIO_AND_AUTOREPLY: ${self:custom.skipTwilioAndAutoReply.${self:custom.stage}}
     # DROP_MESSAGE_RATIO: ${self:custom.dropMessageRatio.${self:custom.stage}}
@@ -142,5 +143,22 @@ plugins:
   - serverless-associate-waf
   - serverless-api-compression
   - serverless-prune-plugin
+  - serverless-jetpack
 package:
   excludeDevDependencies: true
+  package:
+  exclude:
+    - "*"
+    - "webpack/**"
+    - ".github/**"
+    - "dev-tools/**"
+    - "docs/**"
+    - "__test__/**"
+    - "__mocks__/**"
+    - "**/node_modules/aws-sdk/**" # included on Lambda.
+    - "!package.json"
+    - "!lambda.js"
+    - "!knexfile.js"
+    - "!preflight.js"
+    - "build/client/assets/*.js"
+    - "build/client/assets/*.js.map"

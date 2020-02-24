@@ -66,7 +66,7 @@ const OptOutDialog = props =>
             <FlatButton
               style={inlineStyles.dialogButton}
               label="Cancel"
-              onTouchTap={props.onRequestClose}
+              onClick={props.onRequestClose}
             />
             <Form.Button
               type="submit"

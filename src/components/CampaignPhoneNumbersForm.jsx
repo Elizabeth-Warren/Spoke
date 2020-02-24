@@ -59,7 +59,7 @@ const inlineStyles = {
 };
 
 const message = `
-  Select what area code you'd like to use for your campaign. Please contact 
+  Select what area code you'd like to use for your campaign. Please contact
   the tech team if there aren't enough number in our inventory.
  `;
 export default class CampaignPhoneNumbersForm extends React.Component {
@@ -200,7 +200,7 @@ export default class CampaignPhoneNumbersForm extends React.Component {
             key={item.areaCode}
             rightIconButton={
               <IconButton
-                onTouchTap={async () => {
+                onClick={async () => {
                   const currentFormValues = this.formValues();
                   const newFormValues = {
                     ...currentFormValues

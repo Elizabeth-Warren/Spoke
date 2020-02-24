@@ -40,7 +40,7 @@ class SendButton extends Component {
       <div className={css(styles.container)}>
         <RaisedButton
           {...dataTest("send")}
-          onTouchTap={this.handleTouchTap}
+          onClick={this.handleTouchTap}
           disabled={this.props.disabled}
           label={this.clickStepLabels()[this.state.clickStepIndex]}
           primary={!this.props.disabled}

@@ -1,7 +1,7 @@
 import "@babel/polyfill";
 import bodyParser from "body-parser";
 import express from "express";
-import appRenderer from "./middleware/app-renderer";
+import renderIndex from "./middleware/render-index";
 import { graphqlExpress, graphiqlExpress } from "apollo-server-express";
 import { makeExecutableSchema, addMockFunctionsToSchema } from "graphql-tools";
 // ORDERING: ./models import must be imported above ./api to help circular imports
@@ -14,7 +14,6 @@ import cookieSession from "cookie-session";
 import passportSetup from "./auth-passport";
 import wrap from "./wrap";
 import log from "src/server/log";
-// import nexmo from "./api/lib/nexmo";
 import twilio from "./api/lib/twilio";
 import { setupUserNotificationObservers } from "./notifications";
 import { twiml } from "twilio";
@@ -93,42 +92,6 @@ if (process.env.SIMULATE_DELAY_MILLIS) {
     setTimeout(next, Number(process.env.SIMULATE_DELAY_MILLIS));
   });
 }
-
-/*
-
-TODO: Delete. We are not using nexmo
-
-app.post(
-  "/nexmo",
-  wrap(async (req, res) => {
-    try {
-      const messageId = await nexmo.handleIncomingMessage(req.body);
-      res.send(messageId);
-    } catch (ex) {
-      log.error(ex);
-      res.send("done");
-    }
-  })
-);
-*/
-
-/*
-
-TODO: Delete. We are not using nexmo
-
-app.post(
-  "/nexmo-message-report",
-  wrap(async (req, res) => {
-    try {
-      const body = req.body;
-      await nexmo.handleDeliveryReport(body);
-    } catch (ex) {
-      log.error(ex);
-    }
-    res.send("done");
-  })
-);
-*/
 
 app.post(
   "/twilio",
@@ -237,12 +200,26 @@ app.get(
 );
 
 // This middleware should be last. Return the React app only if no other route is hit.
-app.use(appRenderer);
+app.use((req, res) => {
+  res.type("html");
+  res.send(renderIndex());
+});
+
 app.use(telemetry.expressMiddleware);
 
 if (port) {
-  app.listen(port, () => {
+  const server = app.listen(port, () => {
     log.info(`Node app is running on port ${port}`);
+  });
+
+  // Handle nodemon shutdown cleanly, otherwise the port might not
+  // be freed before we start up again.
+  process.once("SIGUSR2", () => {
+    log.warn("Got SIGUSR2, shutting down...");
+    server.close(() => {
+      log.warn("Server shut down, exiting.");
+      process.exit();
+    });
   });
 }
 

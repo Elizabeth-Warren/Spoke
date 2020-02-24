@@ -32,6 +32,7 @@ preflight()
 
 deploy()
 {
+  aws s3 cp ./build/client/assets s3://ew-spoke-public/$STAGE/assets/ --acl public-read --recursive --cache-control max-age=604800
   sls create_domain -s $STAGE
   sls deploy -s $STAGE
 }

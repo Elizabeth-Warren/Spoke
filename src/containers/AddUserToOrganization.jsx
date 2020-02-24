@@ -98,7 +98,7 @@ class AddUserToOrganization extends Component {
             />
           </div>
           <div className={css(styles.buttonWrapper)}>
-            <RaisedButton label="Add" primary onTouchTap={this.handleAdd} />
+            <RaisedButton label="Add" primary onClick={this.handleAdd} />
           </div>
         </div>
         <p>{this.state.message}</p>

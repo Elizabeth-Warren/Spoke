@@ -29,7 +29,7 @@ class JoinCampaign extends React.Component {
     errorMessage: null
   };
 
-  async componentWillMount() {
+  async UNSAFE_componentWillMount() {
     let errorMessage;
     let organizationId;
     let assignmentId;
@@ -71,7 +71,7 @@ class JoinCampaign extends React.Component {
       <div>
         <div className={css(styles.errorMessageWrapper)}>
           <img
-            src="https://ew-spoke-public.s3.amazonaws.com/ew-circle.png"
+            src="https://ew-spoke-public.elizabethwarren.codes/ew-circle.png"
             className={css(styles.errorImage)}
             alt="EW Making Calls"
           />

@@ -88,14 +88,14 @@ const SkipDialog = props =>
             <FlatButton
               style={inlineStyles.dialogButton}
               label="Cancel"
-              onTouchTap={props.onRequestClose}
+              onClick={props.onRequestClose}
               secondary
             />
             <FlatButton
               style={inlineStyles.dialogButton}
               label={skipButtonLabel(props.tag)}
               disabled={props.disabled}
-              onTouchTap={() => {
+              onClick={() => {
                 props.onRequestClose();
                 props.onSkip();
               }}

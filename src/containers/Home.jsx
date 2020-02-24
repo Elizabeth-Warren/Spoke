@@ -42,7 +42,7 @@ class Home extends React.Component {
     orgLessUser: false
   };
 
-  componentWillMount() {
+  UNSAFE_componentWillMount() {
     const user = this.props.data.currentUser;
     if (user) {
       if (user.adminOrganizations.length > 0) {

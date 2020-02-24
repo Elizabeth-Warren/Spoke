@@ -30,7 +30,7 @@ export default class ScriptList extends React.Component {
       return (
         <ListItem
           value={script.text}
-          onTouchTap={() => onSelectCannedResponse(script)}
+          onClick={() => onSelectCannedResponse(script)}
           key={script.id}
           primaryText={title}
           secondaryText={script.text}

@@ -14,7 +14,6 @@ import UserOrganization from "./user-organization";
 import Message from "./message";
 import ZipCode from "./zip-code";
 import Tag from "./tag";
-
 import thinky from "./thinky";
 import datawarehouse from "./datawarehouse";
 

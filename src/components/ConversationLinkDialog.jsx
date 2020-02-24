@@ -14,7 +14,7 @@ const ConversationLinkDialoag = props => (
         {...dataTest("convoLinkOK")}
         label="OK"
         primary
-        onTouchTap={props.requestClose}
+        onClick={props.requestClose}
       />
     ]}
     modal={false}

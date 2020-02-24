@@ -302,7 +302,7 @@ export class AdminIncomingMessageList extends Component {
           <h3 style={{ flex: "1" }}>Message Review - {campaign.title}</h3>
           <div style={{ width: "200px", textAlign: "right" }}>
             <RaisedButton
-              onTouchTap={() =>
+              onClick={() =>
                 this.props.router.push(
                   `/admin/${this.props.params.organizationId}/campaigns/${this.props.params.campaignId}`
                 )

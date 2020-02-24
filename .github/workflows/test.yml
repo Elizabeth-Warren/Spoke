@@ -38,7 +38,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v1
         with:
-          node-version: 10.18.x
+          node-version: 12.16.x
       - name: Install Dependencies
         run: make install-deps
       - name: Install psql

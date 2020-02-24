@@ -1,10 +1,43 @@
+import fs from "fs";
+import path from "path";
+
 // the site is not very useful without auth0, unless you have a session cookie already
 // good for doing dev offline
 const externalLinks = process.env.NO_EXTERNAL_LINKS
   ? ""
   : '<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Poppins">';
 
-export default function renderIndex(html, css, assetMap, store) {
+const assetMap = {
+  "bundle.js": "/assets/bundle.js"
+};
+if (process.env.NODE_ENV === "production") {
+  const assetMapData = JSON.parse(
+    fs.readFileSync(
+      // this is a bit overly complicated for the use case
+      // of it being run from the build directory BY claudia.js
+      // we need to make it REALLY relative, but not by the
+      // starting process or the 'local' directory (which are both wrong then)
+      (process.env.ASSETS_DIR || "").startsWith(".")
+        ? path.join(
+            __dirname,
+            "../../../../",
+            process.env.ASSETS_DIR,
+            process.env.ASSETS_MAP_FILE
+          )
+        : path.join(process.env.ASSETS_DIR, process.env.ASSETS_MAP_FILE)
+    )
+  );
+
+  Object.keys(assetMapData).forEach(a => {
+    assetMap[a] = assetMapData[a];
+  });
+}
+
+export default function renderIndex() {
+  const css = {
+    content: fs.readFileSync(path.join(__dirname, "../../styles/fonts.css")) // these could also be defined in theme.js using aphrodite
+  };
+
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -34,9 +67,9 @@ export default function renderIndex(html, css, assetMap, store) {
     <style data-aphrodite>${css.content}</style>
   </head>
   <body>
-    <div id="mount">${html}</div>
+    <div id="mount"></div>
     <script>
-      window.INITIAL_STATE=${JSON.stringify(store.getState())}
+      window.INITIAL_STATE={};
       window.RENDERED_CLASS_NAMES=${JSON.stringify(css.renderedClassNames)}
       window.AUTH0_CLIENT_ID="${process.env.AUTH0_CLIENT_ID}"
       window.AUTH0_DOMAIN="${process.env.AUTH0_DOMAIN}"
@@ -63,8 +96,15 @@ export default function renderIndex(html, css, assetMap, store) {
       window.EMBEDDED_SHIFTER_URL="${process.env.EMBEDDED_SHIFTER_URL || ""}"
       window.SUPPRESS_PHONE_VALIDATION="${process.env
         .SUPPRESS_PHONE_VALIDATION || ""}"
+      window.ASSET_DOMAIN=${
+        process.env.ASSET_DOMAIN
+          ? JSON.stringify(`${process.env.ASSET_DOMAIN}/assets/`)
+          : "undefined"
+      }
     </script>
-    <script src="${assetMap["bundle.js"]}"></script>
+    <script src="${process.env.ASSET_DOMAIN || ""}${
+    assetMap["bundle.js"]
+  }"></script>
   </body>
 </html>
 `;
