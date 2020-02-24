@@ -1,5 +1,25 @@
-import { Table, getAny, knex, queryBuilder, convertCase } from "./common";
+import {
+  Table,
+  getAny,
+  knex,
+  queryBuilder,
+  convertCase,
+  updateAndReturn
+} from "./common";
 import preconditions from "src/server/preconditions";
+
+const Status = {
+  ACTIVE: "ACTIVE",
+  ARCHIVED: "ARCHIVED",
+  CLOSED: "CLOSED",
+  CLOSED_FOR_INITIAL_SENDS: "CLOSED_FOR_INITIAL_SENDS",
+  NOT_STARTED: "NOT_STARTED"
+};
+
+async function updateStatus(id, status, opts) {
+  preconditions.checkEnum(status, Object.values(Status));
+  return updateAndReturn(Table.CAMPAIGN, id, { status }, opts);
+}
 
 async function getByJoinToken(token, opts) {
   preconditions.check(token, "'token' must be provided");
@@ -41,12 +61,9 @@ async function assignmentSummaries(campaignId, opts) {
   return convertCase(counts, opts);
 }
 
-async function stats(campaignId, opts) {
-  // todo
-}
-
 export default {
+  Status,
   assignmentSummaries,
   getByJoinToken,
-  stats
+  updateStatus
 };

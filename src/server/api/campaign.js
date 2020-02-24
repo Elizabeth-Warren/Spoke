@@ -8,6 +8,8 @@ import config from "src/server/config";
 import urlJoin from "url-join";
 import moment from "moment";
 
+const CampaignStatus = db.Campaign.Status;
+
 const title = 'lower("campaign"."title")';
 
 async function getOrganization(campaign, loaders) {
@@ -420,22 +422,27 @@ export const resolvers = {
       (await cacheableData.campaign.dbContactImportJob(campaign.id)) ||
       null,
     status: campaign => {
-      if (!campaign.is_started) {
-        return "NOT_STARTED";
+      // TODO[matteo]: follow up with commit to remove these legacy fields
+      const status = campaign.status;
+      if (!campaign.is_started || status === CampaignStatus.NOT_STARTED) {
+        return CampaignStatus.NOT_STARTED;
       }
-      if (campaign.is_archived) {
-        return "ARCHIVED";
+      if (campaign.is_archived || status === CampaignStatus.ARCHIVED) {
+        return CampaignStatus.ARCHIVED;
       }
+      if (status === CampaignStatus.CLOSED) {
+        return CampaignStatus.CLOSED;
+      }
+      // Overdue, closed for initial sends
       if (
         moment
           .utc()
           .startOf("day")
           .isAfter(moment(campaign.due_by))
       ) {
-        return "CLOSED_FOR_INITIAL_SENDS";
+        return CampaignStatus.CLOSED_FOR_INITIAL_SENDS;
       }
-      // TODO: CLOSED_FOR_ALL_SENDS not implemented yet
-      return "ACTIVE";
+      return campaign.status || "ACTIVE";
     },
     assignmentSummaries: async (campaign, _, { user }) => {
       await accessRequired(

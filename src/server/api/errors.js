@@ -42,6 +42,13 @@ export class NotFoundError extends ApolloError {
   }
 }
 
+export class CampaignArchivedError extends ApolloError {
+  constructor(message) {
+    super(message, "CAMPAIGN_ARCHIVED");
+    this.name = "CampaignArchivedError";
+  }
+}
+
 export function authRequired(user) {
   if (!user) {
     throw new ApolloError(

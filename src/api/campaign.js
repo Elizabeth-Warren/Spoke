@@ -4,8 +4,8 @@ export const schema = gql`
   enum CampaignStatus {
     ACTIVE
     ARCHIVED
+    CLOSED
     CLOSED_FOR_INITIAL_SENDS
-    CLOSED_FOR_ALL_SENDS
     NOT_STARTED
   }
 
@@ -74,6 +74,7 @@ export const schema = gql`
     phoneNumbers: [PhoneNumbersByAreaCode]
     joinUrl: String
     contactImportJob: BackgroundJob
+    contactFileName: String
   }
 
   type CampaignsList {

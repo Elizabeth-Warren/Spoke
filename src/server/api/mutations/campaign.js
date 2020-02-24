@@ -6,7 +6,8 @@ import db from "src/server/db";
 import log from "src/server/log";
 import { secureRandomString } from "src/server/crypto";
 
-const Status = db.TwilioPhoneNumber.Status;
+const PhoneStatus = db.TwilioPhoneNumber.Status;
+const CampaignStatus = db.Campaign.Status;
 
 async function prepareMessagingService(campaign) {
   // This has a pretty bad race if startCampaign gets called concurrently (e.g. from two
@@ -37,7 +38,7 @@ async function prepareMessagingService(campaign) {
     await db.TwilioPhoneNumber.assignToCampaign(campaign.id, { transaction });
     const listRes = await db.TwilioPhoneNumber.listCampaignNumbers(
       campaign.id,
-      Status.ASSIGNED,
+      PhoneStatus.ASSIGNED,
       { transaction }
     );
     const phoneSids = listRes.map(r => r.sid);
@@ -101,6 +102,7 @@ export const mutations = {
     }
 
     campaign.is_started = true;
+    campaign.status = CampaignStatus.ACTIVE;
     campaign.started_at = new Date();
     campaign.messaging_service_sid = messagingServiceSid;
     if (campaign.use_dynamic_assignment) {
@@ -122,5 +124,23 @@ export const mutations = {
       });
     }
     return campaign;
+  },
+  updateCampaignStatus: async (_, { id, status }, { user, loaders }) => {
+    // TODO: add ARCHIVE here and remove unarchive
+    const supportedStatuses = [
+      CampaignStatus.CLOSED,
+      CampaignStatus.CLOSED_FOR_INITIAL_SENDS
+    ];
+    if (supportedStatuses.indexOf(status) === -1) {
+      throw new UserInputError(`Setting status ${status} is not supported`);
+    }
+    const campaign = await loaders.campaign.load(id);
+    await accessRequired(user, campaign.organization_id, "ADMIN");
+    // note: campaign gets passed to legacy resolver so we need to return snake case
+    const updated = await db.Campaign.updateStatus(id, status, {
+      snakeCase: true
+    });
+    await cacheableData.campaign.clear(id);
+    return updated;
   }
 };

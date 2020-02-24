@@ -233,12 +233,17 @@ const rootSchema = gql`
   }
 
   type RootMutation {
-    createCampaign(campaign: CampaignInput!, contactsS3Key: String!): Campaign
+    createCampaign(
+      campaign: CampaignInput!
+      contactsS3Key: String!
+      contactFileName: String
+    ): Campaign
     editCampaign(id: String!, campaign: CampaignInput!): Campaign
     copyCampaign(
       id: String!
       contactsS3Key: String!
       shiftingConfiguration: String
+      contactFileName: String
     ): Campaign
     exportCampaign(id: String!): BackgroundJob
     createOrganization(name: String!): Organization
@@ -293,6 +298,7 @@ const rootSchema = gql`
       campaignContactId: String!
     ): CampaignContact
     startCampaign(id: String!): Campaign
+    updateCampaignStatus(id: ID!, status: CampaignStatus): Campaign
     archiveCampaign(id: String!): Campaign
     archiveCampaigns(ids: [String!]): [Campaign]
     unarchiveCampaign(id: String!): Campaign

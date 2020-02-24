@@ -37,20 +37,20 @@ function camelize(obj) {
   return humps.camelizeKeys(obj, { separator: "_" });
 }
 
-function camelizeFirst(aryOfObj) {
-  if (aryOfObj.length === 0) {
-    return null;
-  }
-
-  return camelize(aryOfObj[0]);
-}
-
 function decamelize(obj) {
   return humps.decamelizeKeys(obj, { separator: "_" });
 }
 
 function convertCase(obj, opts) {
   return opts && opts.snakeCase ? obj : camelize(obj);
+}
+
+function convertCaseFirst(aryOfObj, opts) {
+  if (aryOfObj.length === 0) {
+    return null;
+  }
+
+  return convertCase(aryOfObj[0], opts);
 }
 
 // Generic get function
@@ -63,21 +63,23 @@ async function getAny(tableName, fieldName, fieldValue, opts = {}) {
 }
 
 async function insertAndReturn(tableName, fields, opts) {
-  return camelizeFirst(
+  return convertCaseFirst(
     await queryBuilder(tableName, opts)
       .insert(decamelize(fields))
-      .returning("*")
+      .returning("*"),
+    opts
   );
 }
 
 async function updateAndReturn(tableName, id, fields, opts) {
-  return camelizeFirst(
+  return convertCaseFirst(
     await queryBuilder(tableName, opts)
       .where({
         id
       })
       .update(decamelize(fields))
-      .returning("*")
+      .returning("*"),
+    opts
   );
 }
 
@@ -106,7 +108,6 @@ export {
   knex,
   getAny,
   camelize,
-  camelizeFirst,
   decamelize,
   transaction,
   withTransaction,

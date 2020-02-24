@@ -67,7 +67,11 @@ import db from "src/server/db";
 import preconditions from "src/server/preconditions";
 import BackgroundJob from "../db/background-job";
 import config from "src/server/config";
-import { ApolloError, NotFoundError } from "src/server/api/errors";
+import {
+  ApolloError,
+  CampaignArchivedError,
+  NotFoundError
+} from "src/server/api/errors";
 
 const uuidv4 = require("uuid").v4;
 
@@ -657,7 +661,7 @@ const rootMutations = {
     },
     createCampaign: async (
       _,
-      { campaign, contactsS3Key },
+      { campaign, contactsS3Key, contactFileName },
       { user, loaders }
     ) => {
       await accessRequired(
@@ -675,7 +679,9 @@ const rootMutations = {
         due_by: campaign.dueBy,
         is_started: false,
         is_archived: false,
-        use_dynamic_assignment: true
+        use_dynamic_assignment: true,
+        status: db.Campaign.Status.NOT_STARTED,
+        contact_file_name: contactFileName
       });
 
       const newCampaign = await campaignInstance.save();
@@ -691,7 +697,7 @@ const rootMutations = {
     },
     copyCampaign: async (
       _,
-      { id, contactsS3Key, shiftingConfiguration },
+      { id, contactsS3Key, shiftingConfiguration, contactFileName },
       { user, loaders }
     ) => {
       const campaign = await loaders.campaign.load(id);
@@ -709,7 +715,9 @@ const rootMutations = {
         logo_image_url: campaign.logo_image_url,
         intro_html: campaign.intro_html,
         use_dynamic_assignment: true,
-        primary_color: campaign.primary_color
+        primary_color: campaign.primary_color,
+        status: db.Campaign.Status.NOT_STARTED,
+        contact_file_name: contactFileName
       });
       const newCampaign = await campaignInstance.save();
       const newCampaignId = newCampaign.id;
@@ -780,10 +788,13 @@ const rootMutations = {
 
       return newCampaign;
     },
+    // TODO[matteo]: might want to replace this with "closed" / "open"
+    //  and remove the ability to unarchive
     unarchiveCampaign: async (_, { id }, { user, loaders }) => {
       const campaign = await loaders.campaign.load(id);
       await accessRequired(user, campaign.organization_id, "ADMIN");
       campaign.is_archived = false;
+      campaign.status = db.Campaign.Status.ACTIVE;
       await campaign.save();
       cacheableData.campaign.reload(id);
       return campaign;
@@ -792,6 +803,7 @@ const rootMutations = {
       const campaign = await loaders.campaign.load(id);
       await accessRequired(user, campaign.organization_id, "ADMIN");
       campaign.is_archived = true;
+      campaign.status = db.Campaign.Status.ARCHIVED;
       await campaign.save();
       cacheableData.campaign.reload(id);
       return campaign;
@@ -810,6 +822,7 @@ const rootMutations = {
 
       campaigns.forEach(campaign => {
         campaign.is_archived = true;
+        campaign.status = db.Campaign.Status.ARCHIVED;
       });
       await Promise.all(campaigns.map(campaign => campaign.save()));
       return campaigns;
@@ -1027,12 +1040,31 @@ const rootMutations = {
       const contact = await loaders.campaignContact.load(campaignContactId);
       const campaign = await loaders.campaign.load(contact.campaign_id);
       await accessRequired(user, campaign.organization_id, "TEXTER");
+
       if (
-        contact.assignment_id !== parseInt(message.assignmentId, 10) ||
-        campaign.is_archived
+        campaign.is_archived ||
+        campaign.status === db.Campaign.Status.ARCHIVED
       ) {
+        throw new CampaignArchivedError("This campaign is no longer active");
+      }
+
+      if (
+        campaign.status &&
+        !(
+          campaign.status === db.Campaign.Status.ACTIVE ||
+          campaign.status === db.Campaign.Status.CLOSED_FOR_INITIAL_SENDS
+        )
+      ) {
+        throw new ApolloError(
+          `Invalid status for sendMessage: ${campaign.status}`,
+          `CAMPAIGN_${campaign.status}`
+        );
+      }
+
+      if (contact.assignment_id !== parseInt(message.assignmentId, 10)) {
         throw new NotFoundError("Your assignment has changed");
       }
+
       const organization = await r
         .table("campaign")
         .get(contact.campaign_id)
@@ -1124,7 +1156,15 @@ const rootMutations = {
       const service = serviceMap[sendingServiceName];
 
       // TODO: migrate these models off of thinky and do this in a proper transaction
+      // NOTE: CLOSED_FOR_INITIAL_SENDS enforcement trusts the frontend to send back
+      //   the isIntialMessage flag correctly. A malicious user could get around it.
       if (isInitialMessage) {
+        if (campaign.status === db.Campaign.Status.CLOSED_FOR_INITIAL_SENDS) {
+          throw new ApolloError(
+            "Closed for initial sends",
+            "CAMPAIGN_CLOSED_FOR_INITIAL_SENDS"
+          );
+        }
         // keep this check despite the redis dedupe in order to catch re-assignment
         // weirdness
         await r.knex.transaction(async trx => {
@@ -1162,17 +1202,13 @@ const rootMutations = {
         await messageInstance.save(); // save message, not transactional
       }
 
-      log.debug(
-        `Sending (${sendingServiceName}): ${messageInstance.user_number} -> ${messageInstance.contact_number}\nMessage: ${messageInstance.text}`
-      );
+      log.debug({
+        msg: "Sending message",
+        sendingServiceName,
+        messageInstance
+      });
 
-      try {
-        await service.sendMessage(messageInstance, contact);
-      } catch (e) {
-        // TODO[matteo]: investigate how to get apollo to log stacktraces, at least in dev
-        log.error(e, `Exception when sending message ${messageInstance.id}`);
-        throw e;
-      }
+      await service.sendMessage(messageInstance, contact);
       return contact;
     },
     deleteQuestionResponses: async (

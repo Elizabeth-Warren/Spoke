@@ -156,7 +156,6 @@ export class AssignmentSummary extends Component {
     //  In particular, if a campaign is CLOSED_FOR_INITIAL_SENDS and there are
     //  no conversations, or if a campaign is CLOSED_FOR_ALL_SENDS, the card
     //  will have no buttons
-
     const renderRequestBatchButton =
       status === "ACTIVE" &&
       isWithinTextingHours &&
