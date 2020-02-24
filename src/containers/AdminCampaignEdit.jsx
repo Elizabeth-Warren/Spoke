@@ -304,10 +304,7 @@ class AdminCampaignEdit extends React.Component {
           // This is a little awkward because neither of these fields are 'updated'
           //   from the campaignData query, so we must delete them after save/update
           //   at the right moment (see UNSAFE_componentWillReceiveProps)
-          this.state.campaignFormValues.contactsCount > 0 &&
-          this.state.campaignFormValues.hasOwnProperty("contactsPreview") ===
-            false &&
-          this.state.campaignFormValues.hasOwnProperty("contactSql") === false,
+          this.state.campaignFormValues.contactsCount > 0,
         blocksStarting: true,
         expandAfterCampaignStarts: false,
         expandableBySuperVolunteers: false,
@@ -798,7 +795,7 @@ const mapMutationsToProps = ({ ownProps }) => ({
     `,
     variables: {
       campaignId,
-      campaign
+      campaign: _.omit(campaign, "contactsPreview")
     }
   })
 });
