@@ -5,7 +5,6 @@
     "src/components/",
     "src/containers/",
     "src/store",
-    "src/styles",
-    "src/routes.jsx"
+    "src/styles"
   ]
 }

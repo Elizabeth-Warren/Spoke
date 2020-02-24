@@ -8,7 +8,7 @@ import { StyleSheet } from "aphrodite";
 import { ApolloProvider } from "react-apollo";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 
-import makeRoutes from "src/routes";
+import makeRoutes from "./routes";
 import Store from "src/store";
 import ApolloClientSingleton from "src/network/apollo-client-singleton";
 import LoadingIndicator from "src/components/LoadingIndicator";
