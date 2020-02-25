@@ -58,6 +58,7 @@ const InitialMessageTexter = React.lazy(() =>
 const SingleAssignmentSummary = React.lazy(() =>
   import("src/containers/SingleAssignmentSummary")
 );
+const Error404 = React.lazy(() => import("src/components/Error404"));
 
 export default function makeRoutes(requireAuth = () => {}) {
   return (
@@ -174,7 +175,7 @@ export default function makeRoutes(requireAuth = () => {}) {
         component={JoinCampaign}
         onEnter={requireAuth}
       />
-      <Route path="*" component={() => <p>Not Found</p>} />
+      <Route path="*" component={() => <Error404 />} />
     </Route>
   );
 }

@@ -1,9 +1,11 @@
 import types from "prop-types";
 import React from "react";
 import { Tabs, Tab } from "material-ui";
-import ConversationList from "./ConversationList";
 import { StyleSheet, css } from "aphrodite";
+import confetti from "canvas-confetti";
+
 import RequestBatchButton from "src/containers/RequestBatchButton";
+import ConversationList from "./ConversationList";
 
 const styles = StyleSheet.create({
   wrapper: {
@@ -22,6 +24,13 @@ const styles = StyleSheet.create({
   rebatchImage: {
     width: "150px",
     height: "150px"
+  },
+  rebatchImageClickable: {
+    cursor: "pointer",
+    transition: "filter 0.3s",
+    ":hover": {
+      filter: "brightness(120%)"
+    }
   },
   rebatchHeader: {
     fontFamily: "Ringside Compressed A",
@@ -97,6 +106,23 @@ class ConversationsMenu extends React.Component {
     onSelectContact(convo.id);
   };
 
+  onClickEW = () => {
+    confetti({
+      particleCount: 100,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+      colors: ["#232444", "#b61b28"]
+    });
+    confetti({
+      particleCount: 100,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+      colors: ["#232444", "#b61b28"]
+    });
+  };
+
   renderConversations({ conversations, currentContactId }) {
     const displayedConversations =
       this.state.tab === "active"
@@ -157,8 +183,9 @@ class ConversationsMenu extends React.Component {
         >
           <img
             src="https://ew-spoke-public.elizabethwarren.codes/ew-circle.png"
-            className={css(styles.rebatchImage)}
-            alt="Bailey Warren"
+            className={css(styles.rebatchImage, styles.rebatchImageClickable)}
+            alt="Elizabeth Warren"
+            onClick={this.onClickEW}
           />
           <h2 className={css(styles.rebatchHeader)}>Wow!</h2>
           <p>

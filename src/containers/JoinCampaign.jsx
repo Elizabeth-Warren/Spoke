@@ -24,13 +24,39 @@ const styles = StyleSheet.create({
   }
 });
 
+const errors = {
+  CAMPAIGN_ARCHIVED: {
+    image: "https://ew-spoke-public.elizabethwarren.codes/sad-bailey.png",
+    title: "Oops!",
+    message:
+      "This campaign is no longer active. Check the Slack for a different invite link."
+  },
+  CAMPAIGN_FULL: {
+    image: "https://ew-spoke-public.elizabethwarren.codes/crowd-2.png",
+    title: "Whoa, It's Crowded In Here!",
+    message:
+      "This campaign is full! Check the Slack for a different invite link."
+  },
+  NOT_FOUND: {
+    image: "https://ew-spoke-public.elizabethwarren.codes/sad-bailey.png",
+    title: "Oops!",
+    message: "That's not a valid invite link."
+  },
+  UNKNOWN: {
+    image: "https://ew-spoke-public.elizabethwarren.codes/sad-bailey.png",
+    title: "Oops!",
+    message:
+      "Something went wrong trying to join this campaign. Please try again in a moment or post in Slack for help."
+  }
+};
+
 class JoinCampaign extends React.Component {
   state = {
     errorMessage: null
   };
 
   async UNSAFE_componentWillMount() {
-    let errorMessage;
+    let errorCode;
     let organizationId;
     let assignmentId;
 
@@ -38,7 +64,12 @@ class JoinCampaign extends React.Component {
       try {
         const addResult = await this.props.mutations.assignUserToCampaign();
         if (addResult.errors) {
-          errorMessage = addResult.errors.graphQLErrors[0].message;
+          errorCode = addResult.errors.graphQLErrors[0].code;
+
+          if (errorCode === "UNAUTHORIZED") {
+            window.location = `/login?nextUrl=${window.location.pathname}`;
+            return;
+          }
         } else {
           ({
             id: assignmentId,
@@ -48,13 +79,12 @@ class JoinCampaign extends React.Component {
           } = addResult.data.assignUserToCampaign);
         }
       } catch (ex) {
-        errorMessage =
-          "Something went wrong trying to join this campaign. Please post in Slack for help.";
+        errorCode = "UNKNOWN";
       }
     }
-    if (errorMessage) {
+    if (errorCode) {
       this.setState({
-        errorMessage
+        errorCode
       });
       return;
     }
@@ -67,16 +97,21 @@ class JoinCampaign extends React.Component {
   }
 
   render() {
-    return this.state.errorMessage ? (
+    if (!this.state.errorCode) {
+      return <div />;
+    }
+
+    const errorConfig = errors[this.state.errorCode] || errors.UNKNOWN;
+    return this.state.errorCode ? (
       <div>
         <div className={css(styles.errorMessageWrapper)}>
           <img
-            src="https://ew-spoke-public.elizabethwarren.codes/ew-circle.png"
+            src={errorConfig.image}
             className={css(styles.errorImage)}
             alt="EW Making Calls"
           />
-          <h2 className={css(styles.errorHeader)}>Oops!</h2>
-          <p>{this.state.errorMessage}</p>
+          <h2 className={css(styles.errorHeader)}>{errorConfig.title}</h2>
+          <p>{errorConfig.message}</p>
           <RaisedButton
             primary
             label="Go Back Home"

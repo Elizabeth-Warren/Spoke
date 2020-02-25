@@ -12,6 +12,7 @@ import makeRoutes from "./routes";
 import Store from "src/store";
 import ApolloClientSingleton from "src/network/apollo-client-singleton";
 import LoadingIndicator from "src/components/LoadingIndicator";
+import ErrorBoundary from "src/components/ErrorBoundary";
 
 import { login, logout } from "./auth-service";
 import errorCatcher from "./error-catcher";
@@ -33,16 +34,18 @@ const history = syncHistoryWithStore(browserHistory, store.data);
 StyleSheet.rehydrate(window.RENDERED_CLASS_NAMES);
 
 ReactDOM.render(
-  <ApolloProvider store={store.data} client={ApolloClientSingleton}>
-    <Suspense
-      fallback={
-        <MuiThemeProvider>
-          <LoadingIndicator />
-        </MuiThemeProvider>
-      }
-    >
-      <Router history={history} routes={makeRoutes()} />
-    </Suspense>
-  </ApolloProvider>,
+  <ErrorBoundary>
+    <ApolloProvider store={store.data} client={ApolloClientSingleton}>
+      <Suspense
+        fallback={
+          <MuiThemeProvider>
+            <LoadingIndicator />
+          </MuiThemeProvider>
+        }
+      >
+        <Router history={history} routes={makeRoutes()} />
+      </Suspense>
+    </ApolloProvider>
+  </ErrorBoundary>,
   document.getElementById("mount")
 );
