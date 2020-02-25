@@ -3,6 +3,7 @@ import theme from "../styles/theme";
 const blackRgbArray = [0, 0, 0];
 const MIN_CONTRAST = 4.5;
 const WHITE = theme.colors.white;
+const whiteRgbArray = [255, 255, 255];
 
 //from https://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
 function hexToRgb(hex) {
@@ -15,6 +16,8 @@ function hexToRgb(hex) {
       ]
     : null;
 }
+
+const rgbToArray = color => color.match(/[\.\d]+/g).map(item => +item);
 
 //from: https://stackoverflow.com/questions/9733288/how-to-programmatically-calculate-the-contrast-ratio-between-two-colors
 function luminanace(r, g, b) {
@@ -33,7 +36,7 @@ function contrast(rgb1, rgb2) {
 }
 
 export function getBlackOrWhiteTextForBg(bgColor) {
-  const rgbArray = hexToRgb(bgColor);
+  const rgbArray = hexToRgb(bgColor) || rgbToArray(bgColor) || whiteRgbArray;
   const contrastOnBlack = contrast(rgbArray, blackRgbArray);
   return contrastOnBlack > MIN_CONTRAST ? "black" : WHITE;
 }
