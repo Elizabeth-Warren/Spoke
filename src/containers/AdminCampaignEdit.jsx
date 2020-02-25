@@ -25,6 +25,7 @@ import ShiftingConfigurationForm from "src/components/ShiftingConfigurationForm"
 import DisplayLink from "src/components/DisplayLink";
 import { CreateContainer } from "./AdminCampaignCreate";
 import JobProgress from "./JobProgress";
+import { validateCustomFieldsInBody } from "../lib/custom-fields-helpers";
 
 const campaignInfoFragment = `
   id
@@ -267,6 +268,24 @@ class AdminCampaignEdit extends React.Component {
     return section.checkCompleted();
   }
 
+  getMissingCustomFields = responses => {
+    const { customFields } = this.props.campaignData.campaign;
+    const { cannedResponses } = this.state.campaignFormValues;
+    const activeResponses = cannedResponses.filter(
+      response => !response.deleted
+    );
+    const missingFields = activeResponses.reduce((acc, response) => {
+      const { missingFields = [] } = validateCustomFieldsInBody(
+        response.text,
+        customFields
+      );
+      return [...acc, ...missingFields];
+    }, []);
+
+    const invalidCustomFields = _.union(missingFields);
+    return invalidCustomFields;
+  };
+
   sections() {
     return [
       {
@@ -337,16 +356,19 @@ class AdminCampaignEdit extends React.Component {
         content: CampaignCannedResponsesForm,
         keys: ["cannedResponses"],
         checkCompleted: () => {
-          return !_.some(
+          const invalidFields = this.getMissingCustomFields();
+          const noUnsaved = !_.some(
             this.state.campaignFormValues.cannedResponses,
             cr => cr.isNew
           );
+          return noUnsaved && !invalidFields.length;
         },
         blocksStarting: true,
         expandAfterCampaignStarts: true,
         expandableBySuperVolunteers: true,
         extraProps: {
-          customFields: this.props.campaignData.campaign.customFields
+          customFields: this.props.campaignData.campaign.customFields,
+          getMissingCustomFields: this.getMissingCustomFields
         }
       },
       {

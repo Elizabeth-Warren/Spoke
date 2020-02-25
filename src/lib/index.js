@@ -33,7 +33,7 @@ export {
   getChildren,
   makeTree
 } from "./interaction-step-helpers";
-
+import { validateCustomFieldsInBody } from "./custom-fields-helpers";
 const topLevelUploadFields = {
   first_name: "first_name",
   last_name: "last_name",
@@ -45,50 +45,12 @@ const topLevelUploadFields = {
 
 const requiredResponseFields = ["Title", "Body"];
 
-const presetFields = [
-  "firstName",
-  "lastName",
-  "texterFirstName",
-  "texterLastName",
-  "texterFirstName",
-  "texterLastName"
-];
-
 export {
   ROLE_HIERARCHY,
   getHighestRole,
   hasRole,
   isRoleGreater
 } from "./permissions";
-
-const validateCustomFieldsInBody = (field, customFields = []) => {
-  const regex = /{(.*?)}/;
-  const arr = field.trim().split(" ");
-  const allVars = arr.reduce((acc, string) => {
-    const match = string.match(regex);
-    if (match) {
-      acc.push(match[1]);
-    }
-    return acc;
-  }, []);
-
-  const validCustomFields = [...customFields, ...presetFields];
-  const sortedFields = _.partition(
-    allVars,
-    item => validCustomFields.indexOf(item) >= 0
-  );
-
-  const missing = sortedFields[1] || [];
-  const isValid = missing.length === 0;
-
-  if (isValid) {
-    return { field };
-  }
-  return {
-    field: "",
-    missingFields: missing
-  };
-};
 
 const getValidatedResponsesData = (data, customFields) => {
   let validatedData;
@@ -110,6 +72,7 @@ const getValidatedResponsesData = (data, customFields) => {
   result = _.partition(validatedData, row => !!row.Body && !!row.Title);
   validatedData = result[0];
   const invalidFieldRows = result[1];
+
   const invalidCustomFields = invalidFieldRows.reduce(
     (acc, row) => _.union(acc, row.missingFields),
     []

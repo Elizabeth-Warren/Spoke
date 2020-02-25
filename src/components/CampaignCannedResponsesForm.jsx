@@ -5,7 +5,6 @@ import FlatButton from "material-ui/FlatButton";
 import Form from "react-formal";
 import GSForm from "./forms/GSForm";
 import { List, ListItem } from "material-ui/List";
-import Subheader from "material-ui/Subheader";
 import Divider from "material-ui/Divider";
 import CampaignFormSectionHeading from "./CampaignFormSectionHeading";
 import DeleteIcon from "material-ui/svg-icons/action/delete";
@@ -18,27 +17,13 @@ import { dataTest } from "../lib/attributes";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import arrayMove from "array-move";
 import { parseResponsesCSV } from "../lib";
-import RaisedButton from "material-ui/RaisedButton/RaisedButton";
-import CheckIcon from "material-ui/svg-icons/action/check-circle";
 import WarningIcon from "material-ui/svg-icons/alert/warning";
-import ErrorIcon from "material-ui/svg-icons/alert/error";
 import ColumnName from "../containers/AdminCampaignCreate/ColumnName";
 import FilePicker from "../containers/AdminCampaignCreate/FilePicker";
 import ValidationStats from "../containers/AdminCampaignCreate/ValidationStats";
+import { validateCustomFieldsInBody } from "../lib/custom-fields-helpers";
 
-const checkIcon = <CheckIcon color={theme.colors.EWnavy} />;
 const warningIcon = <WarningIcon color={theme.colors.EWred} />;
-const errorIcon = <ErrorIcon color={theme.colors.EWred} />;
-
-const innerStyles = {
-  button: {
-    margin: "24px 5px 24px 0",
-    fontSize: "10px"
-  },
-  nestedItem: {
-    fontSize: "12px"
-  }
-};
 
 const styles = StyleSheet.create({
   formContainer: {
@@ -289,6 +274,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
   }
 
   listItems(cannedResponses) {
+    const { customFields } = this.props;
     const SortableItem = SortableElement(({ value: response }) => {
       if (this.state.currentlyEditing.indexOf(response.id) != -1) {
         // we're editing this response
@@ -318,6 +304,11 @@ export default class CampaignCannedResponsesForm extends React.Component {
         ? `[${response.surveyQuestion}] ${response.title}`
         : response.title;
 
+      const { missingFields = [] } = validateCustomFieldsInBody(
+        response.text,
+        customFields
+      );
+
       return (
         <ListItem
           {...dataTest("cannedResponse")}
@@ -325,6 +316,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
           key={response.id}
           primaryText={title}
           secondaryText={response.text}
+          leftIcon={!!missingFields.length ? warningIcon : null}
           rightIconButton={
             <IconButton
               onClick={() => {
@@ -362,6 +354,36 @@ export default class CampaignCannedResponsesForm extends React.Component {
         onSortEnd={this.handleSort}
         distance={5}
       />
+    );
+  }
+
+  updateMissingFields() {
+    const invalidCustomFields = this.props.getMissingCustomFields();
+    const fieldString = invalidCustomFields.join(", ");
+    const responseUploadError = !!invalidCustomFields.length
+      ? `The following custom fields were not included in your contacts upload: ${fieldString}`
+      : null;
+    this.setState({ responseUploadError });
+  }
+
+  componentWillReceiveProps() {
+    this.updateMissingFields();
+  }
+
+  componentDidMount() {
+    const { cannedResponses } = this.props.formValues;
+    if (!!cannedResponses.length) {
+      this.updateMissingFields(cannedResponses);
+    }
+  }
+
+  showRepliesList() {
+    const { cannedResponses } = this.props.formValues;
+    return cannedResponses.length === 0 ? null : (
+      <List>
+        {this.listItems(cannedResponses)}
+        <Divider />
+      </List>
     );
   }
 
@@ -460,15 +482,6 @@ export default class CampaignCannedResponsesForm extends React.Component {
 
   render() {
     const { formValues } = this.props;
-    const cannedResponses = formValues.cannedResponses;
-    const { responseUploadError } = this.state;
-    const list =
-      cannedResponses.length === 0 ? null : (
-        <List>
-          {this.listItems(cannedResponses)}
-          <Divider />
-        </List>
-      );
 
     return (
       <GSForm
@@ -481,7 +494,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
           subtitle="Save some scripts for your texters to use to answer additional FAQs that may come up outside of the survey questions and scripts you already set up. Add responses by uploading a CSV of script responses or add them manually."
         />
         {this.showUploadButton()}
-        {list}
+        {this.showRepliesList()}
         <h3>Add Manually</h3>
         {this.showAddForm()}
         <Form.Button
