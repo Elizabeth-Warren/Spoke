@@ -45,10 +45,6 @@ const JoinCampaign = React.lazy(() => import("src/containers/JoinCampaign"));
 const Home = React.lazy(() => import("src/containers/Home"));
 const Settings = React.lazy(() => import("src/containers/Settings"));
 const UserEdit = React.lazy(() => import("src/containers/UserEdit"));
-const TexterFaqs = React.lazy(() =>
-  import("src/components/TexterFrequentlyAskedQuestions")
-);
-const FAQs = React.lazy(() => import("src/lib/faqs"));
 const AdminCampaignCreate = React.lazy(() =>
   import("src/containers/AdminCampaignCreate")
 );
@@ -93,15 +89,6 @@ export default function makeRoutes(requireAuth = () => {}) {
         />
         <Route path=":organizationId">
           <IndexRedirect to="todos" />
-          <Route
-            path="faqs"
-            components={{
-              main: () => <TexterFaqs faqs={FAQs} />,
-              topNav: p => (
-                <TopNav title="Account" orgId={p.params.organizationId} />
-              )
-            }}
-          />
           <Route
             path="account/:userId"
             components={{
