@@ -15,7 +15,6 @@ import passportSetup from "./auth-passport";
 import wrap from "./wrap";
 import log from "src/server/log";
 import twilio from "./api/lib/twilio";
-import { setupUserNotificationObservers } from "./notifications";
 import { twiml } from "twilio";
 import { existsSync } from "fs";
 import sourceMapSupport from "source-map-support";
@@ -43,7 +42,6 @@ process.on("uncaughtException", ex => {
 
 const DEBUG = process.env.NODE_ENV === "development";
 
-setupUserNotificationObservers();
 const app = express();
 // Heroku requires you to use process.env.PORT
 const port = process.env.DEV_APP_PORT || process.env.PORT;

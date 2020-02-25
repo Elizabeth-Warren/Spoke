@@ -1,6 +1,5 @@
 import { cacheableData, Campaign } from "src/server/models";
 import { accessRequired, UserInputError } from "src/server/api/errors";
-import { Notifications, sendUserNotification } from "src/server/notifications";
 import twilio from "src/server/api/lib/twilio";
 import db from "src/server/db";
 import log from "src/server/log";
@@ -110,19 +109,7 @@ export const mutations = {
     }
     await campaign.save();
     await cacheableData.campaign.reload(id);
-    try {
-      // TODO: dispatch a job to send notifications!
-      await sendUserNotification({
-        type: Notifications.CAMPAIGN_STARTED,
-        campaignId: id
-      });
-    } catch (e) {
-      log.warn({
-        msg: "Failed to campaign start notifications",
-        campaign,
-        mutation: "startCampaign"
-      });
-    }
+
     return campaign;
   },
   updateCampaignStatus: async (_, { id, status }, { user, loaders }) => {

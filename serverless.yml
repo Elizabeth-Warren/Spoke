@@ -94,6 +94,7 @@ provider:
     DB_TYPE: pg
     DB_USER: ${ssm:/${self:custom.stage}/spoke/postgres/USER~true}
     DB_PASSWORD: ${ssm:/${self:custom.stage}/spoke/postgres/PASSWORD~true}
+    EMAIL_ENABLED: true
     EMAIL_FROM: ${ssm:/${self:custom.stage}/spoke/EMAIL_FROM~true}
     EMAIL_REPLY_TO: ${ssm:/${self:custom.stage}/spoke/EMAIL_REPLY_TO~true}
     SES_REGION: us-east-1

@@ -1,6 +1,5 @@
 import { r, Assignment } from "../models";
 import log from "src/server/log";
-import { Notifications, sendUserNotification } from "../notifications";
 
 export async function assignTexters(job) {
   // Assigns UNassigned campaign contacts to texters
@@ -252,15 +251,6 @@ export async function assignTexters(job) {
           assignment_id: assignment.id
         })
         .catch(log.error);
-
-      if (existingAssignment) {
-        // We can't rely on an observer because nothing
-        // about the actual assignment object changes
-        await sendUserNotification({
-          type: Notifications.ASSIGNMENT_UPDATED,
-          assignment
-        });
-      }
     }
 
     // await updateJob(job, Math.floor((75 / texterCount) * (index + 1)) + 20);
