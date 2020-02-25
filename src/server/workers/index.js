@@ -1,5 +1,6 @@
 const AWS = require("aws-sdk");
 import { assignTexters } from "./assign-texters";
+import { startCampaign } from "./start-campaign";
 import { uploadContacts } from "./upload-contacts";
 import { exportCampaign } from "./export-campaign";
 import { buyNumbers } from "./buy-numbers";
@@ -11,7 +12,8 @@ export const JobType = {
   ASSIGN_TEXTERS: "assign_texters", // TODO[matteo]: delete this job
   UPLOAD_CONTACTS: "upload_contacts",
   EXPORT_CAMPAIGN: "export",
-  BUY_NUMBERS: "buy_numbers"
+  BUY_NUMBERS: "buy_numbers",
+  START_CAMPAIGN: "start_campaign"
 };
 
 function wrapJob(jobFn) {
@@ -56,7 +58,8 @@ export const WORKER_MAP = {
   [JobType.ASSIGN_TEXTERS]: wrapJob(assignTexters),
   [JobType.UPLOAD_CONTACTS]: wrapJob(uploadContacts),
   [JobType.EXPORT_CAMPAIGN]: wrapJob(exportCampaign),
-  [JobType.BUY_NUMBERS]: wrapJob(buyNumbers)
+  [JobType.BUY_NUMBERS]: wrapJob(buyNumbers),
+  [JobType.START_CAMPAIGN]: wrapJob(startCampaign)
 };
 
 let lambdaClient;
@@ -81,7 +84,6 @@ async function invokeLambdaWorker(job) {
       response: res.response
     });
   } catch (e) {
-    // TODO[matteo]: update job status to failed
     log.error({ msg: "Lambda worker invocation error", error: e });
   }
 }

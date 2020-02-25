@@ -74,8 +74,9 @@ export const schema = gql`
     shiftingConfiguration: String
     phoneNumbers: [PhoneNumbersByAreaCode]
     joinUrl: String
-    contactImportJob: BackgroundJob
     contactFileName: String
+    contactImportJob: BackgroundJob
+    startJob: BackgroundJob
   }
 
   type CampaignsList {

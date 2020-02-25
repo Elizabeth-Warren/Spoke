@@ -1,4 +1,3 @@
-import db from "src/server/db";
 import {
   setupTest,
   cleanupTest,
@@ -12,6 +11,7 @@ import {
 } from "__test__/test_helpers";
 import { r } from "src/server/models";
 import config from "src/server/config";
+import db from "src/server/db";
 
 let fixture1;
 let fixture2;

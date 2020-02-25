@@ -4,6 +4,7 @@ import { Campaign, r, cacheableData } from "../models";
 import { getUsers } from "./user";
 import { campaignPhoneNumbersEnabled } from "./organization";
 import db from "src/server/db";
+import { JobType } from "src/server/workers";
 import config from "src/server/config";
 import urlJoin from "url-join";
 import moment from "moment";
@@ -427,7 +428,17 @@ export const resolvers = {
     },
     contactImportJob: async campaign =>
       campaign.contactImportJob ||
-      (await cacheableData.campaign.dbContactImportJob(campaign.id)) ||
+      (await db.BackgroundJob.getByTypeAndCampaign(
+        JobType.UPLOAD_CONTACTS,
+        campaign.id
+      )) ||
+      null,
+    startJob: async campaign =>
+      campaign.startJob ||
+      (await db.BackgroundJob.getByTypeAndCampaign(
+        JobType.START_CAMPAIGN,
+        campaign.id
+      )) ||
       null,
     status: campaign => {
       // TODO[matteo]: follow up with commit to remove these legacy fields

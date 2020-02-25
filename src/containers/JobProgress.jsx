@@ -2,20 +2,31 @@ import React, { Component } from "react";
 import gql from "graphql-tag";
 import loadData from "./hoc/load-data";
 import { CircularProgress } from "material-ui";
+import types from "prop-types";
 
 class JobProgress extends Component {
+  static propTypes = {
+    jobId: types.string,
+    mode: types.string,
+    text: types.string
+  };
+
   render() {
     const job = this.props.jobData.backgroundJob;
     return (
       <div style={{ marginTop: "50px", textAlign: "center" }}>
-        <h2>Importing Contacts</h2>
+        <h2>{this.props.text}</h2>
         <CircularProgress
-          mode="determinate"
-          value={job.progress * 100}
+          mode={this.props.mode}
+          value={
+            this.props.mode === "indeterminate" ? null : job.progress * 100
+          }
           size={80}
           thickness={5}
         />
-        <h3>{(job.progress * 100).toFixed(1)}%</h3>
+        {this.props.mode === "determinate" ? (
+          <h3>{(job.progress * 100).toFixed(1)}%</h3>
+        ) : null}
       </div>
     );
   }

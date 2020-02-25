@@ -117,7 +117,7 @@ provider:
     SLACK_CLIENT_SECRET: ${ssm:/${self:custom.stage}/spoke/slack/CLIENT_SECRET~true}
     SLACK_TEAM_ID: ${ssm:/${self:custom.stage}/spoke/slack/TEAM_ID~true}
     EMBEDDED_SHIFTER_URL: ${ssm:/${self:custom.stage}/spoke/shifter/URL~true}
-    MAX_CONTACTS: 25000
+    MAX_CONTACTS: 50000
     ASSET_DOMAIN: https://ew-spoke-public.elizabethwarren.codes/${self:custom.stage}
     # SUPPRESS_PHONE_VALIDATION: ${self:custom.suppressPhoneValidation.${self:custom.stage}}
     # SKIP_TWILIO_AND_AUTOREPLY: ${self:custom.skipTwilioAndAutoReply.${self:custom.stage}}

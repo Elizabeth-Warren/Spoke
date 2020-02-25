@@ -42,10 +42,6 @@ const dbInteractionSteps = async id => {
     .orderBy("id");
 };
 
-const dbContactImportJob = async id => {
-  return BackgroundJob.getByTypeAndCampaign(JobType.UPLOAD_CONTACTS, id);
-};
-
 const clear = async id => {
   if (r.redis) {
     await r.redis.delAsync(cacheKey(id));
@@ -131,6 +127,5 @@ export const campaignCache = {
   reload: loadDeep,
   currentEditors,
   dbCustomFields,
-  dbInteractionSteps,
-  dbContactImportJob
+  dbInteractionSteps
 };

@@ -8,7 +8,6 @@ import WarningIcon from "material-ui/svg-icons/alert/warning";
 import DoneIcon from "material-ui/svg-icons/action/done";
 import Avatar from "material-ui/Avatar";
 import theme from "../styles/theme";
-import CircularProgress from "material-ui/CircularProgress";
 import { Card, CardHeader, CardText } from "material-ui/Card";
 import gql from "graphql-tag";
 import loadData from "./hoc/load-data";
@@ -86,6 +85,12 @@ const campaignInfoFragment = `
     progress
     status
   }
+  startJob {
+    id
+    resultMessage
+    progress
+    status
+  }
 `;
 
 class AdminCampaignEdit extends React.Component {
@@ -97,7 +102,6 @@ class AdminCampaignEdit extends React.Component {
       campaignFormValues: {
         ...props.campaignData.campaign
       },
-      startingCampaign: false,
       showJoinDialog: false
     };
   }
@@ -464,26 +468,39 @@ class AdminCampaignEdit extends React.Component {
   }
 
   renderHeader() {
-    const useStaticAssign = !this.props.campaignData.campaign
-      .useDynamicAssignment;
-    const notStarting = this.props.campaignData.campaign.isStarted ? (
+    return (
       <div
         style={{
-          ...theme.layouts.multiColumn.container,
-          justifyContent: "space-around",
-          flexWrap: "wrap"
+          marginBottom: 15,
+          fontSize: 16
         }}
       >
-        {/* TODO vertically align text in both Contact Upload and Campaign Edit screens*/}
+        {this.props.campaignData.campaign.isStarted
+          ? this.renderStartedCampaignHeader()
+          : this.renderUnstartedCampaignHeader()}
+      </div>
+    );
+  }
+
+  async handleStartCampaign() {
+    await this.props.mutations.startCampaign(
+      this.props.campaignData.campaign.id
+    );
+  }
+
+  renderStartedCampaignHeader() {
+    const useStaticAssign = !this.props.campaignData.campaign
+      .useDynamicAssignment;
+    return (
+      <div style={{ ...theme.layouts.multiColumn.container }}>
         <div
           {...dataTest("campaignIsStarted")}
           style={{
             color: theme.colors.EWnavy,
-            fontWeight: 800
+            ...theme.layouts.multiColumn.flexColumn
           }}
         >
-          {this.props.campaignData.campaign.title}
-          <br />
+          <b>{this.props.campaignData.campaign.title}</b>
           This campaign is running!
           {this.renderCurrentEditors()}
         </div>
@@ -512,56 +529,9 @@ class AdminCampaignEdit extends React.Component {
           </div>
         )}
       </div>
-    ) : (
-      this.renderStartButton()
-    );
-
-    return (
-      <div
-        style={{
-          marginBottom: 15,
-          fontSize: 16
-        }}
-      >
-        {this.state.startingCampaign ? (
-          <div
-            style={{
-              color: theme.colors.gray,
-              fontWeight: 800
-            }}
-          >
-            <CircularProgress
-              size={0.5}
-              style={{
-                verticalAlign: "middle",
-                display: "inline-block"
-              }}
-            />
-            Starting your campaign...
-          </div>
-        ) : (
-          notStarting
-        )}
-      </div>
     );
   }
-
-  async handleStartCampaign() {
-    this.setState({
-      startingCampaign: true
-    });
-    await this.props.mutations.startCampaign(
-      this.props.campaignData.campaign.id
-    );
-    const showJoinDialog = !!this.props.campaignData.campaign
-      .useDynamicAssignment;
-    this.setState({
-      showJoinDialog,
-      startingCampaign: false
-    });
-  }
-
-  renderStartButton() {
+  renderUnstartedCampaignHeader() {
     if (!this.props.params.adminPerms) {
       // Supervolunteers don't have access to start the campaign or un/archive it
       return null;
@@ -577,18 +547,16 @@ class AdminCampaignEdit extends React.Component {
     });
 
     return (
-      <div
-        style={{
-          ...theme.layouts.multiColumn.container
-        }}
-      >
+      <div style={{ ...theme.layouts.multiColumn.container }}>
         <div
           style={{
+            color: theme.colors.EWnavy,
             ...theme.layouts.multiColumn.flexColumn
           }}
         >
+          <b>{this.props.campaignData.campaign.title}</b>
           {isCompleted
-            ? "Your campaign is all good to go! >>>>>>>>>"
+            ? "Your campaign is good to go!"
             : "You need to complete all the sections below before you can start this campaign"}
           {this.renderCurrentEditors()}
         </div>
@@ -832,14 +800,8 @@ function AdminCampaignEditRouter(props) {
     return <AdminCampaignEdit {...props} />;
   }
 
-  const job = props.campaignData.campaign.contactImportJob;
-  const jobStatus = job.status;
-
-  if (jobStatus === "PENDING" || jobStatus === "RUNNING") {
-    return <JobProgress jobId={job.id} />;
-  }
-
-  if (jobStatus === "FAILED") {
+  const contactJob = props.campaignData.campaign.contactImportJob;
+  if (contactJob.status === "FAILED") {
     return (
       <CreateContainer
         initialError={job.resultMessage}
@@ -849,6 +811,29 @@ function AdminCampaignEditRouter(props) {
     );
   }
 
+  if (contactJob.status === "PENDING" || contactJob.status === "RUNNING") {
+    return (
+      <JobProgress
+        jobId={contactJob.id}
+        text={"Importing Contacts"}
+        mode={"determinate"}
+      />
+    );
+  }
+
+  const startJob = props.campaignData.campaign.startJob;
+  if (
+    startJob &&
+    (startJob.status === "PENDING" || startJob.status === "RUNNING")
+  ) {
+    return (
+      <JobProgress
+        jobId={startJob.id}
+        text={"Starting Your Campaign"}
+        mode={"indeterminate"}
+      />
+    );
+  }
   return <AdminCampaignEdit {...props} />;
 }
 
