@@ -995,6 +995,9 @@ export class ConversationTexterContactComponent extends React.Component {
               autoFocus
               ref="msgInput"
               onKeyDown={this.onMessageInputKeyDown}
+              floatingLabelStyle={{ color: theme.colors.EWnavy }}
+              underlineStyle={{ borderColor: theme.colors.EWnavy }}
+              hintStyle={{ color: theme.colors.EWnavy }}
             />
             {this.renderCorrectSendButton()}
           </GSForm>

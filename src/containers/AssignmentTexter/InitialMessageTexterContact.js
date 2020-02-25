@@ -356,6 +356,9 @@ export class InitialMessageTexterContact extends Component {
             multiLine
             fullWidth
             rowsMax={6}
+            floatingLabelStyle={{ color: theme.colors.EWnavy }}
+            underlineStyle={{ borderColor: theme.colors.EWnavy }}
+            hintStyle={{ color: theme.colors.EWnavy }}
           />
         </GSForm>
       </div>

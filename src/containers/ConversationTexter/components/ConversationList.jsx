@@ -25,10 +25,11 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(240, 242, 240, .1)"
   },
   icon: {
-    backgroundColor: theme.colors.EWlibertyGreen,
+    border: `6px solid ${theme.colors.EWlibertyGreen}`,
+    backgroundColor: "white",
     borderRadius: "50%",
-    height: 12,
-    width: 12,
+    height: 6,
+    width: 6,
     display: "inline-block",
     marginRight: 10
   },

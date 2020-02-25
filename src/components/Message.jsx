@@ -25,8 +25,8 @@ const styles = StyleSheet.create({
     marginRight: "50px",
     alignSelf: "flex-start",
     textAlign: "left",
-    backgroundColor: theme.colors.gray,
-    color: theme.colors.white,
+    backgroundColor: theme.colors.EWnavy,
+    color: "white",
     position: "relative",
 
     ":before": {
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
       width: 0,
       left: -25,
       border: "14px solid transparent",
-      borderRightColor: theme.colors.gray,
+      borderRightColor: theme.colors.EWnavy,
       zIndex: 10,
       top: "calc(50% - 14px)"
     }
