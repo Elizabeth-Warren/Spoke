@@ -939,6 +939,7 @@ export class ConversationTexterContactComponent extends React.Component {
         onSelectCannedResponse={this.handleCannedResponseChange}
         shiftingConfiguration={shiftingConfiguration}
         contact={contact}
+        assignment={assignment}
       />
     );
   }

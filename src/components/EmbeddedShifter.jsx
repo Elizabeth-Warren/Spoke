@@ -24,7 +24,11 @@ function cleanPhoneNumber(phone) {
     .join("");
 }
 
-export default function EmbeddedShifter({ shiftingConfiguration, contact }) {
+export default function EmbeddedShifter({
+  shiftingConfiguration,
+  contact,
+  assignment: { campaign }
+}) {
   let customFields = {};
   if (contact.customFields) {
     customFields = JSON.parse(contact.customFields) || {};
@@ -37,7 +41,8 @@ export default function EmbeddedShifter({ shiftingConfiguration, contact }) {
     last_name: contact.lastName || "",
     phone: cleanPhoneNumber(contact.cell || ""),
     email: customFields.email || "",
-    zip: customFields.zip || ""
+    zip: customFields.zip || "",
+    source: `spoke-${campaign.organization.id}-${campaign.id}`
   };
 
   const urlParamString = _.map(
