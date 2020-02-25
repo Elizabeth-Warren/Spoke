@@ -52,11 +52,13 @@ const styles = StyleSheet.create({
 
 export default class CampaignContactsForm extends React.Component {
   getColumnHeaders(columns) {
+    const columnTitle = col =>
+      col === "cell" ? "phone_number" : humps.decamelize(col);
     return (
       <TableHeader adjustForCheckbox={false} displaySelectAll={false}>
         <TableRow>
           {columns.map(col => (
-            <TableHeaderColumn>{humps.decamelize(col)}</TableHeaderColumn>
+            <TableHeaderColumn>{columnTitle(col)}</TableHeaderColumn>
           ))}
         </TableRow>
       </TableHeader>
