@@ -279,6 +279,11 @@ const rootSchema = gql`
       optOut: OptOutInput!
       campaignContactId: String!
     ): CampaignContact
+    bulkCreateOptOuts(
+      cells: [Phone]!
+      organizationId: String!
+      reasonCode: String!
+    ): Boolean
     editCampaignContactMessageStatus(
       messageStatus: String!
       campaignContactId: String!

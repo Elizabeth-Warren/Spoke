@@ -1032,6 +1032,28 @@ const rootMutations = {
       };
     },
 
+    bulkCreateOptOuts: async (
+      _,
+      { cells, organizationId, reasonCode },
+      { user }
+    ) => {
+      if (cells.length > 100) {
+        throw new ApolloError(
+          "Can't bulk opt out more than 100 phones at a time",
+          "BULK_OPT_OUT_LIMIT_EXCEEDED"
+        );
+      }
+      await accessRequired(user, organizationId, "ADMIN");
+
+      await db.OptOut.createBulk({
+        cells,
+        reason_code: reasonCode,
+        organization_id: organizationId
+      });
+
+      return true;
+    },
+
     sendMessage: async (
       _,
       { message, campaignContactId },
