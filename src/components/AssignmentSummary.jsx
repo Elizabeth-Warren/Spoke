@@ -203,7 +203,7 @@ export class AssignmentSummary extends Component {
           </div>
           {!isWithinTextingHours && (
             <div style={{ margin: "20px", fontStyle: "italic" }}>
-              It is outside of texting hours for this campain. Check back at{" "}
+              It is outside of texting hours for this campaign. Check back at{" "}
               {assignment.campaign.textingHoursStart}:00{" "}
               {assignment.campaign.timezone}
             </div>
