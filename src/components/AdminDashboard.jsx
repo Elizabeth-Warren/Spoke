@@ -19,7 +19,8 @@ const styles = StyleSheet.create({
     ...theme.layouts.multiColumn.flexColumn,
     paddingLeft: "2rem",
     paddingRight: "2rem",
-    margin: "24px auto"
+    margin: "24px auto",
+    overflow: "auto"
   }
 });
 

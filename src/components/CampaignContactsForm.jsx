@@ -93,7 +93,11 @@ export default class CampaignContactsForm extends React.Component {
       col => !fieldsToSkip.includes(col)
     ); //camel to snake
     return (
-      <Table>
+      <Table
+        bodyStyle={{ overflow: "auto" }}
+        style={{ width: "auto", overflow: "auto" }}
+        fixedHeader={false}
+      >
         {this.getColumnHeaders(columns)}
         <TableBody displayRowCheckbox={false}>
           {this.getContactRows(contacts, columns)}
