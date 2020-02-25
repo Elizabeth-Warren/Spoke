@@ -314,7 +314,8 @@ class AdminCampaignEdit extends React.Component {
           "contactsPreview",
           "contactsCount",
           "customFields",
-          "contactSql"
+          "contactSql",
+          "contactFileName"
         ],
         checkCompleted: () => this.state.campaignFormValues.contactsCount > 0,
         checkSaved: () =>
@@ -329,7 +330,6 @@ class AdminCampaignEdit extends React.Component {
         expandableBySuperVolunteers: false,
         extraProps: {
           optOuts: [], // this.props.organizationData.organization.optOuts, // <= doesn't scale,
-          contactFileName: this.state.campaignFormValues.contactFileName,
           datawarehouseAvailable: this.props.campaignData.campaign
             .datawarehouseAvailable
         }

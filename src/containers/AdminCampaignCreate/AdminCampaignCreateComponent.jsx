@@ -98,7 +98,7 @@ export default class AdminCampaignCreateComponent extends Component {
         optOuts: [],
         maxContacts: this.props.organization.organization.maxContacts
       },
-      ({ contacts, fields, validationStats, error }) => {
+      ({ contacts, fields, validationStats, fileName, error }) => {
         if (error) {
           this.setState({
             state: "idle",
@@ -109,6 +109,7 @@ export default class AdminCampaignCreateComponent extends Component {
             state: "parsed",
             validationStats,
             fields,
+            fileName,
             parsedData: contacts,
             error:
               contacts.length > 0
@@ -164,6 +165,7 @@ export default class AdminCampaignCreateComponent extends Component {
 
       const createOrUpdateResult = await this.props.mutations.createOrUpdateCampaign(
         s3Key,
+        this.state.fileName,
         this.state.shiftConfiguration !== "off"
       );
 

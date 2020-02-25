@@ -78,7 +78,7 @@ const getValidatedResponsesData = (data, customFields) => {
     []
   );
 
-  //if there are any invalid fields, return no responses
+  // if there are any invalid fields, return no responses
   validatedData =
     !invalidFieldRows.length && !missingFieldCount.length ? validatedData : [];
 
@@ -238,8 +238,10 @@ export const parseCSV = (
         optOuts
       );
 
+      const fileName = file && file.name;
       callback({
         fields,
+        fileName,
         validationStats,
         contacts: validatedData
       });

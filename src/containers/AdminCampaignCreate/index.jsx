@@ -15,7 +15,7 @@ const mapMutationsToProps = ({ ownProps }) => ({
     `,
     variables: { organizationId: ownProps.organizationId }
   }),
-  createOrUpdateCampaign: (contactsS3Key, shiftingEnabled) => {
+  createOrUpdateCampaign: (contactsS3Key, contactFileName, shiftingEnabled) => {
     const shiftingConfiguration = JSON.stringify({ enabled: shiftingEnabled });
     if (ownProps.copyFrom) {
       return {
@@ -23,11 +23,13 @@ const mapMutationsToProps = ({ ownProps }) => ({
           mutation copyCampaign(
             $campaignId: String!
             $contactsS3Key: String!
+            $contactFileName: String!
             $shiftingConfiguration: String!
           ) {
             copyCampaign(
               id: $campaignId
               contactsS3Key: $contactsS3Key
+              contactFileName: $contactFileName
               shiftingConfiguration: $shiftingConfiguration
             ) {
               id
@@ -37,6 +39,7 @@ const mapMutationsToProps = ({ ownProps }) => ({
         variables: {
           campaignId: ownProps.copyFrom,
           contactsS3Key,
+          contactFileName,
           shiftingConfiguration
         }
       };
@@ -48,9 +51,14 @@ const mapMutationsToProps = ({ ownProps }) => ({
           mutation uploadContacts(
             $campaignId: String!
             $contactsS3Key: String!
+            $contactFileName: String!
             $shiftingConfiguration: String!
           ) {
-            uploadContacts(campaignId: $campaignId, s3Key: $contactsS3Key)
+            uploadContacts(
+              campaignId: $campaignId
+              s3Key: $contactsS3Key
+              contactFileName: $contactFileName
+            )
             editCampaign(
               id: $campaignId
               campaign: { shiftingConfiguration: $shiftingConfiguration }
@@ -62,6 +70,7 @@ const mapMutationsToProps = ({ ownProps }) => ({
         variables: {
           campaignId: ownProps.updateCampaign,
           contactsS3Key,
+          contactFileName,
           shiftingConfiguration
         },
         refetchQueries: ["getCampaign"]
@@ -73,6 +82,7 @@ const mapMutationsToProps = ({ ownProps }) => ({
         mutation createCampaign(
           $organizationId: String!
           $contactsS3Key: String!
+          $contactFileName: String!
           $shiftingConfiguration: String!
         ) {
           createCampaign(
@@ -82,6 +92,7 @@ const mapMutationsToProps = ({ ownProps }) => ({
               shiftingConfiguration: $shiftingConfiguration
             }
             contactsS3Key: $contactsS3Key
+            contactFileName: $contactFileName
           ) {
             id
           }
@@ -90,6 +101,7 @@ const mapMutationsToProps = ({ ownProps }) => ({
       variables: {
         organizationId: ownProps.organizationId,
         contactsS3Key,
+        contactFileName,
         shiftingConfiguration
       }
     };
