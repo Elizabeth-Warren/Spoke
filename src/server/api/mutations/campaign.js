@@ -128,6 +128,7 @@ export const mutations = {
   updateCampaignStatus: async (_, { id, status }, { user, loaders }) => {
     // TODO: add ARCHIVE here and remove unarchive
     const supportedStatuses = [
+      CampaignStatus.ACTIVE,
       CampaignStatus.CLOSED,
       CampaignStatus.CLOSED_FOR_INITIAL_SENDS
     ];
@@ -136,6 +137,14 @@ export const mutations = {
     }
     const campaign = await loaders.campaign.load(id);
     await accessRequired(user, campaign.organization_id, "ADMIN");
+
+    // you can only transition from any of the supported states to any of the others
+    if (supportedStatuses.indexOf(campaign.status) === -1) {
+      throw new UserInputError(
+        `Cannot transition from ${campaign.status} to ${status}`
+      );
+    }
+
     // note: campaign gets passed to legacy resolver so we need to return snake case
     const updated = await db.Campaign.updateStatus(id, status, {
       snakeCase: true
