@@ -17,6 +17,8 @@ import {
   r
 } from "src/server/models";
 import { cacheableData } from "src/server/models/cacheable_queries";
+
+import { campaignPhoneNumbersEnabled } from "./lib/utils";
 // import { isBetweenTextingHours } from '../../lib/timezones'
 import { resolvers as assignmentResolvers, getContacts } from "./assignment";
 import { getCampaigns, resolvers as campaignResolvers } from "./campaign";
@@ -43,10 +45,7 @@ import { saveNewIncomingMessage } from "./lib/message-sending";
 import serviceMap from "./lib/services";
 import { resolvers as messageResolvers, messageDedupe } from "./message";
 import { resolvers as optOutResolvers } from "./opt-out";
-import {
-  resolvers as organizationResolvers,
-  campaignPhoneNumbersEnabled
-} from "./organization";
+import { resolvers as organizationResolvers } from "./organization";
 import { mutations as organizationMutations } from "./mutations/organization";
 import { GraphQLPhone } from "./phone";
 import { resolvers as questionResolvers } from "./question";
