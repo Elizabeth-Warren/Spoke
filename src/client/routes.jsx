@@ -44,7 +44,7 @@ const CreateOrganization = React.lazy(() =>
 const JoinCampaign = React.lazy(() => import("src/containers/JoinCampaign"));
 const Home = React.lazy(() => import("src/containers/Home"));
 const Settings = React.lazy(() => import("src/containers/Settings"));
-const UserEdit = React.lazy(() => import("src/containers/UserEdit"));
+const UserProfile = React.lazy(() => import("src/containers/UserProfile"));
 const AdminCampaignCreate = React.lazy(() =>
   import("src/containers/AdminCampaignCreate")
 );
@@ -93,7 +93,7 @@ export default function makeRoutes(requireAuth = () => {}) {
             path="account/:userId"
             components={{
               main: p => (
-                <UserEdit
+                <UserProfile
                   userId={p.params.userId}
                   organizationId={p.params.organizationId}
                 />
@@ -103,6 +103,7 @@ export default function makeRoutes(requireAuth = () => {}) {
               )
             }}
           />
+
           <Route
             path="suspended"
             components={{

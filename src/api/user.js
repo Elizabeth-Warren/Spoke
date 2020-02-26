@@ -13,6 +13,7 @@ export const schema = `
     assignedCell: Phone
     assignment(campaignId: String): Assignment
     terms: Boolean
+    subscribedToReminders: Boolean
   }
 
 type UsersList {

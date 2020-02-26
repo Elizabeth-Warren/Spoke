@@ -289,6 +289,9 @@ export const resolvers = {
         assignment,
         contactCounts: summaries[assignment.id] || []
       }));
-    }
+    },
+
+    subscribedToReminders: user =>
+      user.subscribed_to_reminders == null ? true : user.subscribed_to_reminders
   }
 };

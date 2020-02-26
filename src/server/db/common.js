@@ -71,6 +71,22 @@ async function insertAndReturn(tableName, fields, opts) {
   );
 }
 
+async function bulkInsert(tableName, rows, opts) {
+  const trx = opts && opts.transaction;
+
+  let batch = knex.batchInsert(
+    tableName,
+    rows.map(decamelize),
+    opts.chunkSize || 1000
+  );
+
+  if (trx) {
+    batch = batch.transacting(trx);
+  }
+
+  return batch.returning("*");
+}
+
 async function updateAndReturn(tableName, id, fields, opts) {
   return convertCaseFirst(
     await queryBuilder(tableName, opts)
@@ -93,6 +109,7 @@ const Table = {
   INTERACTION_STEP: "interaction_step",
   JOB_REQUEST: "job_request",
   MESSAGE: "message",
+  NOTIFICATION: "notification",
   LABEL: "label",
   OPT_OUT: "opt_out",
   ORGANIZATION: "organization",
@@ -115,5 +132,6 @@ export {
   withTransaction,
   insertAndReturn,
   updateAndReturn,
-  convertCase
+  convertCase,
+  bulkInsert
 };

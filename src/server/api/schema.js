@@ -503,6 +503,31 @@ const rootMutations = {
         email: userData.email || null
       };
     },
+    editSelf: async (__, { userData }, { user }) => {
+      authRequired(user);
+
+      const updatedUserRes = await r
+        .knex("user")
+        .where("id", user.id)
+        .update({
+          first_name: userData.firstName,
+          last_name: userData.lastName,
+          subscribed_to_reminders: userData.subscribedToReminders
+        })
+        .returning("*");
+
+      const updatedUser = updatedUserRes[0];
+
+      await cacheableData.user.clearUser(updatedUser.id, updatedUser.auth0_id);
+
+      return _.pick(
+        updatedUser,
+        "id",
+        "first_name",
+        "last_name",
+        "subscribed_to_reminders"
+      );
+    },
     resetUserPassword: async (_, { organizationId, userId }, { user }) => {
       if (user.id === userId) {
         throw new Error("You can't reset your own password.");
@@ -1158,6 +1183,7 @@ const rootMutations = {
         text: replaceCurlyApostrophes(text),
         contact_number: contactNumber,
         user_number: "",
+        user_id: user.id,
         assignment_id: message.assignmentId,
         send_status: "SENDING",
         service: orgFeatures.service || process.env.DEFAULT_SERVICE || "",

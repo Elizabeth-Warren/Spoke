@@ -5,6 +5,7 @@ import Campaign from "./campaign";
 import OptOut from "./opt-out";
 import TwilioPhoneNumber from "./twilio-phone-number";
 import User from "./user";
+import Notification from "./notification";
 
 import { knex, Table, transaction } from "./common";
 
@@ -27,5 +28,6 @@ export default {
   Campaign,
   OptOut,
   TwilioPhoneNumber,
-  User
+  User,
+  Notification
 };

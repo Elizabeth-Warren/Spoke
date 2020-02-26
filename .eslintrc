@@ -13,7 +13,22 @@
     "camelcase": "off",
     "quotes": "off",
     "indent": "off",
-    "no-confusing-arrow": "off"
+    "no-confusing-arrow": "off",
+    "arrow-parens": "off",
+    "no-await-in-loop": "off",
+    "react/destructuring-assignment": "off",
+    "react/jsx-props-no-spreading": "off",
+    "react/require-default-props": "off",
+    "react/forbid-prop-types": "off",
+    "import/no-extraneous-dependencies": "off",
+    "implicit-arrow-linebreak": "off",
+    "function-paren-newline": "off",
+    "object-curly-newline": "off",
+    "import/order": "warn",
+    "class-methods-use-this": "warn",
+    "operator-linebreak": "off",
+    "consistent-return": "warn",
+    "no-nested-ternary": "warn"
   },
   "env": { "jest": true, "node": true, "browser": true, "jasmine": true },
   "settings": {

@@ -105,6 +105,12 @@ const rootSchema = gql`
     email: String
   }
 
+  input UserSelfInput {
+    firstName: String!
+    lastName: String!
+    subscribedToReminders: Boolean!
+  }
+
   input ContactMessage {
     message: MessageInput!
     campaignContactId: String!
@@ -254,6 +260,7 @@ const rootSchema = gql`
       roles: [String]
     ): Organization
     editUser(organizationId: String!, userId: Int!, userData: UserInput): User
+    editSelf(userData: UserSelfInput): User
     resetUserPassword(organizationId: String!, userId: Int!): String!
     changeUserPassword(userId: Int!, formData: UserPasswordChange): User
     initiatePasswordReset(organizationId: String!, userId: String!): Boolean

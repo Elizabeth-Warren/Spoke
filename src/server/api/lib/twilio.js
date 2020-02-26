@@ -205,7 +205,7 @@ async function sendMessage(message, contact, trx) {
       { conflict: "update" }
     );
 
-    if (messageParams.body.toLowerCase() == "done") {
+    if (messageParams.body.toLowerCase().startsWith("done")) {
       return sentMessage;
     }
 
