@@ -337,11 +337,11 @@ export class ConversationTexterContactComponent extends React.Component {
     if (evt.keyCode !== 13) {
       // not an enter press
       return;
+    } else if (!evt.shiftKey) {
+      // pressing the Enter key submits
+      evt.preventDefault();
+      this.handleClickSendMessageButton();
     }
-
-    // pressing the Enter key submits
-    evt.preventDefault();
-    this.handleClickSendMessageButton();
   };
 
   focusTextArea() {

@@ -18,6 +18,8 @@ const styles = StyleSheet.create({
   conversationRow: {
     padding: "10px",
     borderRadius: "5px",
+    whiteSpace: "pre-line",
+
     fontWeight: "normal"
   },
   fromContact: {
