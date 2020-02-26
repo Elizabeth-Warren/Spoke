@@ -1,5 +1,5 @@
-import { r } from "../../models";
-import config from "../../config";
+import { r } from "src/server/models";
+import config from "src/server/config";
 
 const cacheKey = orgId => `${config.CACHE_PREFIX}org-${orgId}`;
 

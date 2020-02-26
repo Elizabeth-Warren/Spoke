@@ -1,13 +1,13 @@
-import { cacheableData, Campaign } from "src/server/models";
+import { Campaign } from "src/server/models";
+import { cacheableData } from "src/server/models/cacheable_queries";
 import {
   accessRequired,
   ApolloError,
   UserInputError
 } from "src/server/api/errors";
 import db from "src/server/db";
-import { dispatchJob } from "src/server/workers";
 import BackgroundJob from "src/server/db/background-job";
-import { JobType } from "src/server/workers";
+import { JobType, dispatchJob } from "src/server/workers";
 
 const CampaignStatus = db.Campaign.Status;
 

@@ -1,18 +1,11 @@
-import { mapFieldsToModel } from "./lib/utils";
-import { r, Organization } from "../models";
+import db from "src/server/db";
+import { r, Organization } from "src/server/models";
+import { mapFieldsToModel, campaignPhoneNumbersEnabled } from "./lib/utils";
 import { accessRequired } from "./errors";
 import { getCampaigns } from "./campaign";
 import { buildSortedUserOrganizationQuery } from "./user";
-import db from "src/server/db";
 
 const Status = db.TwilioPhoneNumber.Status;
-
-export function campaignPhoneNumbersEnabled(organization) {
-  return (
-    organization.features &&
-    !!JSON.parse(organization.features).campaignPhoneNumbersEnabled
-  );
-}
 
 export const resolvers = {
   Organization: {

@@ -1,12 +1,14 @@
 import passport from "passport";
 import Auth0Strategy from "passport-auth0";
 import { Strategy as LocalStrategy } from "passport-local";
-import SlackStrategy from "./vendor/passport-slack-strategy";
-import { User, cacheableData } from "./models";
+import { cacheableData } from "src/server/models/cacheable_queries";
+import log from "src/server/log";
+
 import localAuthHelpers from "./local-auth-helpers";
 import wrap from "./wrap";
 import { capitalizeWord } from "./api/lib/utils";
-import log from "src/server/log";
+import SlackStrategy from "./vendor/passport-slack-strategy";
+import { User } from "./models";
 
 export function setupAuth0Passport() {
   const strategy = new Auth0Strategy(

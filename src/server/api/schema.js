@@ -14,9 +14,9 @@ import {
   Organization,
   QuestionResponse,
   UserOrganization,
-  r,
-  cacheableData
-} from "../models";
+  r
+} from "src/server/models";
+import { cacheableData } from "src/server/models/cacheable_queries";
 // import { isBetweenTextingHours } from '../../lib/timezones'
 import { resolvers as assignmentResolvers, getContacts } from "./assignment";
 import { getCampaigns, resolvers as campaignResolvers } from "./campaign";

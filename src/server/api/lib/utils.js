@@ -24,3 +24,10 @@ export const capitalizeWord = word => {
   }
   return "";
 };
+
+export function campaignPhoneNumbersEnabled(organization) {
+  return (
+    organization.features &&
+    !!JSON.parse(organization.features).campaignPhoneNumbersEnabled
+  );
+}

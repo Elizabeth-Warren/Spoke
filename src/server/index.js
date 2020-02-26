@@ -1,25 +1,24 @@
 import "@babel/polyfill";
 import bodyParser from "body-parser";
 import express from "express";
-import renderIndex from "./middleware/render-index";
 import { graphqlExpress, graphiqlExpress } from "apollo-server-express";
 import { makeExecutableSchema, addMockFunctionsToSchema } from "graphql-tools";
-// ORDERING: ./models import must be imported above ./api to help circular imports
-import { createLoaders } from "./models";
-import { resolvers } from "./api/schema";
-import { schema } from "src/api/schema";
-import mocks from "./api/mocks";
+import sourceMapSupport from "source-map-support";
 import passport from "passport";
 import cookieSession from "cookie-session";
-import passportSetup from "./auth-passport";
-import wrap from "./wrap";
+import db from "src/server/db";
+import { createLoaders } from "src/server/data-loaders";
+import { resolvers } from "src/server/api/schema";
+import { schema } from "src/api/schema";
+import mocks from "src/server/api/mocks";
+import passportSetup from "src/server/auth-passport";
+import wrap from "src/server/wrap";
 import log from "src/server/log";
-import twilio from "./api/lib/twilio";
+import twilio from "src/server/api/lib/twilio";
 import { twiml } from "twilio";
 import { existsSync } from "fs";
-import sourceMapSupport from "source-map-support";
-import telemetry from "./telemetry";
-import db from "src/server/db";
+import telemetry from "src/server/telemetry";
+import renderIndex from "src/server/middleware/render-index";
 
 const TELEMETRY_IGNORED_ERROR_CODES = [
   "FORBIDDEN",

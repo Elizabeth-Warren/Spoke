@@ -1,6 +1,7 @@
-import { mapFieldsToModel } from "./lib/utils";
-import { r, User, cacheableData } from "../models";
+import { r, User } from "src/server/models";
+import { cacheableData } from "src/server/models/cacheable_queries";
 import db from "src/server/db";
+import { mapFieldsToModel } from "./lib/utils";
 
 const firstName = '"user"."first_name"';
 const lastName = '"user"."last_name"';

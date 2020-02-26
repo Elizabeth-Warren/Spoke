@@ -1,8 +1,5 @@
 import { r, Campaign } from "../../models";
-import { organizationCache } from "./organization";
 import config from "../../config";
-import BackgroundJob from "src/server/db/background-job";
-import { JobType } from "src/server/workers";
 
 // This should be cached data for a campaign that will not change
 // based on assignments or texter actions

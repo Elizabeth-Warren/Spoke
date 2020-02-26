@@ -1,5 +1,5 @@
-import { r } from "../../models";
-import config from "../../config";
+import { r } from "src/server/models";
+import config from "src/server/config";
 
 // Datastructure:
 // * regular GET/SET with JSON ordered list of the objects {id,title,text}

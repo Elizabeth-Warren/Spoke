@@ -1,5 +1,6 @@
 import { GraphQLError } from "graphql/error";
-import { r, cacheableData } from "../models";
+import { r } from "src/server/models";
+import { cacheableData } from "src/server/models/cacheable_queries";
 import log from "src/server/log";
 
 // Application errors, resembling Apollo 2 errors:

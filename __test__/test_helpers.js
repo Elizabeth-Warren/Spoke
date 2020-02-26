@@ -1,12 +1,12 @@
 import _ from "lodash";
 import {
-  createLoaders,
   Campaign,
   User,
   CampaignContact,
   r,
   Assignment
-} from "../src/server/models/";
+} from "src/server/models";
+import { createLoaders } from "src/server/data-loaders";
 import { graphql } from "graphql";
 import db from "src/server/db";
 import faker from "faker";

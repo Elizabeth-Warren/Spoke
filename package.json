@@ -14,7 +14,7 @@
     "test-coverage": "jest --coverage",
     "clean": "rm -rf $OUTPUT_DIR",
     "knex": "nf run knex",
-    "lint": "eslint --fix --ext js --ext jsx src",
+    "lint": "eslint  --ext js --ext jsx src",
     "prod-build-client": "webpack --config ./webpack/config.js",
     "prod-build-server": "babel ./src -d ./build/server --source-maps --copy-files --ignore './src/client/**','./src/components/**','./src/containers/**'",
     "prod-build": "npm run clean && npm run prod-build-client && npm run prod-build-server",
@@ -192,5 +192,8 @@
       "prettier --write",
       "git add"
     ]
+  },
+  "resolutions": {
+    "@babel/types": "7.6.1"
   }
 }

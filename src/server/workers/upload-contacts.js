@@ -1,7 +1,8 @@
-import { r, cacheableData, Campaign, Organization } from "../models";
+import { r, Campaign, Organization } from "src/server/models";
+import { cacheableData } from "src/server/models/cacheable_queries";
 import log from "src/server/log";
 import s3 from "src/server/s3";
-import BackgroundJob from "../db/background-job";
+import BackgroundJob from "src/server/db/background-job";
 import humps from "humps";
 
 function optOutsByOrgId(orgId) {
