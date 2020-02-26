@@ -8,6 +8,7 @@ import { StyleSheet } from "aphrodite";
 import { ApolloProvider } from "react-apollo";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 
+import muiTheme from "src/styles/mui-theme";
 import makeRoutes from "./routes";
 import Store from "src/store";
 import ApolloClientSingleton from "src/network/apollo-client-singleton";
@@ -34,18 +35,14 @@ const history = syncHistoryWithStore(browserHistory, store.data);
 StyleSheet.rehydrate(window.RENDERED_CLASS_NAMES);
 
 ReactDOM.render(
-  <ErrorBoundary>
-    <ApolloProvider store={store.data} client={ApolloClientSingleton}>
-      <Suspense
-        fallback={
-          <MuiThemeProvider>
-            <LoadingIndicator />
-          </MuiThemeProvider>
-        }
-      >
-        <Router history={history} routes={makeRoutes()} />
-      </Suspense>
-    </ApolloProvider>
-  </ErrorBoundary>,
+  <MuiThemeProvider muiTheme={muiTheme}>
+    <ErrorBoundary>
+      <ApolloProvider store={store.data} client={ApolloClientSingleton}>
+        <Suspense fallback={<LoadingIndicator />}>
+          <Router history={history} routes={makeRoutes()} />
+        </Suspense>
+      </ApolloProvider>
+    </ErrorBoundary>
+  </MuiThemeProvider>,
   document.getElementById("mount")
 );

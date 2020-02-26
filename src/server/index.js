@@ -66,7 +66,8 @@ app.use(
     cookie: {
       httpOnly: true,
       secure: !DEBUG,
-      maxAge: null
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
+      sameSite: "lax"
     },
     secret: process.env.SESSION_SECRET || global.SESSION_SECRET
   })
@@ -196,8 +197,15 @@ app.get(
   })
 );
 
+const nonLoginPaths = new Set(["/", "/login", "/404"]);
+
 // This middleware should be last. Return the React app only if no other route is hit.
 app.use((req, res) => {
+  if (!nonLoginPaths.has(req.path) && !req.isAuthenticated()) {
+    res.redirect(302, `/login?nextUrl=${encodeURIComponent(req.path)}`);
+    return;
+  }
+
   res.type("html");
   res.send(renderIndex());
 });

@@ -1435,6 +1435,12 @@ const rootResolvers = {
     assignment: async (_, { id }, { loaders, user }) => {
       authRequired(user);
       const assignment = await loaders.assignment.load(id);
+      if (!assignment) {
+        throw new NotFoundError(
+          `Missing assignment for user ${user ? user.id : user}`
+        );
+      }
+
       const campaign = await loaders.campaign.load(assignment.campaign_id);
       if (assignment.user_id === user.id) {
         await accessRequired(
@@ -1455,12 +1461,12 @@ const rootResolvers = {
     },
     organization: async (_, { id }, { loaders }) =>
       loaders.organization.load(id),
-    currentUser: async (_, unused_, { user }) => {
-      if (!user) {
-        return null;
-      } else {
-        return user;
+    currentUser: async (_, { allowNull }, { user }) => {
+      if (!allowNull) {
+        authRequired(user);
       }
+
+      return user || null;
     },
     currentUserWithAccess: async (_, { organizationId, role }, { user }) => {
       await accessRequired(user, organizationId, role, false);
@@ -1486,7 +1492,9 @@ const rootResolvers = {
       authRequired(user);
       const assignment = await loaders.assignment.load(assignmentId);
       if (!assignment) {
-        throw new NotFoundError(`Missing assignment for user ${user}`);
+        throw new NotFoundError(
+          `Missing assignment for user ${user ? user.id : user}`
+        );
       }
       const campaign = await loaders.campaign.load(assignment.campaign_id);
 

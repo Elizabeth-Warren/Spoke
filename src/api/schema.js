@@ -194,7 +194,7 @@ const rootSchema = gql`
   }
 
   type RootQuery {
-    currentUser: User
+    currentUser(allowNull: Boolean): User
     currentUserWithAccess(organizationId: String!, role: String!): User
     organization(id: String!, utc: String): Organization
     campaign(id: String!): Campaign

@@ -22,22 +22,22 @@ export default class ErrorBoundary extends Component {
 
   renderError() {
     return (
-      <MuiThemeProvider muiTheme={muiTheme}>
-        <div style={{ textAlign: "center", marginTop: "50px" }}>
-          <div>
-            <img src="https://ew-spoke-public.elizabethwarren.codes/sad-bailey.png" />
-          </div>
-          <h1>Something Went Wrong</h1>
-          <p style={{ margin: "25px 0" }}>
-            Sorry, Spoke hit a roadbump! Please try again and let us know in the
-            Slack if you're seeing this message a lot.
-          </p>
-          <RaisedButton
-            label="Reload"
-            onClick={() => window.location.reload()}
-          />
+      <div style={{ textAlign: "center", marginTop: "50px" }}>
+        <div>
+          <img src="https://ew-spoke-public.elizabethwarren.codes/sad-bailey.png" />
         </div>
-      </MuiThemeProvider>
+        <h1>Something Went Wrong</h1>
+        <p style={{ margin: "25px 0" }}>
+          Sorry, Spoke hit a roadbump! Please try again and let us know in the
+          Slack if you're seeing this message a lot.
+        </p>
+        <RaisedButton label="Reload" onClick={() => window.location.reload()} />
+        <p>or</p>
+        <RaisedButton
+          label="Go Home"
+          onClick={() => (window.location.href = "/")}
+        />
+      </div>
     );
   }
 

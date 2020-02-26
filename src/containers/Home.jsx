@@ -132,7 +132,7 @@ const mapQueriesToProps = () => ({
   data: {
     query: gql`
       query getCurrentUser {
-        currentUser {
+        currentUser(allowNull: true) {
           id
           adminOrganizations: organizations(role: "ADMIN") {
             id

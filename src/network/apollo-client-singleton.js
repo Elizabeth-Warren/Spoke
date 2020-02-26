@@ -1,6 +1,11 @@
 import ApolloClient from "apollo-client";
+
+import {
+  getGraphQLErrors,
+  checkForErrorCode
+} from "src/client/lib/error-helpers";
+
 import ResponseMiddlewareNetworkInterface from "./response-middleware-network-interface";
-import { graphQLErrorParser } from "./errors";
 
 const responseMiddlewareNetworkInterface = new ResponseMiddlewareNetworkInterface(
   { uri: process.env.GRAPHQL_URL || "/graphql", credentials: "same-origin" }
@@ -8,24 +13,24 @@ const responseMiddlewareNetworkInterface = new ResponseMiddlewareNetworkInterfac
 
 responseMiddlewareNetworkInterface.use({
   applyResponseMiddleware: (response, next) => {
-    const parsedError = graphQLErrorParser(response);
-    // TODO[matteo]: use our error codes here
-    if (parsedError) {
-      console.debug(parsedError);
-      if (parsedError.status === 401) {
-        window.location = `/login?nextUrl=${window.location.pathname}`;
-      } else if (parsedError.status === 403) {
-        window.location = "/";
-      } else if (parsedError.status === 404) {
-        window.location = "/404";
-      } else {
-        console.error(
-          `GraphQL request resulted in error:\nRequest:${JSON.stringify(
-            response.data
-          )}\nError:${JSON.stringify(response.errors)}`
-        );
-      }
+    const errors = response.errors || [];
+
+    if (errors.find(e => e.code === "UNAUTHORIZED")) {
+      window.location = `/login?nextUrl=${encodeURIComponent(
+        window.location.pathname
+      )}`;
+      return;
     }
+
+    if (errors.find(e => e.code === "NOT_FOUND")) {
+      window.location = `/404`;
+      return;
+    }
+
+    if (errors && errors.length) {
+      console.error("GraphQL request resulted in error", response);
+    }
+
     next();
   }
 });
