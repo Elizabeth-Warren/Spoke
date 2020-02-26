@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import { r } from "src/server/models/";
 
 // the site is not very useful without auth0, unless you have a session cookie already
 // good for doing dev offline
@@ -7,10 +8,7 @@ const externalLinks = process.env.NO_EXTERNAL_LINKS
   ? ""
   : '<link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Poppins">';
 
-const assetMap = {
-  "bundle.js": "/assets/bundle.js"
-};
-if (process.env.NODE_ENV === "production") {
+function getBundleFileName() {
   const assetMapData = JSON.parse(
     fs.readFileSync(
       // this is a bit overly complicated for the use case
@@ -28,12 +26,36 @@ if (process.env.NODE_ENV === "production") {
     )
   );
 
-  Object.keys(assetMapData).forEach(a => {
-    assetMap[a] = assetMapData[a];
-  });
+  return assetMapData["bundle.js"];
 }
 
-export default function renderIndex() {
+export async function updateBundleFileName() {
+  // This is called by a Serverless hook once traffic shifting is complete after
+  // a deploy and all users are using the new version. We update Redis so that
+  // lambdas will start serving the new javascript.
+
+  await r.redis.setAsync("spoke-bundle_file_name", getBundleFileName());
+}
+
+async function getBundleURL() {
+  let bundleFileName;
+  if (process.env.NODE_ENV === "production") {
+    // Read bundle name from Redis
+    const redisValue = await r.redis.getAsync("spoke-bundle_file_name");
+    if (redisValue == null) {
+      // no deploys have finished; no need to serve an old bundle
+      bundleFileName = getBundleFileName();
+    } else {
+      bundleFileName = redisValue;
+    }
+  } else {
+    bundleFileName = "/assets/bundle.js";
+  }
+
+  return `${process.env.ASSET_DOMAIN || ""}${bundleFileName}`;
+}
+
+export default async function renderIndex() {
   const css = {
     content: fs.readFileSync(path.join(__dirname, "../../styles/fonts.css")) // these could also be defined in theme.js using aphrodite
   };
@@ -102,9 +124,7 @@ export default function renderIndex() {
           : "undefined"
       }
     </script>
-    <script src="${process.env.ASSET_DOMAIN || ""}${
-    assetMap["bundle.js"]
-  }"></script>
+    <script src="${await getBundleURL()}"></script>
   </body>
 </html>
 `;

@@ -200,14 +200,19 @@ app.get(
 const nonLoginPaths = new Set(["/", "/login", "/404"]);
 
 // This middleware should be last. Return the React app only if no other route is hit.
-app.use((req, res) => {
+app.use(async (req, res, next) => {
   if (!nonLoginPaths.has(req.path) && !req.isAuthenticated()) {
     res.redirect(302, `/login?nextUrl=${encodeURIComponent(req.path)}`);
     return;
   }
 
   res.type("html");
-  res.send(renderIndex());
+
+  try {
+    res.send(await renderIndex());
+  } catch (e) {
+    next(e);
+  }
 });
 
 app.use(telemetry.expressMiddleware);

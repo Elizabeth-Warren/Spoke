@@ -176,6 +176,7 @@
     "serverless-associate-waf": "^1.1.1",
     "serverless-domain-manager": "^3.3.0",
     "serverless-jetpack": "^0.8.1",
+    "serverless-plugin-canary-deployments": "^0.4.8",
     "serverless-prune-plugin": "^1.4.1",
     "wait-on": "^2.1.0",
     "webpack": "^4.41.5",

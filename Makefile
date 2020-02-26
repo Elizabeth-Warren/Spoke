@@ -19,10 +19,6 @@ deploy-build:
 	./deploy-tools deploy
 .PHONY: deploy-build
 
-preflight:
-	./deploy-tools preflight
-.PHONY: preflight
-
 deploy: build-app
 	./deploy-tools deploy
 .PHONY: deploy

@@ -38,5 +38,3 @@ jobs:
           NODE_ENV: production
       - name: Deploy
         run: make deploy-build
-      - name: Preflight
-        run: make preflight

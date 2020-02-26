@@ -12,6 +12,9 @@ custom:
   debugApollo:
     dev: 1
     prod: 0
+  reservedConcurrency:
+    dev: 100
+    prod: 1000
   # uncomment suppressPhoneValidation, dropMessageRatio
   # and skipTwilioAndAutoreply and equivalent env vars below
   # suppressPhoneValidation:
@@ -69,6 +72,11 @@ provider:
       Resource:
         - "${ssm:/${self:custom.infrastructure}/s3/spoke-private/bucket/arn~true}"
         - "${ssm:/${self:custom.infrastructure}/s3/spoke-private/bucket/arn~true}/*"
+    - Effect: Allow
+      Action:
+        - codedeploy:*
+      Resource:
+        - "*"
   environment:
     STAGE: ${self:custom.stage}
     INFRASTRUCTURE: ${self:custom.infrastructure}
@@ -130,20 +138,33 @@ functions:
     events:
       - http: ANY /
       - http: ANY {proxy+}
+    reservedConcurrency: ${self:custom.reservedConcurrency.${self:custom.stage}}
+    deploymentSettings:
+      type: Linear10PercentEvery1Minute
+      alias: Live
+      preTrafficHook: preflight
+      postTrafficHook: postflight
+    dependsOn:
+      - PreflightLambdaFunction
+      - PostflightLambdaFunction
   worker:
     handler: build/server/server/lambda/worker.handler
     vpc: ${self:custom.vpcConfig}
     timeout: 600
-  preflight:
-    handler: preflight.handler
-    vpc: ${self:custom.vpcConfig}
-    timeout: 60
   send-reminders:
     handler: build/server/server/lambda/send-reminders.handler
     vpc: ${self:custom.vpcConfig}
     timeout: 900
     events:
       - schedule: cron(0 1,17 * * ? *)
+  preflight:
+    handler: build/server/server/lambda/codedeploy.preflight
+    vpc: ${self:custom.vpcConfig}
+    timeout: 600
+  postflight:
+    handler: build/server/server/lambda/codedeploy.postflight
+    vpc: ${self:custom.vpcConfig}
+    timeout: 600
 
 plugins:
   - serverless-domain-manager
@@ -151,6 +172,7 @@ plugins:
   - serverless-api-compression
   - serverless-prune-plugin
   - serverless-jetpack
+  - serverless-plugin-canary-deployments
 package:
   excludeDevDependencies: true
   package:
@@ -166,7 +188,5 @@ package:
     - "!package.json"
     - "!lambda.js"
     - "!knexfile.js"
-    - "!preflight.js"
-    - "!send-reminders.js"
     - "build/client/assets/*.js"
     - "build/client/assets/*.js.map"
