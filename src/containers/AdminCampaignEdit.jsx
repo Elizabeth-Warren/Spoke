@@ -330,7 +330,7 @@ class AdminCampaignEdit extends React.Component {
           //   at the right moment (see UNSAFE_componentWillReceiveProps)
           this.state.campaignFormValues.contactsCount > 0,
         blocksStarting: true,
-        expandAfterCampaignStarts: false,
+        expandAfterCampaignStarts: true,
         expandableBySuperVolunteers: false,
         extraProps: {
           optOuts: [], // this.props.organizationData.organization.optOuts, // <= doesn't scale,
@@ -429,9 +429,10 @@ class AdminCampaignEdit extends React.Component {
         hidden: !this.props.organizationData.organization
           .campaignPhoneNumbersEnabled,
         blocksStarting: true,
-        expandAfterCampaignStarts: false,
+        expandAfterCampaignStarts: true,
         expandableBySuperVolunteers: true,
         extraProps: {
+          isStarted: this.props.campaignData.campaign.isStarted,
           availablePhoneNumbers: this.props.organizationData.organization
             .availablePhoneNumbers,
           contactsCount: this.state.campaignFormValues.contactsCount

@@ -106,7 +106,7 @@ export default class CampaignPhoneNumbersForm extends React.Component {
       key === "allphoneNumbers"
         ? true
         : AutoComplete.caseInsensitiveFilter(searchText, key);
-
+    const campaignStarted = this.props.isStarted;
     const autocomplete = (
       <AutoComplete
         ref="autocomplete"
@@ -158,8 +158,9 @@ export default class CampaignPhoneNumbersForm extends React.Component {
         }}
       />
     );
-
-    return <div>{availablePhoneNumbers.length > 0 ? autocomplete : ""}</div>;
+    const showAutocomplete =
+      !campaignStarted && availablePhoneNumbers.length > 0;
+    return <div>{showAutocomplete ? autocomplete : ""}</div>;
   }
 
   getNumbersCount = count => (count === 1 ? "number" : "numbers");
@@ -199,19 +200,21 @@ export default class CampaignPhoneNumbersForm extends React.Component {
             {...dataTest("areaCodeRow")}
             key={item.areaCode}
             rightIconButton={
-              <IconButton
-                onClick={async () => {
-                  const currentFormValues = this.formValues();
-                  const newFormValues = {
-                    ...currentFormValues
-                  };
-                  newFormValues.phoneNumbers = newFormValues.phoneNumbers.slice();
-                  newFormValues.phoneNumbers.splice(index, 1);
-                  this.props.onChange(newFormValues);
-                }}
-              >
-                <DeleteIcon />
-              </IconButton>
+              !this.props.isStarted && (
+                <IconButton
+                  onClick={async () => {
+                    const currentFormValues = this.formValues();
+                    const newFormValues = {
+                      ...currentFormValues
+                    };
+                    newFormValues.phoneNumbers = newFormValues.phoneNumbers.slice();
+                    newFormValues.phoneNumbers.splice(index, 1);
+                    this.props.onChange(newFormValues);
+                  }}
+                >
+                  <DeleteIcon />
+                </IconButton>
+              )
             }
           />
         ))}
@@ -252,7 +255,7 @@ export default class CampaignPhoneNumbersForm extends React.Component {
           <div>
             <FlatButton
               label="Re-Reserve All"
-              disabled={!reservedNumbers.length}
+              disabled={!this.props.isStarted || !reservedNumbers.length}
               onClick={() => {
                 this.props.onSubmit({ reservedNumbers });
               }}
