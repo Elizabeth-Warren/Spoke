@@ -18,7 +18,6 @@ import thinky from "./thinky";
 import datawarehouse from "./datawarehouse";
 
 import { cacheableData } from "./cacheable_queries";
-import log from "src/server/log";
 
 function createLoader(model, opts) {
   const idKey = (opts && opts.idKey) || "id";

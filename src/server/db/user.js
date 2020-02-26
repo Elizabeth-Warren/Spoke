@@ -1,5 +1,5 @@
+import userCache from "src/server/models/cacheable_queries/user";
 import { Table, getAny, queryBuilder } from "./common";
-import { cacheableData } from "src/server/models";
 
 async function getByEmail(email, opts) {
   return getAny(Table.USER, "email", email, opts);
@@ -20,7 +20,7 @@ async function addToOrganization({ userId, organizationId, role }, opts) {
     organization_id: organizationId,
     role
   });
-  await cacheableData.user.clearUser(userId);
+  await userCache.clearUser(userId);
   return added;
 }
 

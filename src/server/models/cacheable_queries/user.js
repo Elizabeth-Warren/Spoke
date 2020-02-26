@@ -1,5 +1,5 @@
 import DataLoader from "dataloader";
-import { r } from "../../models";
+import { r } from "src/server/models/thinky";
 import { ROLE_HIERARCHY, isRoleGreater } from "../../../lib/permissions";
 import config from "../../config";
 
