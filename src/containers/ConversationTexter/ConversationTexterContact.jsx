@@ -873,11 +873,11 @@ export class ConversationTexterContactComponent extends React.Component {
           style={inlineStyles.buttonWidth}
         />
       );
-    } else if (messageStatus === "needsResponse") {
+    } else {
       button = (
         <RaisedButton
           onClick={this.handleOpenSkipDialog}
-          label="Skip Reply"
+          label={messageStatus === "needsResponse" ? "Skip Reply" : "Skip"}
           style={inlineStyles.buttonWidth}
         />
       );
