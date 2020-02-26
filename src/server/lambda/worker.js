@@ -10,10 +10,8 @@ exports.handler = async (event, context) => {
   if (!event.jobId) {
     log.error({ msg: "Missing jobId in event", event });
   }
-
+  const job = await db.BackgroundJob.get(event.jobId);
   try {
-    const job = await db.BackgroundJob.get(event.jobId);
-
     const workerFn = WORKER_MAP[job.type];
     if (!workerFn) {
       log.error({
