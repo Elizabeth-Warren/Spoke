@@ -20,5 +20,6 @@ export const schema = gql`
     campaignPhoneNumbersEnabled: Boolean!
     availablePhoneNumbers: [PhoneNumbersByAreaCode]
     maxContacts: Int
+    labels: [Label]!
   }
 `;

@@ -1,3 +1,4 @@
+import preconditions from "src/server/preconditions";
 import { getFormattedPhoneNumber } from "src/lib/phone-format";
 import {
   queryBuilder,
@@ -7,7 +8,6 @@ import {
   decamelize,
   withTransaction
 } from "./common";
-import preconditions from "src/server/preconditions";
 
 const Status = {
   // Available to be claimed by a campaign
@@ -32,10 +32,8 @@ const Status = {
  */
 async function reserveForCampaign({ campaignId, areaCode, amount }, opts = {}) {
   preconditions.checkMany({ campaignId, areaCode, amount });
-  return withTransaction(opts.transaction, async trx => {
-    const builderOpts = { ...opts, transaction: trx };
-
-    const numbers = await queryBuilder(Table.TWILIO_PHONE_NUMBER, builderOpts)
+  return withTransaction(opts, async newOpts => {
+    const numbers = await queryBuilder(Table.TWILIO_PHONE_NUMBER, newOpts)
       .select("sid")
       .forUpdate()
       .where({
@@ -49,7 +47,7 @@ async function reserveForCampaign({ campaignId, areaCode, amount }, opts = {}) {
       throw Error(`Failed to reserve ${amount} numbers for ${areaCode}`);
     }
 
-    const reserved = await queryBuilder(Table.TWILIO_PHONE_NUMBER, builderOpts)
+    const reserved = await queryBuilder(Table.TWILIO_PHONE_NUMBER, newOpts)
       .whereIn(
         "sid",
         numbers.map(r => r.sid)

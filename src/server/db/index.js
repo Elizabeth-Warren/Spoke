@@ -2,6 +2,8 @@ import log from "src/server/log";
 import Assignment from "./assignment";
 import BackgroundJob from "./background-job";
 import Campaign from "./campaign";
+import CannedResponse from "./canned-response";
+import Label from "./label";
 import OptOut from "./opt-out";
 import TwilioPhoneNumber from "./twilio-phone-number";
 import User from "./user";
@@ -26,6 +28,8 @@ export default {
   Assignment,
   BackgroundJob,
   Campaign,
+  CannedResponse,
+  Label,
   OptOut,
   TwilioPhoneNumber,
   User,

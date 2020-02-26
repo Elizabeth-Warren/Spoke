@@ -73,6 +73,10 @@ export const resolvers = {
       return await db.TwilioPhoneNumber.countByAreaCode({
         status: Status.AVAILABLE
       });
+    },
+    labels: async (organization, _, { user }) => {
+      await accessRequired(user, organization.id, "SUPERVOLUNTEER");
+      return db.Label.listForOrganization(organization.id);
     }
   }
 };

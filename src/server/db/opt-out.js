@@ -43,10 +43,8 @@ async function create(
 }
 
 async function createBulk({ cells, organization_id, reason_code }, opts = {}) {
-  return withTransaction(opts.transaction, async trx => {
-    const builderOpts = { ...opts, transaction: trx };
-
-    await queryBuilder(Table.OPT_OUT, builderOpts).insert(
+  return withTransaction(opts, async newOpts => {
+    await queryBuilder(Table.OPT_OUT, newOpts).insert(
       cells.map(cell => ({
         cell,
         organization_id,
@@ -54,7 +52,7 @@ async function createBulk({ cells, organization_id, reason_code }, opts = {}) {
       }))
     );
 
-    await queryBuilder(Table.CAMPAIGN_CONTACT, opts)
+    await queryBuilder(Table.CAMPAIGN_CONTACT, newOpts)
       .whereIn(
         "id",
         knex(Table.CAMPAIGN_CONTACT)

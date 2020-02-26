@@ -14,6 +14,7 @@ import { schema as campaignContactSchema } from "./campaign-contact";
 import { schema as cannedResponseSchema } from "./canned-response";
 import { schema as twilioPhoneNumberSchema } from "./twilio-phone-number";
 import { schema as backgroundJobSchema } from "./background-job";
+import { schema as labelSchema } from "./label";
 
 const rootSchema = gql`
   input CampaignContactInput {
@@ -342,6 +343,7 @@ const rootSchema = gql`
     createPresignedUploadUrl(organizationId: ID!): String
     uploadContacts(campaignId: String!, s3Key: String!): Int
     buyNumbers(areaCode: String!, limit: Int!): BackgroundJob
+    createLabel(label: LabelInput!): Label
   }
 
   schema {
@@ -369,5 +371,6 @@ export const schema = [
   questionSchema,
   conversationSchema,
   twilioPhoneNumberSchema,
-  backgroundJobSchema
+  backgroundJobSchema,
+  labelSchema
 ];

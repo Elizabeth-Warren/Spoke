@@ -13,15 +13,15 @@ async function transaction(fn) {
 /**
  * Run a block of code, creating a new transaction if one isn't passed
  *
- * @param existingTransaction nullable knex transaction object
- * @param fn async function that takes a transaction as its only argument
+ * @param opts with nullable knex transaction object
+ * @param fn async function that takes a modified opts object as its only argument
  * @return {Promise<*>}
  */
-async function withTransaction(existingTransaction, fn) {
-  if (existingTransaction) {
-    return await fn(existingTransaction);
+async function withTransaction(opts, fn) {
+  if (opts && opts.transaction) {
+    return fn(opts);
   }
-  return await transaction(trx => fn(trx));
+  return transaction(trx => fn({ ...opts, transaction: trx }));
 }
 
 function queryBuilder(tableName, opts) {
@@ -59,6 +59,19 @@ async function getAny(tableName, fieldName, fieldValue, opts = {}) {
     .where(fieldName, fieldValue)
     .first();
 
+  return convertCase(result, opts);
+}
+
+async function genericGetMany(tableName, fieldName, fieldValues, opts = {}) {
+  const result = await queryBuilder(tableName, opts)
+    .whereIn(fieldName, fieldValues)
+    .first();
+
+  return convertCase(result, opts);
+}
+
+async function genericList(tableName, where = null, opts = {}) {
+  const result = await queryBuilder(tableName, opts).where(where);
   return convertCase(result, opts);
 }
 
@@ -108,9 +121,9 @@ const Table = {
   CANNED_RESPONSE_LABEL: "canned_response_label",
   INTERACTION_STEP: "interaction_step",
   JOB_REQUEST: "job_request",
+  LABEL: "label",
   MESSAGE: "message",
   NOTIFICATION: "notification",
-  LABEL: "label",
   OPT_OUT: "opt_out",
   ORGANIZATION: "organization",
   QUESTION_RESPONSE: "question_response",
@@ -126,6 +139,8 @@ export {
   Table,
   knex,
   getAny,
+  genericGetMany,
+  genericList,
   camelize,
   decamelize,
   transaction,

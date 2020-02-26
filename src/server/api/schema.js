@@ -23,6 +23,7 @@ import { campaignPhoneNumbersEnabled } from "./lib/utils";
 import { resolvers as assignmentResolvers, getContacts } from "./assignment";
 import { getCampaigns, resolvers as campaignResolvers } from "./campaign";
 import { mutations as campaignMutations } from "./mutations/campaign";
+import { mutations as labelMutations } from "./mutations/label";
 import { resolvers as campaignContactResolvers } from "./campaign-contact";
 import { resolvers as cannedResponseResolvers } from "./canned-response";
 import {
@@ -225,29 +226,48 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
         response.id = undefined;
       }
 
-      const decamelizedResponse = humps.decamelizeKeys(response, {
-        separator: "_"
-      });
-
-      (isNew ? newResponses : updatedResponses).push(decamelizedResponse);
+      (isNew ? newResponses : updatedResponses).push(response);
     }
 
     await r.knex.transaction(async trx => {
-      // insert new rows
-      await r.knex
-        .batchInsert("canned_response", newResponses)
-        .transacting(trx);
+      const cannedResponseLabels = [];
 
+      for (const newResponse of newResponses) {
+        const id = (
+          await db.CannedResponse.create(newResponse, { transaction: trx })
+        ).id;
+        const labels = (newResponse.labelIds || []).map(lid => ({
+          cannedResponseId: id,
+          labelId: lid
+        }));
+        cannedResponseLabels.push(...labels);
+      }
+      if (cannedResponseLabels.length > 0) {
+        await db.CannedResponse.bulkAddLabels(cannedResponseLabels, {
+          transaction: trx
+        });
+      }
       // update existing rows
       for (const updatedResponse of updatedResponses) {
-        await r
-          .knex("canned_response")
-          .where({
-            id: updatedResponse.id,
-            campaign_id: id
-          })
-          .update(updatedResponse)
-          .transacting(trx);
+        if (!_.isEmpty(_.omit(updatedResponse, "labelIds"))) {
+          await db.CannedResponse.update(updatedResponse.id, updatedResponse, {
+            transaction: trx
+          });
+        }
+        if (updatedResponse.labelIds) {
+          // remove this block if we decide to hard delete canned_response_label records after
+          // a campaign has started
+          if (origCampaignRecord.is_started) {
+            throw new Error(
+              "Updating labels on a canned response after starting a campaign is not supported"
+            );
+          }
+
+          await db.CannedResponse.updateLabels(
+            updatedResponse.id,
+            updatedResponse.labelIds
+          );
+        }
       }
     });
 
@@ -324,6 +344,7 @@ const includeTags = info => {
 const rootMutations = {
   RootMutation: {
     ...campaignMutations,
+    ...labelMutations,
     ...organizationMutations,
     ...uploadContactMutations,
     userAgreeTerms: async (_, _unused, { user, loaders }) => {
@@ -1442,6 +1463,7 @@ const rootMutations = {
   }
 };
 
+// TODO: move to its own file
 const rootResolvers = {
   Action: {
     name: o => o.name,
