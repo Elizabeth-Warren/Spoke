@@ -54,6 +54,9 @@ const InitialMessageTexter = React.lazy(() =>
 const SingleAssignmentSummary = React.lazy(() =>
   import("src/containers/SingleAssignmentSummary")
 );
+const AdminLabelsList = React.lazy(() =>
+  import("src/containers/AdminLabelsList")
+);
 const Error404 = React.lazy(() => import("src/components/Error404"));
 
 export default function makeRoutes(requireAuth = () => {}) {
@@ -74,6 +77,7 @@ export default function makeRoutes(requireAuth = () => {}) {
             </Route>
           </Route>
           <Route path="people" component={AdminPersonList} />
+          <Route path="labels" component={AdminLabelsList} />
           <Route path="settings" component={Settings} />
         </Route>
       </Route>

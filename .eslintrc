@@ -28,7 +28,9 @@
     "class-methods-use-this": "warn",
     "operator-linebreak": "off",
     "consistent-return": "warn",
-    "no-nested-ternary": "warn"
+    "no-nested-ternary": "warn",
+    "react/no-string-refs": "off",
+    "react/no-unused-state": "warn",
   },
   "env": { "jest": true, "node": true, "browser": true, "jasmine": true },
   "settings": {

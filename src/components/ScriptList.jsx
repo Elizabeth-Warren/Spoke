@@ -1,9 +1,13 @@
-import PropTypes from "prop-types";
 import React from "react";
+import PropTypes from "prop-types";
+import { StyleSheet, css } from "aphrodite";
 import { List, ListItem } from "material-ui/List";
 import Divider from "material-ui/Divider";
+import theme from "src/styles/theme";
 
-const styles = {
+import LabelChips from "src/components/LabelChips";
+
+const inlineStyles = {
   responseContainer: {
     paddingBottom: 32,
     flexGrow: 1,
@@ -11,49 +15,48 @@ const styles = {
   }
 };
 
-export default class ScriptList extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      script: props.script
-    };
+const styles = StyleSheet.create({
+  listSubheader: {
+    fontSize: 14,
+    color: theme.colors.gray
+  },
+  chipList: {
+    display: "flex"
+  },
+  title: {
+    marginTop: 0
   }
+});
 
-  render() {
-    const { scripts, onSelectCannedResponse } = this.props;
-
-    const rightIconButton = null;
-    const listItems = scripts.map(script => {
-      const title = script.surveyQuestion
-        ? `[${script.surveyQuestion}] ${script.title}`
-        : script.title;
-      return (
-        <ListItem
-          value={script.text}
-          onClick={() => onSelectCannedResponse(script)}
-          key={script.id}
-          primaryText={title}
-          secondaryText={script.text}
-          rightIconButton={rightIconButton}
-          secondaryTextLines={2}
-        />
-      );
-    });
-
-    const list =
-      scripts.length === 0 ? null : (
+export default function ScriptList({ scripts, onSelectCannedResponse }) {
+  return (
+    <div style={inlineStyles.responseContainer}>
+      {!!scripts.length && (
         <List>
-          {listItems}
+          {scripts.map(script => (
+            <ListItem
+              value={script.text}
+              key={script.id}
+              onClick={() => onSelectCannedResponse(script)}
+            >
+              <p className={css(styles.title)}>{script.title}</p>
+              <p className={css(styles.listSubheader)}>{script.text}</p>
+              <div className={css(styles.chipList)}>
+                <LabelChips
+                  labelIds={script.labels.map(({ id }) => id)}
+                  labels={script.labels}
+                />
+              </div>
+            </ListItem>
+          ))}
           <Divider />
         </List>
-      );
-
-    return <div style={styles.responseContainer}>{list}</div>;
-  }
+      )}
+    </div>
+  );
 }
 
 ScriptList.propTypes = {
-  script: PropTypes.object,
   scripts: PropTypes.arrayOf(PropTypes.object),
   onSelectCannedResponse: PropTypes.func
 };

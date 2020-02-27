@@ -805,6 +805,8 @@ const rootMutations = {
         .knex("canned_response")
         .where({ campaign_id: oldCampaignId });
 
+      const newLabels = [];
+
       await Promise.all(
         oldCannedResponses.map(async cr => {
           const copied = new CannedResponse({
@@ -814,9 +816,21 @@ const rootMutations = {
             survey_question: cr.survey_question,
             order: cr.order
           });
-          return await copied.save();
+
+          const newResponse = await copied.save();
+
+          (await db.CannedResponse.listLabels(cr.id)).forEach(label => {
+            newLabels.push({
+              cannedResponseId: newResponse.id,
+              labelId: label.id
+            });
+          });
+
+          return newResponse;
         })
       );
+
+      await db.CannedResponse.bulkAddLabels(newLabels);
 
       await uploadContactMutations.uploadContacts(
         null,

@@ -26,7 +26,11 @@ async function create(
   );
 }
 
-async function update(id, { title, text, surveyQuestion, userId }, opts) {
+async function update(
+  id,
+  { title, text, surveyQuestion, userId, deleted },
+  opts
+) {
   return updateAndReturn(
     Table.CANNED_RESPONSE,
     id,
@@ -34,7 +38,8 @@ async function update(id, { title, text, surveyQuestion, userId }, opts) {
       title,
       text,
       surveyQuestion,
-      userId
+      userId,
+      deleted
     },
     opts
   );

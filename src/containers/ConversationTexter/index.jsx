@@ -259,6 +259,12 @@ const mapQueriesToProps = ({ ownProps }) => ({
             surveyQuestion
             deleted
             isUserCreated
+            labels {
+              id
+              group
+              displayValue
+              slug
+            }
           }
           texter {
             id

@@ -74,7 +74,11 @@ const campaignInfoFragment = `
     id
     title
     text
-    surveyQuestion
+    labels {
+      id
+      slug
+      displayValue
+    }
     deleted
   }
   editors
@@ -93,15 +97,29 @@ const campaignInfoFragment = `
   }
 `;
 
+function transformCampaignToCampaignInput(campaign) {
+  // translate labels -> labelIds
+  const cannedResponses = campaign.cannedResponses.map(origResponse => {
+    const response = { ...origResponse };
+    response.labelIds = (response.labels || []).map(l => l.id);
+    delete response.labels;
+
+    return response;
+  });
+
+  return { ...campaign, cannedResponses };
+}
+
 class AdminCampaignEdit extends React.Component {
   constructor(props) {
     super(props);
     const isNew = props.location.query.new;
+
     this.state = {
       expandedSection: isNew ? 0 : null,
-      campaignFormValues: {
-        ...props.campaignData.campaign
-      },
+      campaignFormValues: transformCampaignToCampaignInput(
+        props.campaignData.campaign
+      ),
       showJoinDialog: false
     };
   }
@@ -143,7 +161,7 @@ class AdminCampaignEdit extends React.Component {
     };
 
     this.setState({
-      campaignFormValues: pushToFormValues
+      campaignFormValues: transformCampaignToCampaignInput(pushToFormValues)
     });
   }
 
@@ -221,7 +239,7 @@ class AdminCampaignEdit extends React.Component {
       }
       if (newCampaign.hasOwnProperty("cannedResponses")) {
         newCampaign.cannedResponses = newCampaign.cannedResponses.map(cr =>
-          _.omit(cr, "__typename")
+          _.omit(cr, "__typename", "labels")
         );
       }
       if (newCampaign.hasOwnProperty("phoneNumbers")) {
@@ -229,6 +247,7 @@ class AdminCampaignEdit extends React.Component {
           _.omit(cr, "__typename")
         );
       }
+
       await this.props.mutations.editCampaign(
         this.props.campaignData.campaign.id,
         newCampaign
@@ -255,9 +274,12 @@ class AdminCampaignEdit extends React.Component {
     }
     const sectionState = {};
     const sectionProps = {};
+    const campaign = transformCampaignToCampaignInput(
+      this.props.campaignData.campaign
+    );
     section.keys.forEach(key => {
       sectionState[key] = this.state.campaignFormValues[key];
-      sectionProps[key] = this.props.campaignData.campaign[key];
+      sectionProps[key] = campaign[key];
     });
     // console.log(
     //   "CHECK SAVED section state:",
@@ -365,6 +387,7 @@ class AdminCampaignEdit extends React.Component {
             this.state.campaignFormValues.cannedResponses,
             cr => cr.isNew
           );
+
           return noUnsaved && !invalidFields.length;
         },
         blocksStarting: true,
@@ -372,6 +395,7 @@ class AdminCampaignEdit extends React.Component {
         expandableBySuperVolunteers: true,
         extraProps: {
           customFields: this.props.campaignData.campaign.customFields,
+          labels: this.props.organizationData.organization.labels,
           getMissingCustomFields: this.getMissingCustomFields
         }
       },
@@ -723,6 +747,11 @@ const mapQueriesToProps = ({ ownProps }) => ({
           availablePhoneNumbers {
             areaCode
             count
+          }
+          labels {
+            id
+            slug
+            displayValue
           }
         }
       }

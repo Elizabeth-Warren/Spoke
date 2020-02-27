@@ -2,10 +2,14 @@ import type from "prop-types";
 import React from "react";
 import { StyleSheet, css } from "aphrodite";
 import yup from "yup";
-import GSForm from "./forms/GSForm";
 import Form from "react-formal";
-import FlatButton from "material-ui/FlatButton";
+import { FlatButton, AutoComplete } from "material-ui";
+import _ from "lodash";
+
 import { dataTest } from "../lib/attributes";
+
+import GSForm from "./forms/GSForm";
+import LabelChips from "./LabelChips";
 
 const styles = StyleSheet.create({
   buttonRow: {
@@ -19,19 +23,19 @@ class CannedResponseForm extends React.Component {
     this.state = {
       title: this.props.initialTitle,
       text: this.props.initialText,
-      surveyQuestion: this.props.initialSurveyQuestion
+      labelIds: this.props.initialLabelIds || []
     };
   }
-  handleSave = formValues => {
+
+  handleSave = () => {
     const { onSaveCannedResponse } = this.props;
-    onSaveCannedResponse(formValues);
+    onSaveCannedResponse(this.state);
   };
 
   render() {
     const modelSchema = yup.object({
       title: yup.string().required(),
-      text: yup.string().required(),
-      surveyQuestion: yup.string().nullable()
+      text: yup.string().required()
     });
 
     const { customFields } = this.props;
@@ -60,11 +64,33 @@ class CannedResponseForm extends React.Component {
             multiLine
             fullWidth
           />
-          <Form.Field
-            {...dataTest("surveyQuestion")}
-            name="surveyQuestion"
-            fullWidth
-            label="Survey Question"
+          <AutoComplete
+            ref="autocompleteInput"
+            floatingLabelText="Add A Label"
+            filter={AutoComplete.fuzzyFilter}
+            dataSource={this.props.labels.filter(
+              l => this.state.labelIds.indexOf(l.id) === -1
+            )}
+            maxSearchResults={8}
+            onNewRequest={({ id }) => {
+              this.refs.autocompleteInput.setState({ searchText: "" });
+              this.setState(state => ({
+                labelIds: state.labelIds.concat(id)
+              }));
+            }}
+            dataSourceConfig={{
+              text: "displayValue",
+              value: "id"
+            }}
+          />
+          <LabelChips
+            labels={this.props.labels}
+            labelIds={this.state.labelIds}
+            onRequestDelete={label => {
+              this.setState(state => ({
+                labelIds: _.without(state.labelIds, label.id)
+              }));
+            }}
           />
           <div className={css(styles.buttonRow)}>
             <Form.Button
@@ -96,8 +122,9 @@ CannedResponseForm.propTypes = {
   closeForm: type.func,
   initialTitle: type.string,
   initialText: type.string,
-  intitialSurveyQuestion: type.string,
-  submitLabel: type.string.isRequired
+  submitLabel: type.string.isRequired,
+  initialLabelIds: type.array,
+  labels: type.array
 };
 
 export default CannedResponseForm;

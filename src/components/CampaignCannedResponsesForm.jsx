@@ -22,6 +22,7 @@ import ColumnName from "../containers/AdminCampaignCreate/ColumnName";
 import FilePicker from "../containers/AdminCampaignCreate/FilePicker";
 import ValidationStats from "../containers/AdminCampaignCreate/ValidationStats";
 import { validateCustomFieldsInBody } from "../lib/custom-fields-helpers";
+import LabelChips from "./LabelChips";
 
 const warningIcon = <WarningIcon color={theme.colors.EWred} />;
 
@@ -50,6 +51,10 @@ const styles = StyleSheet.create({
   errorMessage: {
     backgroundColor: theme.colors.red,
     padding: "10px 5px"
+  },
+  listSubheader: {
+    fontSize: 14,
+    color: theme.colors.gray
   }
 });
 
@@ -257,6 +262,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
               onSaveCannedResponse={this.handleAdd}
               customFields={this.props.customFields}
               closeForm={this.closeAddForm}
+              labels={this.props.labels}
             />
           </div>
         </div>
@@ -292,7 +298,8 @@ export default class CampaignCannedResponsesForm extends React.Component {
                 }}
                 initialTitle={response.title}
                 initialText={response.text}
-                initialSurveyQuestion={response.surveyQuestion}
+                initialLabelIds={response.labelIds}
+                labels={this.props.labels}
               />
             </div>
           </div>
@@ -300,10 +307,6 @@ export default class CampaignCannedResponsesForm extends React.Component {
       }
 
       // not editing; just display it
-      const title = response.surveyQuestion
-        ? `[${response.surveyQuestion}] ${response.title}`
-        : response.title;
-
       const { missingFields = [] } = validateCustomFieldsInBody(
         response.text,
         customFields
@@ -314,8 +317,6 @@ export default class CampaignCannedResponsesForm extends React.Component {
           {...dataTest("cannedResponse")}
           value={response.text}
           key={response.id}
-          primaryText={title}
-          secondaryText={response.text}
           leftIcon={!!missingFields.length ? warningIcon : null}
           rightIconButton={
             <IconButton
@@ -330,7 +331,11 @@ export default class CampaignCannedResponsesForm extends React.Component {
             this.startEditing(response.id);
           }}
           secondaryTextLines={2}
-        />
+        >
+          <p>{response.title}</p>
+          <p className={css(styles.listSubheader)}>{response.text}</p>
+          <LabelChips labels={this.props.labels} labelIds={response.labelIds} />
+        </ListItem>
       );
     });
 
@@ -419,7 +424,13 @@ export default class CampaignCannedResponsesForm extends React.Component {
 
     const newResponses = responses.map(response => {
       const { Body, Title } = response;
-      const surveyQuestion = response["Data Item"];
+
+      const labelsBySlug = _.keyBy(this.props.labels, "slug");
+      const labelIds = (response.slugs || [])
+        .map(slug => labelsBySlug[slug])
+        .filter(label => label)
+        .map(label => label.id);
+
       const id = Math.random()
         .toString(36)
         .replace(/[^a-zA-Z1-9]+/g, "");
@@ -427,7 +438,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
         id,
         title: Title,
         text: Body,
-        surveyQuestion,
+        labelIds,
         isNew: true
       };
     });
@@ -463,7 +474,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
             !!responses.length;
 
           if (error) {
-            this.setState({ responseUploadError, state: "idle" });
+            this.setState({ responseUploadError: error, state: "idle" });
           } else if (hasNoResponses) {
             this.handleUploadError("Upload at least one response");
           } else if (responses && responses.length === 0) {
@@ -473,7 +484,39 @@ export default class CampaignCannedResponsesForm extends React.Component {
               fields
             );
           } else {
-            this.handleUploadSuccess(validationStats, responses, fields);
+            // parse and validate uploaded slugs
+            const validSlugs = new Set(this.props.labels.map(l => l.slug));
+            const invalidSlugs = new Set();
+            responses.forEach(response => {
+              const slugsStr = response["Data Item"];
+              const slugs = Array.from(
+                new Set(
+                  slugsStr
+                    .split(/\s+/)
+                    .map(s => s.trim().toLowerCase())
+                    .filter(s => s.length > 0)
+                )
+              );
+
+              slugs.forEach(slug => {
+                if (!validSlugs.has(slug)) {
+                  invalidSlugs.add(slug);
+                }
+              });
+
+              response.slugs = slugs;
+            });
+
+            if (invalidSlugs.size === 0) {
+              this.handleUploadSuccess(validationStats, responses, fields);
+            } else {
+              this.setState({
+                responseUploadError: `Invalid slugs in the Data Item column: ${Array.from(
+                  invalidSlugs
+                ).join(", ")}`,
+                state: "idle"
+              });
+            }
           }
         }
       );
@@ -517,5 +560,6 @@ CampaignCannedResponsesForm.propTypes = {
   onSubmit: type.func,
   onChange: type.func,
   formValues: type.object,
-  customFields: type.array
+  customFields: type.array,
+  labels: type.array
 };
