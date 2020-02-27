@@ -14,7 +14,7 @@ export const schema = gql`
     group: String
     displayValue: String!
     slug: String!
-    createdBy: ID!
+    createdBy: User
     createdAt: Date!
   }
 `;

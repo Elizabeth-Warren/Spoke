@@ -44,6 +44,7 @@ import {
 import { resolvers as interactionStepResolvers } from "./interaction-step";
 import { saveNewIncomingMessage } from "./lib/message-sending";
 import serviceMap from "./lib/services";
+import { resolvers as labelResolvers } from "./label";
 import { resolvers as messageResolvers, messageDedupe } from "./message";
 import { resolvers as optOutResolvers } from "./opt-out";
 import { resolvers as organizationResolvers } from "./organization";
@@ -255,14 +256,6 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
           });
         }
         if (updatedResponse.labelIds) {
-          // remove this block if we decide to hard delete canned_response_label records after
-          // a campaign has started
-          if (origCampaignRecord.is_started) {
-            throw new Error(
-              "Updating labels on a canned response after starting a campaign is not supported"
-            );
-          }
-
           await db.CannedResponse.updateLabels(
             updatedResponse.id,
             updatedResponse.labelIds
@@ -1681,6 +1674,7 @@ export const resolvers = {
   ...assignmentResolvers,
   ...interactionStepResolvers,
   ...optOutResolvers,
+  ...labelResolvers,
   ...messageResolvers,
   ...campaignContactResolvers,
   ...cannedResponseResolvers,
