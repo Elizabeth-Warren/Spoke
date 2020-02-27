@@ -487,7 +487,7 @@ class AdminCampaignEdit extends React.Component {
         onChange={this.handleChange}
         formValues={formValues}
         saveLabel={
-          this.isNew() && !isLast ? "Save and goto next section" : "Save"
+          this.isNew() && !isLast ? "Save and goto next section" : "Continue"
         }
         saveDisabled={shouldDisable}
         ensureComplete={this.props.campaignData.campaign.isStarted}
