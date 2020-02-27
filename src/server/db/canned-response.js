@@ -10,7 +10,7 @@ import {
 } from "./common";
 
 async function create(
-  { title, text, surveyQuestion, campaignId, userId },
+  { title, text, surveyQuestion, campaignId, userId, order },
   opts
 ) {
   return insertAndReturn(
@@ -20,7 +20,8 @@ async function create(
       text,
       surveyQuestion,
       campaignId,
-      userId
+      userId,
+      order
     },
     opts
   );
@@ -28,7 +29,7 @@ async function create(
 
 async function update(
   id,
-  { title, text, surveyQuestion, userId, deleted },
+  { title, text, surveyQuestion, userId, deleted, order },
   opts
 ) {
   return updateAndReturn(
@@ -39,7 +40,8 @@ async function update(
       text,
       surveyQuestion,
       userId,
-      deleted
+      deleted,
+      order
     },
     opts
   );

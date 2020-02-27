@@ -100,6 +100,11 @@ const campaignInfoFragment = `
 function transformCampaignToCampaignInput(campaign) {
   // translate labels -> labelIds
   const cannedResponses = campaign.cannedResponses.map(origResponse => {
+    if (origResponse.labelIds) {
+      // already translated
+      return origResponse;
+    }
+
     const response = { ...origResponse };
     response.labelIds = (response.labels || []).map(l => l.id);
     delete response.labels;
