@@ -5,7 +5,9 @@ import {
   getAny,
   insertAndReturn,
   genericGetMany,
-  genericList
+  genericList,
+  convertCase,
+  queryBuilder
 } from "./common";
 
 const SLUG_REGEX = /^[a-z0-9_]+$/;
@@ -30,6 +32,15 @@ async function get(id, opts) {
   return getAny(Table.LABEL, "id", id, opts);
 }
 
+async function getByOrgAndSlug(organizationId, slug, opts) {
+  return convertCase(
+    await queryBuilder(Table.LABEL, opts)
+      .where({ organization_id: organizationId, slug })
+      .first(),
+    opts
+  );
+}
+
 async function getMany(ids, opts) {
   return genericGetMany(Table.LABEL, "id", ids, opts);
 }
@@ -41,6 +52,7 @@ async function listForOrganization(organizationId, opts) {
 export default {
   create,
   get,
+  getByOrgAndSlug,
   getMany,
   listForOrganization
 };

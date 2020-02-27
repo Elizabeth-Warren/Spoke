@@ -21,6 +21,7 @@ function enableTracing() {
 
 export default {
   // Utils
+  knex,
   enableTracing,
   transaction,
   Table,
