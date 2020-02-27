@@ -115,7 +115,7 @@ export default class ContactInfo extends React.Component {
               campaignContactId: this.props.campaignContact.id
             }}
             text="Conversation URL"
-            isOptedOut={!!_.get(this.propscampaignContact, "optOut.id", false)}
+            isOptedOut={!!_.get(this.props.campaignContact, "optOut.id", false)}
           />
         </div>
       </div>
