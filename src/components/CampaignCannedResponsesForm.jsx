@@ -488,6 +488,10 @@ export default class CampaignCannedResponsesForm extends React.Component {
             const validSlugs = new Set(this.props.labels.map(l => l.slug));
             const invalidSlugs = new Set();
             responses.forEach(response => {
+              if (!response["Data Item"]) {
+                return;
+              }
+
               const slugsStr = response["Data Item"];
               const slugs = Array.from(
                 new Set(
