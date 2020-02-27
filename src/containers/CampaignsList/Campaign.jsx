@@ -3,9 +3,8 @@ import React from "react";
 import { ListItem } from "material-ui/List";
 import moment from "moment";
 import WarningIcon from "material-ui/svg-icons/alert/warning";
-import ArchiveIcon from "material-ui/svg-icons/content/archive";
-import UnarchiveIcon from "material-ui/svg-icons/content/unarchive";
 import IconButton from "material-ui/IconButton";
+import SettingsIcon from "material-ui/svg-icons/action/settings";
 import Checkbox from "material-ui/Checkbox";
 import theme from "../../styles/theme";
 import Chip from "../../components/Chip";
@@ -33,30 +32,17 @@ const inlineStyles = {
   }
 };
 
-const renderRightIcon = (campaign, archiveCampaign, unarchiveCampaign) => {
-  if (campaign.isArchived) {
-    return (
-      <IconButton
-        tooltip="Unarchive"
-        onClick={async e => {
-          e.stopPropagation();
-          await unarchiveCampaign(campaign.id);
-        }}
-      >
-        <UnarchiveIcon />
-      </IconButton>
-    );
-  }
+const renderRightIcon = (campaign, onClickCampaignStatusIcon) => {
+  const { id, status, isArchived } = campaign;
   return (
-    <IconButton
-      tooltip="Archive"
-      onClick={async e => {
-        e.stopPropagation();
-        await archiveCampaign(campaign.id);
-      }}
-    >
-      <ArchiveIcon />
-    </IconButton>
+    !isArchived && (
+      <IconButton
+        tooltip="Change Status"
+        onClick={() => onClickCampaignStatusIcon(id, status)}
+      >
+        <SettingsIcon />
+      </IconButton>
+    )
   );
 };
 
@@ -65,8 +51,7 @@ const Campaign = props => {
     campaign,
     adminPerms,
     selectMultiple,
-    archiveCampaign,
-    unarchiveCampaign
+    onClickCampaignStatusIcon
   } = props;
 
   const {
@@ -153,7 +138,7 @@ const Campaign = props => {
       leftIcon={!selectMultiple ? leftIcon : null}
       rightIconButton={
         !selectMultiple && adminPerms
-          ? renderRightIcon(campaign, archiveCampaign, unarchiveCampaign)
+          ? renderRightIcon(campaign, onClickCampaignStatusIcon)
           : null
       }
       leftCheckbox={selectMultiple ? <Checkbox /> : null}
@@ -167,9 +152,7 @@ Campaign.propTypes = {
   selectMultiple: PropTypes.bool,
   router: PropTypes.object,
   handleChecked: PropTypes.func,
-  organizationId: PropTypes.string,
-  archiveCampaign: PropTypes.func,
-  unarchiveCampaign: PropTypes.func
+  organizationId: PropTypes.string
 };
 
 export default Campaign;

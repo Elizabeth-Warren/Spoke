@@ -2,8 +2,6 @@ import React from "react";
 import gql from "graphql-tag";
 import SpeakerNotesIcon from "material-ui/svg-icons/action/speaker-notes";
 import PropTypes from "prop-types";
-import Dialog from "material-ui/Dialog";
-import FlatButton from "material-ui/FlatButton";
 import { withRouter } from "react-router";
 import loadData from "../hoc/load-data";
 import wrapMutations from "../hoc/wrap-mutations";
@@ -11,6 +9,44 @@ import Empty from "../../components/Empty";
 import Campaign from "./Campaign";
 import PaginatedList from "../../components/Paginated/PaginatedList";
 import LoadingIndicator from "../../components/LoadingIndicator";
+import theme from "../../styles/theme";
+import CampaignStatusModal from "../../components/CampaignStatusModal.jsx";
+import { CampaignStatus } from "../../lib/campaign-statuses";
+const { ARCHIVED } = CampaignStatus;
+
+const styles = {
+  dialog: {
+    width: "50%"
+  },
+  iconStyle: { marginRight: 5, height: 18 },
+  statusInfoStyle: {
+    display: "flex",
+    marginBottom: 40,
+    fontSize: 13,
+    alignItems: "center"
+  },
+  archiveConfirmation: {
+    width: "100%",
+    backgroundColor: theme.colors.veryLightGray,
+    borderRadius: 6,
+    padding: "20px 20px 10px 20px",
+    boxSizing: "border-box"
+  },
+  archiveConfirmHeader: {
+    fontSize: 20,
+    marginBottom: 10,
+    marginTop: 0,
+    textAlign: "center",
+    fontWeight: "bold",
+    color: theme.colors.EWnavy
+  },
+  archiveConfirmContent: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center"
+  },
+  largeWarningIcon: { height: 75, width: 75, marginRight: 20 }
+};
 
 const campaignInfoFragment = `
   id
@@ -21,6 +57,7 @@ const campaignInfoFragment = `
   hasUnsentInitialMessages
   description
   dueBy
+  status
   creator {
     displayName
   }
@@ -37,7 +74,7 @@ export class CampaignList extends React.Component {
     this.state = {
       page: 0,
       pageSize: INITIAL_ROW_SIZE,
-      currentlyArchivingId: null
+      campaignIdForStatusChange: null
     };
   }
 
@@ -96,7 +133,7 @@ export class CampaignList extends React.Component {
   };
 
   handleArchiveCampaign = id => {
-    this.setState({ currentlyArchivingId: id });
+    this.setState({ campaignIdForStatusChange: id });
   };
 
   renderRow = campaign => (
@@ -108,9 +145,36 @@ export class CampaignList extends React.Component {
       handleChecked={this.props.handleChecked}
       organizationId={this.props.organizationId}
       archiveCampaign={this.handleArchiveCampaign}
-      unarchiveCampaign={this.props.mutations.unarchiveCampaign}
+      onClickCampaignStatusIcon={this.showCampaignStatusModal}
     />
   );
+
+  showCampaignStatusModal = (campaignId, campaignStatus) =>
+    this.setState({
+      campaignIdForStatusChange: campaignId,
+      campaignStatus
+    });
+
+  handleCloseModal = () => this.setState({ campaignIdForStatusChange: null });
+
+  handleChangeStatus = (event, index, campaignStatus) => {
+    this.setState({
+      campaignStatus
+    });
+  };
+
+  handleSave = async () => {
+    const { campaignIdForStatusChange, campaignStatus } = this.state;
+    if (campaignStatus === ARCHIVED) {
+      await this.props.mutations.archiveCampaign(campaignIdForStatusChange);
+    } else {
+      await this.props.mutations.updateCampaignStatus(
+        campaignIdForStatusChange,
+        campaignStatus
+      );
+    }
+    this.handleCloseModal();
+  };
 
   render() {
     if (this.props.data.loading || !this.props.data.organization) {
@@ -135,31 +199,15 @@ export class CampaignList extends React.Component {
         >
           {campaigns.map(campaign => this.renderRow(campaign))}
         </PaginatedList>
-        <Dialog
-          title="Archive Campaign?"
-          open={!!this.state.currentlyArchivingId}
-          actions={[
-            <FlatButton
-              secondary
-              label="Cancel"
-              onClick={() => this.setState({ currentlyArchivingId: null })}
-            />,
-            <FlatButton
-              label="OK"
-              primary
-              keyboardFocused
-              onClick={async () => {
-                await this.props.mutations.archiveCampaign(
-                  this.state.currentlyArchivingId
-                );
-                this.setState({
-                  currentlyArchivingId: null
-                });
-              }}
-            />
-          ]}
-          onRequestClose={() => this.setState({ currentlyArchivingId: null })}
-        />
+        {!!this.state.campaignIdForStatusChange && (
+          <CampaignStatusModal
+            campaignIdForStatusChange={this.state.campaignIdForStatusChange}
+            campaignStatus={this.state.campaignStatus}
+            handleCloseModal={this.handleCloseModal}
+            handleSave={this.handleSave}
+            handleChangeStatus={this.handleChangeStatus}
+          />
+        )}
       </div>
     );
   }
@@ -194,14 +242,13 @@ const mapMutationsToProps = () => ({
     variables: { campaignId },
     refetchQueries: ["organization"]
   }),
-  unarchiveCampaign: campaignId => ({
-    mutation: gql`mutation unarchiveCampaign($campaignId: String!) {
-        unarchiveCampaign(id: $campaignId) {
+  updateCampaignStatus: (campaignId, status) => ({
+    mutation: gql`mutation updateCampaignStatus($campaignId: ID!, $status: CampaignStatus!) {
+        updateCampaignStatus(id: $campaignId, status: $status) {
           ${campaignInfoFragment}
         }
       }`,
-    variables: { campaignId },
-    refetchQueries: ["organization"]
+    variables: { campaignId, status }
   })
 });
 

@@ -8,8 +8,7 @@ import { CampaignList } from "../../src/containers/CampaignsList";
 import { StyleSheetTestUtils } from "aphrodite";
 
 const mutations = {
-  archiveCampaign: async _ => {},
-  unarchiveCampaign: async _ => {}
+  archiveCampaign: async _ => {}
 };
 
 describe("Campaign list for campaign with null creator", () => {

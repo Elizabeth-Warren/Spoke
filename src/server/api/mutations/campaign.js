@@ -8,8 +8,7 @@ import {
 import db from "src/server/db";
 import BackgroundJob from "src/server/db/background-job";
 import { JobType, dispatchJob } from "src/server/workers";
-
-const CampaignStatus = db.Campaign.Status;
+import { CampaignStatus } from "../../../lib/campaign-statuses";
 
 export const mutations = {
   startCampaign: async (_, { id }, { user }) => {
@@ -45,7 +44,6 @@ export const mutations = {
     return cacheableData.campaign.reload(id);
   },
   updateCampaignStatus: async (_, { id, status }, { user, loaders }) => {
-    // TODO: add ARCHIVE here and remove unarchive
     const supportedStatuses = [
       CampaignStatus.ACTIVE,
       CampaignStatus.CLOSED,

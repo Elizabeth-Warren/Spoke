@@ -16,6 +16,7 @@ export const schema = gql`
     listSize: Int
     pageSize: Int
     searchString: String
+    status: CampaignStatus
   }
 
   type CampaignStats {

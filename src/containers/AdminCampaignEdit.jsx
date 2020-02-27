@@ -591,16 +591,7 @@ class AdminCampaignEdit extends React.Component {
           {this.renderCurrentEditors()}
         </div>
         <div>
-          {this.props.campaignData.campaign.isArchived ? (
-            <RaisedButton
-              label="Unarchive"
-              onClick={async () =>
-                await this.props.mutations.unarchiveCampaign(
-                  this.props.campaignData.campaign.id
-                )
-              }
-            />
-          ) : (
+          {!this.props.campaignData.campaign.isArchived && (
             <RaisedButton
               label="Archive"
               onClick={async () =>
@@ -792,14 +783,6 @@ const mapMutationsToProps = ({ ownProps }) => ({
             ${campaignInfoFragment}
           }
         }`,
-    variables: { campaignId }
-  }),
-  unarchiveCampaign: campaignId => ({
-    mutation: gql`mutation unarchiveCampaign($campaignId: String!) {
-        unarchiveCampaign(id: $campaignId) {
-          ${campaignInfoFragment}
-        }
-      }`,
     variables: { campaignId }
   }),
   startCampaign: campaignId => ({

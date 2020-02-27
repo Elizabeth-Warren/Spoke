@@ -16,6 +16,9 @@ import DataTables from "material-ui-datatables";
 import LinearProgress from "material-ui/LinearProgress";
 import _ from "lodash";
 import moment from "moment";
+import CampaignStatusModal from "../components/CampaignStatusModal.jsx";
+import { CampaignStatus } from "../lib/campaign-statuses";
+const { ARCHIVED } = CampaignStatus;
 
 const inlineStyles = {
   stat: {
@@ -181,10 +184,41 @@ class AdminCampaignStats extends React.Component {
       />
     );
   }
+
+  showCampaignStatusModal = () =>
+    this.setState({
+      campaignStatusModalOpen: true
+    });
+
+  handleCloseModal = () => this.setState({ campaignStatusModalOpen: false });
+
+  handleChangeStatus = (event, index, newCampaignStatus) => {
+    this.setState({
+      newCampaignStatus
+    });
+  };
+
+  handleSave = async () => {
+    const { campaignId, organizationId } = this.props.params;
+    const { newCampaignStatus } = this.state;
+
+    if (newCampaignStatus === ARCHIVED) {
+      await this.props.mutations.archiveCampaign(campaignId);
+      this.props.router.push(`/admin/${organizationId}/campaigns`);
+    } else {
+      await this.props.mutations.updateCampaignStatus(
+        campaignId,
+        newCampaignStatus
+      );
+    }
+    this.handleCloseModal();
+  };
+
   render() {
     const { data, params } = this.props;
     const { organizationId, campaignId } = params;
     const campaign = data.campaign;
+    const { status } = campaign;
     const { adminPerms } = this.props.params;
 
     // TODO[fuzzy]: load from new jobs API right now it
@@ -218,9 +252,17 @@ class AdminCampaignStats extends React.Component {
       ((distinctContactsWithReplies - campaign.stats.optOutsCount) /
         distinctContactsMessaged) *
       100;
-
     return (
       <div>
+        {!!this.state.campaignStatusModalOpen && (
+          <CampaignStatusModal
+            campaignIdForStatusChange={campaign.id}
+            campaignStatus={this.state.newCampaignStatus}
+            handleCloseModal={this.handleCloseModal}
+            handleSave={this.handleSave}
+            handleChangeStatus={this.handleChangeStatus}
+          />
+        )}
         <div className={css(styles.container)}>
           {campaign.isArchived ? (
             <div className={css(styles.archivedBanner)}>
@@ -294,25 +336,11 @@ class AdminCampaignStats extends React.Component {
                           }}
                           label={exportLabel}
                           disabled={shouldDisableExport}
-                        />, // unarchive
-                        campaign.isArchived ? (
-                          <RaisedButton
-                            onClick={async () =>
-                              await this.props.mutations.unarchiveCampaign(
-                                campaignId
-                              )
-                            }
-                            label="Unarchive"
-                          />
-                        ) : null, // archive
+                        />,
                         !campaign.isArchived ? (
                           <RaisedButton
-                            onClick={async () =>
-                              await this.props.mutations.archiveCampaign(
-                                campaignId
-                              )
-                            }
-                            label="Archive"
+                            onClick={this.showCampaignStatusModal}
+                            label="Update Status"
                           />
                         ) : null, // copy
                         <RaisedButton
@@ -409,6 +437,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
           isArchived
           useDynamicAssignment
           dueBy
+          status
           assignmentSummaries {
             assignmentId
             texterId
@@ -448,17 +477,6 @@ const mapMutationsToProps = () => ({
     `,
     variables: { campaignId }
   }),
-  unarchiveCampaign: campaignId => ({
-    mutation: gql`
-      mutation unarchiveCampaign($campaignId: String!) {
-        unarchiveCampaign(id: $campaignId) {
-          id
-          isArchived
-        }
-      }
-    `,
-    variables: { campaignId }
-  }),
   exportCampaign: campaignId => ({
     mutation: gql`
       mutation exportCampaign($campaignId: String!) {
@@ -468,6 +486,21 @@ const mapMutationsToProps = () => ({
       }
     `,
     variables: { campaignId }
+  }),
+
+  updateCampaignStatus: (campaignId, status) => ({
+    mutation: gql`
+      mutation updateCampaignStatus(
+        $campaignId: ID!
+        $status: CampaignStatus!
+      ) {
+        updateCampaignStatus(id: $campaignId, status: $status) {
+          id
+          status
+        }
+      }
+    `,
+    variables: { campaignId, status }
   })
 });
 

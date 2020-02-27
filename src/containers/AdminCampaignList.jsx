@@ -11,7 +11,6 @@ import gql from "graphql-tag";
 import theme from "../styles/theme";
 import LoadingIndicator from "../components/LoadingIndicator";
 import wrapMutations from "./hoc/wrap-mutations";
-import DropDownMenu from "material-ui/DropDownMenu";
 import IconMenu from "material-ui/IconMenu";
 import { MenuItem } from "material-ui/Menu";
 import { dataTest } from "../lib/attributes";
@@ -22,6 +21,7 @@ import SortBy, {
 import Paper from "material-ui/Paper";
 import Search from "../components/Search";
 import { StyleSheet, css } from "aphrodite";
+import CampaignStatusSelect from "../components/CampaignStatusSelect";
 
 const styles = StyleSheet.create({
   settings: {
@@ -37,8 +37,8 @@ class AdminCampaignList extends React.Component {
   state = {
     isLoading: false,
     campaignsFilter: {
-      isArchived: false,
-      searchString: ""
+      searchString: "",
+      status: "ACTIVE"
     },
     archiveMultiple: false,
     campaignsToArchive: {},
@@ -62,10 +62,10 @@ class AdminCampaignList extends React.Component {
     }
   };
 
-  handleFilterChange = (event, index, isArchived) => {
+  handleFilterChange = (event, index, status) => {
     this.setState({
       campaignsFilter: {
-        isArchived
+        status
       },
       sortBy: defaultSort
     });
@@ -116,13 +116,10 @@ class AdminCampaignList extends React.Component {
       !this.state.archiveMultiple && (
         <span>
           <span>
-            <DropDownMenu
-              value={this.state.campaignsFilter.isArchived}
+            <CampaignStatusSelect
+              value={this.state.campaignsFilter.status}
               onChange={this.handleFilterChange}
-            >
-              <MenuItem value={false} primaryText="Current" />
-              <MenuItem value primaryText="Archived" />
-            </DropDownMenu>
+            />
             <SortBy
               onChange={this.handleSortByChanged}
               sortBy={this.state.sortBy}

@@ -19,7 +19,6 @@ import {
 import { cacheableData } from "src/server/models/cacheable_queries";
 
 import { campaignPhoneNumbersEnabled } from "./lib/utils";
-// import { isBetweenTextingHours } from '../../lib/timezones'
 import { resolvers as assignmentResolvers, getContacts } from "./assignment";
 import { getCampaigns, resolvers as campaignResolvers } from "./campaign";
 import { mutations as campaignMutations } from "./mutations/campaign";
