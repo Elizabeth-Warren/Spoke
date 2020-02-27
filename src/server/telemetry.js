@@ -110,7 +110,7 @@ if (process.env.ENABLE_CLOUDWATCH_REPORTING === "1") {
     }
   });
 
-  reportEventCallbacks.pus(async (detailType, details) => {
+  reportEventCallbacks.push(async (detailType, details) => {
     const payload = makeCloudwatchEvent(detailType, details);
     try {
       await cloudwatchClient.putEvents(payload).promise();
