@@ -70,9 +70,6 @@ const mapQueriesToProps = ({ ownProps }) => ({
             slug
             createdAt
             group
-            createdBy {
-              id
-            }
           }
         }
       }
