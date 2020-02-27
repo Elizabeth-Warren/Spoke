@@ -4,6 +4,7 @@ import gql from "graphql-tag";
 export const schema = gql`
   input ContactsFilter {
     contactId: ID
+    cell: String
     messageStatus: String
     isOptedOut: Boolean
     validTimezone: Boolean

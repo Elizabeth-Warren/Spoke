@@ -147,6 +147,7 @@ export class CampaignList extends React.Component {
             <FlatButton
               label="OK"
               primary
+              keyboardFocused
               onClick={async () => {
                 await this.props.mutations.archiveCampaign(
                   this.state.currentlyArchivingId

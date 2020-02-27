@@ -1,7 +1,7 @@
 import { css, StyleSheet } from "aphrodite";
-import _ from "lodash";
 import { Card, CardHeader, CardText } from "material-ui/Card";
 import Toggle from "material-ui/Toggle";
+import TextField from "material-ui/TextField";
 import type from "prop-types";
 import React, { Component } from "react";
 import theme from "../../styles/theme";
@@ -130,6 +130,14 @@ class IncomingMessageFilter extends Component {
                 onTexterSelected={this.onTexterSelected}
               />
             </div>
+            <div className={css(styles.flexColumn)}>
+              <TextField
+                id="text-field-recipients"
+                floatingLabelText="Find Recipient By Phone Number"
+                value={this.props.recipientPhoneInputText}
+                onChange={this.props.onRecipientPhoneInputText}
+              />
+            </div>
           </div>
 
           <div className={css(styles.container)}>
@@ -151,6 +159,8 @@ IncomingMessageFilter.propTypes = {
   includeNotOptedOutConversations: type.bool.isRequired,
   includeOptedOutConversations: type.bool.isRequired,
   texters: type.array.isRequired,
+  recipientPhoneInputText: type.string.isRequired,
+  onRecipientPhoneInputText: type.func.isRequired,
   onMessageFilterChanged: type.func.isRequired,
   onTagsFilterChanged: type.func.isRequired,
   assignmentsFilter: type.shape({

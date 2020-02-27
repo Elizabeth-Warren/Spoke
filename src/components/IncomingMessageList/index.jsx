@@ -1,10 +1,13 @@
+import React, { Component } from "react";
+import type from "prop-types";
+import _ from "lodash";
 import { css, StyleSheet } from "aphrodite";
 import gql from "graphql-tag";
 import FlatButton from "material-ui/FlatButton";
 import ActionOpenInNew from "material-ui/svg-icons/action/open-in-new";
-import type from "prop-types";
-import React, { Component } from "react";
+import queryString from "query-string";
 import { withRouter } from "react-router";
+
 import { MESSAGE_STATUSES } from "../../components/IncomingMessageFilter";
 import LoadingIndicator from "../../components/LoadingIndicator";
 import loadData from "../../containers/hoc/load-data";
@@ -48,13 +51,20 @@ const prepareSelectedRowsData = (conversations, selectedIndices) => {
   });
 };
 
+const getActiveConversation = conversations => {
+  const { contactId } = queryString.parse(window.location.search);
+  return prepareDataTableData(
+    _.get(conversations, "conversations.conversations", [])
+  ).find(({ campaignContactId }) => contactId === campaignContactId);
+};
+
 export class IncomingMessageList extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
       selectedIndices: [],
-      activeConversation: undefined,
+      activeConversation: getActiveConversation(props.conversations),
       confirmPageChange: {
         open: false,
         pageDelta: 0
@@ -337,12 +347,15 @@ export class IncomingMessageList extends Component {
             this.handleCloseConfirmChangePageWithConvosSelectedDialog
           }
         />
-        <ConversationPreviewModal
-          organizationId={this.props.organizationId}
-          conversation={this.state.activeConversation}
-          onRequestClose={this.handleCloseConversation}
-          onForceRefresh={this.props.onForceRefresh}
-        />
+        {this.state.activeConversation && (
+          <ConversationPreviewModal
+            campaignId={this.props.campaignId}
+            organizationId={this.props.organizationId}
+            conversation={this.state.activeConversation}
+            onRequestClose={this.handleCloseConversation}
+            onForceRefresh={this.props.onForceRefresh}
+          />
+        )}
       </div>
     );
   }
@@ -350,6 +363,7 @@ export class IncomingMessageList extends Component {
 
 IncomingMessageList.propTypes = {
   organizationId: type.string,
+  campaignId: type.string,
   cursor: type.object,
   contactsFilter: type.object,
   campaignsFilter: type.object,

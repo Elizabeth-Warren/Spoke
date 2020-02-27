@@ -2,7 +2,9 @@ import PropTypes from "prop-types";
 import React, { Component } from "react";
 import _ from "lodash";
 import RaisedButton from "material-ui/RaisedButton";
+import queryString from "query-string";
 
+import { getFormattedPhoneNumber } from "src/lib";
 import IncomingMessageActions from "../components/IncomingMessageActions";
 import IncomingMessageFilter from "../components/IncomingMessageFilter";
 import IncomingMessageList from "../components/IncomingMessageList";
@@ -52,12 +54,13 @@ export class AdminIncomingMessageList extends Component {
 
   constructor(props) {
     super(props);
-
+    const queryParams = queryString.parse(window.location.search);
     this.state = {
       page: 0,
       pageSize: INITIAL_PAGE_SIZE,
       contactsFilter: {
-        isOptedOut: false,
+        cell: queryParams.cell,
+        isOptedOut: queryParams.optedOut || false,
         includeResolvedTags: true,
         tags: AdminIncomingMessageList.tagsFilterStateFromTagsFilter(
           IGNORE_TAGS_FILTER
@@ -72,7 +75,10 @@ export class AdminIncomingMessageList extends Component {
       includeActiveCampaigns: true,
       includeNotOptedOutConversations: true,
       includeOptedOutConversations: false,
-      clearSelectedMessages: false
+      clearSelectedMessages: false,
+      recipientPhoneInputText: queryParams.cell
+        ? queryParams.cell.replace("+1", "")
+        : ""
     };
   }
 
@@ -288,6 +294,45 @@ export class AdminIncomingMessageList extends Component {
     });
   };
 
+  handleRecipientPhoneInputTextChange = ({ target }) => {
+    this.setState({
+      recipientPhoneInputText: target.value,
+      needsRender: true
+    });
+
+    let formattedNumber;
+    try {
+      formattedNumber = getFormattedPhoneNumber(target.value);
+    } catch (err) {
+      console.log(err);
+    }
+    if (formattedNumber) {
+      const contactsFilter = {
+        ...this.state.contactsFilter,
+        cell: formattedNumber
+      };
+      return this.setState({
+        clearSelectedMessages: true,
+        contactsFilter,
+        page: 0,
+        needsRender: true
+      });
+    }
+
+    if (this.state.contactsFilter.cell) {
+      const contactsFilter = {
+        ...this.state.contactsFilter,
+        cell: undefined
+      };
+      this.setState({
+        clearSelectedMessages: true,
+        contactsFilter,
+        page: 0,
+        needsRender: true
+      });
+    }
+  };
+
   render() {
     const cursor = {
       offset: this.state.page * this.state.pageSize,
@@ -318,6 +363,8 @@ export class AdminIncomingMessageList extends Component {
             onMessageFilterChanged={this.handleMessageFilterChange}
             onTagsFilterChanged={this.handleTagsFilterChanged}
             assignmentsFilter={this.state.assignmentsFilter}
+            recipientPhoneInputText={this.state.recipientPhoneInputText}
+            onRecipientPhoneInputText={this.handleRecipientPhoneInputTextChange}
             onNotOptedOutConversationsToggled={
               this.handleNotOptedOutConversationsToggled
             }
@@ -347,6 +394,7 @@ export class AdminIncomingMessageList extends Component {
           />
           <br />
           <IncomingMessageList
+            campaignId={campaign.id}
             organizationId={this.props.params.organizationId}
             cursor={cursor}
             contactsFilter={this.state.contactsFilter}

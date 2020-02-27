@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import React from "react";
 import { StyleSheet, css } from "aphrodite";
+import _ from "lodash";
 
 import ActionInfoOutline from "material-ui/svg-icons/action/info-outline";
 import Dialog from "material-ui/Dialog";
@@ -107,12 +108,14 @@ export default class ContactInfo extends React.Component {
         </span>
         <div className={css(styles.addSpace)}>
           <ConversationLink
+            campaignId={this.props.campaign.id}
             organizationId={this.props.campaign.organization.id}
             conversation={{
               assignmentId: this.props.campaignContact.assignmentId,
               campaignContactId: this.props.campaignContact.id
             }}
             text="Conversation URL"
+            isOptedOut={!!_.get(this.propscampaignContact, "optOut.id", false)}
           />
         </div>
       </div>

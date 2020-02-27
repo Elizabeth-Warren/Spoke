@@ -6,7 +6,7 @@ import ConversationLink from "../components/ConversationLink";
 import FlatButton from "material-ui/FlatButton";
 import { dataTest } from "../lib/attributes";
 
-const ConversationLinkDialoag = props => (
+const ConversationLinkDialog = props => (
   <Dialog
     title="Link To This Conversation"
     actions={[
@@ -22,19 +22,22 @@ const ConversationLinkDialoag = props => (
     onRequestClose={props.requestClose}
   >
     <ConversationLink
+      campaignId={props.campaignId}
       organizationId={props.organizationId}
       conversation={props.conversation}
       text={props.text}
+      isOptedOut={props.isOptedOut}
     />
   </Dialog>
 );
 
-ConversationLinkDialoag.propTypes = {
+ConversationLinkDialog.propTypes = {
   open: PropTypes.bool,
   requestClose: PropTypes.func,
   conversation: PropTypes.object,
+  campaignId: PropTypes.string,
   organizationId: PropTypes.string,
   text: PropTypes.string
 };
 
-export default ConversationLinkDialoag;
+export default ConversationLinkDialog;

@@ -40,6 +40,12 @@ function getConversationsJoinsAndWhereClause(
       });
     }
 
+    if ("cell" in contactsFilter) {
+      query = query.where({
+        "campaign_contact.cell": contactsFilter.cell
+      });
+    }
+
     if ("isOptedOut" in contactsFilter) {
       const subQuery = r.knex
         .select("cell")

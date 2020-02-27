@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import _ from "lodash";
 import PropTypes from "prop-types";
 import gql from "graphql-tag";
 import Dialog from "material-ui/Dialog";
@@ -87,6 +88,8 @@ class ConversationPreviewModal extends Component {
           </div>
         </Dialog>
         <ConversationLinkDialog
+          campaignId={this.props.campaignId}
+          isOptedOut={!!_.get(this, "props.data.contact.optOut.id", false)}
           open={this.state.conversationLinkDialogOpen}
           requestClose={this.handleCloseLinkRequested}
           conversation={this.props.conversation}
@@ -99,6 +102,7 @@ class ConversationPreviewModal extends Component {
 }
 
 ConversationPreviewModal.propTypes = {
+  campaignId: PropTypes.string,
   organizationId: PropTypes.string,
   conversation: PropTypes.object,
   onRequestClose: PropTypes.func,
@@ -125,6 +129,25 @@ const mapMutationsToProps = () => ({
   })
 });
 
+const mapQueriesToProps = ({ ownProps }) => ({
+  data: {
+    query: gql`
+      query getContact($contactId: String!) {
+        contact(id: $contactId) {
+          optOut {
+            id
+          }
+        }
+      }
+    `,
+    variables: {
+      contactId: ownProps.conversation.campaignContactId
+    },
+    fetchPolicy: "network-only"
+  }
+});
+
 export default loadData(wrapMutations(ConversationPreviewModal), {
-  mapMutationsToProps
+  mapMutationsToProps,
+  mapQueriesToProps
 });
