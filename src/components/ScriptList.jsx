@@ -17,8 +17,7 @@ const inlineStyles = {
 
 const styles = StyleSheet.create({
   listSubheader: {
-    fontSize: 14,
-    color: theme.colors.gray
+    fontSize: 14
   },
   chipList: {
     display: "flex"
