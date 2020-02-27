@@ -15,6 +15,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       AWS_DEFAULT_REGION: us-east-1
+      SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
       STAGE: prod
       INFRASTRUCTURE: prod
       OUTPUT_DIR: ./build
@@ -32,9 +33,13 @@ jobs:
         run: npm install -g serverless
       - name: Install Dependencies
         run: make install-deps
+      - name: Create Sentry Release
+        run: ./dev-tools/sentry-release-create.sh
       - name: Build
         run: make build-app
         env:
           NODE_ENV: production
       - name: Deploy
         run: make deploy-build
+      - name: Finalize Sentry Release
+        run: ./dev-tools/sentry-release-finalize.sh

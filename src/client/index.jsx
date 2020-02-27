@@ -16,14 +16,10 @@ import LoadingIndicator from "src/components/LoadingIndicator";
 import ErrorBoundary from "src/components/ErrorBoundary";
 
 import { login, logout } from "./auth-service";
-import errorCatcher from "./error-catcher";
+import Telemetry from "./telemetry";
 
-window.onerror = (msg, file, line, col, error) => {
-  errorCatcher(error);
-};
-window.addEventListener("unhandledrejection", event => {
-  errorCatcher(event.reason);
-});
+Telemetry.init();
+
 window.AuthService = {
   login,
   logout

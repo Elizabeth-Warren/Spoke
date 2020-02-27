@@ -31,6 +31,7 @@
     "no-nested-ternary": "warn",
     "react/no-string-refs": "off",
     "react/no-unused-state": "warn",
+    "react/static-property-placement": "off"
   },
   "env": { "jest": true, "node": true, "browser": true, "jasmine": true },
   "settings": {

@@ -173,6 +173,8 @@ plugins:
   - serverless-prune-plugin
   - serverless-jetpack
   - serverless-plugin-canary-deployments
+  - serverless-plugin-git-variables
+
 package:
   excludeDevDependencies: true
   package:

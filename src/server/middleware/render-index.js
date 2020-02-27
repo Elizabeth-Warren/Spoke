@@ -57,7 +57,7 @@ async function getBundleURL() {
   return `${process.env.ASSET_DOMAIN || ""}${bundleFileName}`;
 }
 
-export default async function renderIndex() {
+export default async function renderIndex(req) {
   const css = {
     content: fs.readFileSync(path.join(__dirname, "../../styles/fonts.css")) // these could also be defined in theme.js using aphrodite
   };
@@ -131,6 +131,13 @@ export default async function renderIndex() {
           ? JSON.stringify(`${process.env.ASSET_DOMAIN}/assets/`)
           : "undefined"
       }
+      window.SENTRY_DSN="${process.env.SENTRY_DSN || ""}"
+      window.GIT_COMMIT_SHORT="${process.env.GIT_COMMIT_SHORT || ""}"
+      window.GIT_TAGS="${process.env.GIT_TAGS || ""}"
+      window.USER_ID=${
+        req.user && req.user.id ? JSON.stringify(req.user.id) : "null"
+      }
+      window.STAGE="${process.env.STAGE || "local"}"
     </script>
     <script src="${await getBundleURL()}"></script>
   </body>

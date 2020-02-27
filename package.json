@@ -61,6 +61,7 @@
   "dependencies": {
     "@babel/polyfill": "^7.8.3",
     "@babel/runtime": "^7.8.4",
+    "@sentry/node": "5.12.4",
     "apollo-server-express": "^1.2.0",
     "array-move": "^2.2.1",
     "auth0-js": "^9.10.0",
@@ -122,6 +123,7 @@
     "@babel/preset-env": "^7.8.4",
     "@babel/preset-react": "^7.8.3",
     "@babel/register": "^7.8.3",
+    "@sentry/browser": "^5.12.5",
     "aphrodite": "^2.3.1",
     "apollo-client": "^1.9.2",
     "babel-eslint": "^10.0.3",
@@ -177,6 +179,7 @@
     "serverless-domain-manager": "^3.3.0",
     "serverless-jetpack": "^0.8.1",
     "serverless-plugin-canary-deployments": "^0.4.8",
+    "serverless-plugin-git-variables": "^3.4.0",
     "serverless-prune-plugin": "^1.4.1",
     "wait-on": "^2.1.0",
     "webpack": "^4.41.5",

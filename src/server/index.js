@@ -214,7 +214,7 @@ app.use(async (req, res, next) => {
   res.type("html");
 
   try {
-    res.send(await renderIndex());
+    res.send(await renderIndex(req));
   } catch (e) {
     next(e);
   }

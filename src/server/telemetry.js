@@ -1,16 +1,15 @@
 import moment from "moment";
 import AWS from "aws-sdk";
 import log from "src/server/log";
+import _ from "lodash";
+import * as Sentry from "@sentry/node";
 
 const stage = process.env.STAGE || "local";
 const functionName = process.env.AWS_LAMBDA_FUNCTION_NAME || "NOT_SET";
 
-// default no-ops
-let reportEvent = (detailType, details) =>
-  log.info({ msg: "TELEMETRY EVENT", detailType, details });
-let reportError = (err, details) =>
-  log.error({ msg: "TELEMETRY ERROR", err, details });
-let expressMiddleware = (err, req, res, next) => next(err);
+const reportEventCallbacks = [];
+const reportErrorCallbacks = [];
+const expressMiddlewareCallbacks = [];
 
 const makeCloudwatchEvent = (detailType, details) => {
   return {
@@ -38,11 +37,67 @@ const makeCloudwatchErrorEvent = (err, details) => {
   return makeCloudwatchEvent("Application Exception", errDetails);
 };
 
+if (process.env.SENTRY_DSN) {
+  const sentryConfig = { dsn: process.env.SENTRY_DSN, environment: stage };
+
+  const sentryDefaultTags = { functionName };
+  if (process.env.GIT_COMMIT_SHORT) {
+    sentryDefaultTags.gitCommit = process.env.GIT_COMMIT_SHORT;
+  }
+
+  if (process.env.GIT_TAGS) {
+    const releaseTag = process.env.GIT_TAGS.split(",").find(tag =>
+      tag.startsWith("release-")
+    );
+    if (releaseTag) {
+      sentryConfig.release = releaseTag;
+    }
+  }
+
+  Sentry.init(sentryConfig);
+
+  const reportSentryError = async (err, details = {}) => {
+    Sentry.configureScope(scope => {
+      if (details.userId) {
+        scope.setUser({ id: details.userId });
+      }
+
+      if (details.code) {
+        scope.setTag("code", details.code);
+      }
+
+      if (details.path) {
+        scope.setTag("path", details.path);
+      }
+
+      _.each(sentryDefaultTags, (val, key) => {
+        scope.setTag(key, val);
+      });
+
+      _.each(_.omit(details, "userId", "code", "path"), (val, key) => {
+        scope.setExtra(key, val);
+      });
+
+      Sentry.captureException(err);
+    });
+
+    await Sentry.flush(2000);
+  };
+
+  reportErrorCallbacks.push(reportSentryError);
+  expressMiddlewareCallbacks.push(async (err, req) => {
+    await reportSentryError(err, {
+      userId: req.user && req.user.id,
+      path: req.originalUrl
+    });
+  });
+}
+
 // Specific to the Warren AWS deploy: report a cloudwatch event to "Mission Control"
 if (process.env.ENABLE_CLOUDWATCH_REPORTING === "1") {
   const cloudwatchClient = new AWS.CloudWatchEvents();
 
-  reportError = async (err, details) => {
+  reportErrorCallbacks.push(async (err, details) => {
     const payload = makeCloudwatchErrorEvent(err, details);
     try {
       await cloudwatchClient.putEvents(payload).promise();
@@ -53,9 +108,9 @@ if (process.env.ENABLE_CLOUDWATCH_REPORTING === "1") {
         payload
       });
     }
-  };
+  });
 
-  reportEvent = async (detailType, details) => {
+  reportEventCallbacks.pus(async (detailType, details) => {
     const payload = makeCloudwatchEvent(detailType, details);
     try {
       await cloudwatchClient.putEvents(payload).promise();
@@ -66,14 +121,45 @@ if (process.env.ENABLE_CLOUDWATCH_REPORTING === "1") {
         payload
       });
     }
-  };
+  });
 
-  expressMiddleware = (err, req, res, next) => {
-    cloudwatchClient.putEvents(makeCloudwatchErrorEvent(err), awsErr => {
-      log.error("Error posting exception to Cloudwatch:", awsErr);
-      next(err);
+  expressMiddlewareCallbacks.push(async (err, req) => {
+    await new Promise(resolve => {
+      cloudwatchClient.putEvents(makeCloudwatchErrorEvent(err), awsErr => {
+        log.error("Error posting exception to Cloudwatch:", awsErr);
+        resolve();
+      });
     });
-  };
+  });
+}
+
+// default no-ops
+if (reportEventCallbacks.length === 0) {
+  reportEventCallbacks.push(async (detailType, details) =>
+    log.info({ msg: "TELEMETRY EVENT", detailType, details })
+  );
+}
+
+if (reportErrorCallbacks.length === 0) {
+  reportErrorCallbacks.push(async (err, details) =>
+    log.error({ msg: "TELEMETRY ERROR", err, details })
+  );
+}
+
+async function reportEvent(detailType, details) {
+  await Promise.all(reportEventCallbacks.map(cb => cb(detailType, details)));
+}
+
+async function reportError(err, details) {
+  await Promise.all(reportErrorCallbacks.map(cb => cb(err, details)));
+}
+
+function expressMiddleware(err, req, res, next) {
+  Promise.all(expressMiddlewareCallbacks.map(cb => cb(err, req, res))).then(
+    () => {
+      next(err);
+    }
+  );
 }
 
 export default {
