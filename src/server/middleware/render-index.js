@@ -139,7 +139,7 @@ export default async function renderIndex(req) {
       }
       window.STAGE="${process.env.STAGE || "local"}"
     </script>
-    <script src="${await getBundleURL()}"></script>
+    <script src="${await getBundleURL()}" crossorigin="anonymous"></script>
   </body>
 </html>
 `;

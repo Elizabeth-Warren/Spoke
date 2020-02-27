@@ -85,7 +85,8 @@ const config = {
   output: {
     filename: outputFile,
     path: path.resolve(DEBUG ? __dirname : assetsDir),
-    publicPath: "/assets/"
+    publicPath: "/assets/",
+    crossOriginLoading: "anonymous"
   }
 };
 
