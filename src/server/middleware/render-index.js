@@ -1,5 +1,7 @@
 import fs from "fs";
 import path from "path";
+import _ from "lodash";
+
 import { r } from "src/server/models/";
 
 // the site is not very useful without auth0, unless you have a session cookie already
@@ -68,6 +70,12 @@ export default async function renderIndex() {
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
     <title>Spoke</title>
     ${externalLinks}
+    <link rel="icon"
+      type="image/png"
+      href="https://ew-spoke-public.elizabethwarren.codes/favicon/bailey-${_.random(
+        0,
+        4
+      )}.png">
     <style>
       /* CSS declarations go here */
       body {
