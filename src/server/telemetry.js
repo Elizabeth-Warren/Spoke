@@ -114,7 +114,11 @@ if (process.env.ENABLE_CLOUDWATCH_REPORTING === "1") {
       ],
       Namespace: metricNamespace
     };
-    await cloudwatchClient.putMetricData(metric).promise();
+    try {
+      await cloudwatchClient.putMetricData(metric).promise();
+    } catch (e) {
+      log.error("Error posting metric to Cloudwatch:", e);
+    }
   };
 
   reportErrorCallbacks.push(async (err, details) => {
