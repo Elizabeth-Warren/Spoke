@@ -9,6 +9,7 @@ import Checkbox from "material-ui/Checkbox";
 import theme from "../../styles/theme";
 import Chip from "../../components/Chip";
 import { dataTest } from "../../lib/attributes";
+import ArchiveIcon from "material-ui/svg-icons/content/archive";
 
 const inlineStyles = {
   past: {
@@ -34,16 +35,27 @@ const inlineStyles = {
 
 const renderRightIcon = (campaign, onClickCampaignStatusIcon) => {
   const { id, status, isArchived } = campaign;
-  return (
-    !isArchived && (
+  const notStarted = status === "NOT_STARTED";
+
+  if (notStarted) {
+    return (
+      <IconButton
+        tooltip="Archive"
+        onClick={() => onClickCampaignStatusIcon(id)}
+      >
+        <ArchiveIcon />
+      </IconButton>
+    );
+  } else if (!isArchived) {
+    return (
       <IconButton
         tooltip="Change Status"
         onClick={() => onClickCampaignStatusIcon(id, status)}
       >
         <SettingsIcon />
       </IconButton>
-    )
-  );
+    );
+  }
 };
 
 const Campaign = props => {

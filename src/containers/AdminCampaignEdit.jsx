@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import React from "react";
 import _ from "lodash";
 import { withRouter } from "react-router";
-
+import FlatButton from "material-ui/FlatButton";
 import { Dialog } from "material-ui";
 import WarningIcon from "material-ui/svg-icons/alert/warning";
 import DoneIcon from "material-ui/svg-icons/action/done";
@@ -25,12 +25,14 @@ import DisplayLink from "src/components/DisplayLink";
 import { CreateContainer } from "./AdminCampaignCreate";
 import JobProgress from "./JobProgress";
 import { validateCustomFieldsInBody } from "../lib/custom-fields-helpers";
+import ConfirmCampaignArchiveModal from "../components/ConfirmCampaignArchiveModal";
 
 const campaignInfoFragment = `
   id
   title
   description
   dueBy
+  status
   isStarted
   isArchived
   contactsCount
@@ -96,6 +98,12 @@ const campaignInfoFragment = `
     status
   }
 `;
+
+const styles = {
+  dialog: {
+    width: 400
+  }
+};
 
 function transformCampaignToCampaignInput(campaign) {
   // translate labels -> labelIds
@@ -267,6 +275,22 @@ class AdminCampaignEdit extends React.Component {
   closeJoinDialog() {
     this.setState({ showJoinDialog: false });
   }
+
+  redirectToCampaignsList = () => {
+    this.props.router.push(
+      `/admin/${this.props.params.organizationId}/campaigns`
+    );
+  };
+
+  componentDidMount = () => {
+    const campaign = this.props.campaignData;
+    if (campaign) {
+      const { status } = campaign;
+    }
+    if (status === "ARCHIVED") {
+      this.redirectToCampaignsList();
+    }
+  };
 
   checkSectionSaved(section) {
     // Tests section's keys of campaignFormValues against props.campaignData
@@ -518,6 +542,14 @@ class AdminCampaignEdit extends React.Component {
     );
   }
 
+  handleArchiveCampaign = async () => {
+    await this.props.mutations.archiveCampaign(
+      this.props.campaignData.campaign.id
+    );
+    this.redirectToCampaignsList();
+    this.setState({ currentlyArchiving: false });
+  };
+
   renderStartedCampaignHeader() {
     const useStaticAssign = !this.props.campaignData.campaign
       .useDynamicAssignment;
@@ -594,11 +626,7 @@ class AdminCampaignEdit extends React.Component {
           {!this.props.campaignData.campaign.isArchived && (
             <RaisedButton
               label="Archive"
-              onClick={async () =>
-                await this.props.mutations.archiveCampaign(
-                  this.props.campaignData.campaign.id
-                )
-              }
+              onClick={() => this.setState({ currentlyArchiving: true })}
             />
           )}
           <RaisedButton
@@ -619,6 +647,12 @@ class AdminCampaignEdit extends React.Component {
     const { adminPerms } = this.props.params;
     return (
       <div>
+        <ConfirmCampaignArchiveModal
+          open={!!this.state.currentlyArchiving}
+          onClose={() => this.setState({ currentlyArchiving: false })}
+          onHandleArchive={this.handleArchiveCampaign}
+          confirmationText="Click OK to archive this campaign and return to campaigns list."
+        />
         {this.renderHeader()}
         {sections.map((section, sectionIndex) => {
           const sectionIsDone =

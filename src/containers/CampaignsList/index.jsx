@@ -12,6 +12,8 @@ import LoadingIndicator from "../../components/LoadingIndicator";
 import theme from "../../styles/theme";
 import CampaignStatusModal from "../../components/CampaignStatusModal";
 import { CampaignStatus } from "../../lib/campaign-statuses";
+import ConfirmCampaignArchiveModal from "../../components/ConfirmCampaignArchiveModal.jsx";
+
 const { ARCHIVED } = CampaignStatus;
 
 const styles = {
@@ -132,8 +134,12 @@ export class CampaignList extends React.Component {
     this.setState({ pageSize: value });
   };
 
-  handleArchiveCampaign = id => {
-    this.setState({ campaignIdForStatusChange: id });
+  handleArchiveCampaign = async () => {
+    await this.props.mutations.archiveCampaign(this.state.campaignIdToArchive);
+  };
+
+  showArchiveConfirmModal = campaignId => {
+    this.setState({ campaignIdToArchive: campaignId });
   };
 
   renderRow = campaign => (
@@ -145,7 +151,11 @@ export class CampaignList extends React.Component {
       handleChecked={this.props.handleChecked}
       organizationId={this.props.organizationId}
       archiveCampaign={this.handleArchiveCampaign}
-      onClickCampaignStatusIcon={this.showCampaignStatusModal}
+      onClickCampaignStatusIcon={
+        campaign.status === "NOT_STARTED"
+          ? this.showArchiveConfirmModal
+          : this.showCampaignStatusModal
+      }
     />
   );
 
@@ -188,6 +198,11 @@ export class CampaignList extends React.Component {
       <Empty title="No campaigns" icon={<SpeakerNotesIcon />} />
     ) : (
       <div>
+        <ConfirmCampaignArchiveModal
+          open={!!this.state.campaignIdToArchive}
+          onClose={() => this.setState({ campaignIdToArchive: null })}
+          onHandleArchive={this.handleArchiveCampaign}
+        />
         <PaginatedList
           rowSizeList={ROW_SIZES}
           page={displayPage}
