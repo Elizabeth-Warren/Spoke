@@ -55,12 +55,13 @@ export class AdminIncomingMessageList extends Component {
   constructor(props) {
     super(props);
     const queryParams = queryString.parse(window.location.search);
+    const isOptedOutQueryParam = queryParams.optedOut === "true";
     this.state = {
       page: 0,
       pageSize: INITIAL_PAGE_SIZE,
       contactsFilter: {
         cell: queryParams.cell,
-        isOptedOut: queryParams.optedOut || false,
+        isOptedOut: isOptedOutQueryParam,
         includeResolvedTags: true,
         tags: AdminIncomingMessageList.tagsFilterStateFromTagsFilter(
           IGNORE_TAGS_FILTER
@@ -74,7 +75,7 @@ export class AdminIncomingMessageList extends Component {
       conversationCount: 0,
       includeActiveCampaigns: true,
       includeNotOptedOutConversations: true,
-      includeOptedOutConversations: false,
+      includeOptedOutConversations: isOptedOutQueryParam,
       clearSelectedMessages: false,
       recipientPhoneInputText: queryParams.cell
         ? queryParams.cell.replace("+1", "")
