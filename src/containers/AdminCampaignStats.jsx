@@ -219,6 +219,12 @@ class AdminCampaignStats extends React.Component {
     this.handleCloseModal();
   };
 
+  componentDidMount = () => {
+    const { campaign } = this.props.data;
+    const { status } = campaign;
+    this.setState({ newCampaignStatus: status });
+  };
+
   render() {
     const { data, params } = this.props;
     const { organizationId, campaignId } = params;
