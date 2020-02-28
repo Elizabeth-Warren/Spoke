@@ -6,6 +6,7 @@ import gql from "graphql-tag";
 import { StyleSheet, css } from "aphrodite";
 import Dialog from "material-ui/Dialog";
 import FlatButton from "material-ui/FlatButton";
+import _ from "lodash";
 
 import loadData from "../../../containers//hoc/load-data";
 import wrapMutations from "../../../containers/hoc/wrap-mutations";
@@ -58,9 +59,18 @@ class MessageResponse extends Component {
         message,
         campaignContactId
       );
-      const { messages } = response.data.sendMessage;
-      this.props.messagesChanged(messages);
-      finalState.messageText = "";
+      if (response.errors) {
+        const code = _.get(
+          response,
+          "errors.graphQLErrors.0.code",
+          "UNKNOWN_ERROR"
+        );
+        finalState.sendError = `Error sending message: ${code}`;
+      } else {
+        const { messages } = response.data.sendMessage;
+        this.props.messagesChanged(messages);
+        finalState.messageText = "";
+      }
     } catch (e) {
       finalState.sendError = e.message;
     }
