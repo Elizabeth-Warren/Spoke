@@ -7,6 +7,8 @@ import * as Sentry from "@sentry/node";
 const stage = process.env.STAGE || "local";
 const functionName = process.env.AWS_LAMBDA_FUNCTION_NAME || "NOT_SET";
 
+// https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/MonitoringLogData.html
+let reportMetric = _ => {};
 const reportEventCallbacks = [];
 const reportErrorCallbacks = [];
 const expressMiddlewareCallbacks = [];
@@ -95,12 +97,30 @@ if (process.env.SENTRY_DSN) {
 
 // Specific to the Warren AWS deploy: report a cloudwatch event to "Mission Control"
 if (process.env.ENABLE_CLOUDWATCH_REPORTING === "1") {
-  const cloudwatchClient = new AWS.CloudWatchEvents();
+  const cloudwatchEventsClient = new AWS.CloudWatchEvents();
+  const cloudwatchClient = new AWS.CloudWatch();
+  const metricNamespace = `ew/${stage}/spoke`;
+
+  reportMetric = async ({ name, value, unit, dimensions }) => {
+    const metric = {
+      MetricData: [
+        {
+          MetricName: name,
+          Dimensions: dimensions,
+          Timestamp: new Date(),
+          Unit: unit,
+          Value: value
+        }
+      ],
+      Namespace: metricNamespace
+    };
+    await cloudwatchClient.putMetricData(metric).promise();
+  };
 
   reportErrorCallbacks.push(async (err, details) => {
     const payload = makeCloudwatchErrorEvent(err, details);
     try {
-      await cloudwatchClient.putEvents(payload).promise();
+      await cloudwatchEventsClient.putEvents(payload).promise();
     } catch (e) {
       log.error({
         msg: "Error posting exception to Cloudwatch:",
@@ -113,7 +133,7 @@ if (process.env.ENABLE_CLOUDWATCH_REPORTING === "1") {
   reportEventCallbacks.push(async (detailType, details) => {
     const payload = makeCloudwatchEvent(detailType, details);
     try {
-      await cloudwatchClient.putEvents(payload).promise();
+      await cloudwatchEventsClient.putEvents(payload).promise();
     } catch (e) {
       log.error({
         msg: "Error posting event to Cloudwatch:",
@@ -125,10 +145,13 @@ if (process.env.ENABLE_CLOUDWATCH_REPORTING === "1") {
 
   expressMiddlewareCallbacks.push(async (err, req) => {
     await new Promise(resolve => {
-      cloudwatchClient.putEvents(makeCloudwatchErrorEvent(err), awsErr => {
-        log.error("Error posting exception to Cloudwatch:", awsErr);
-        resolve();
-      });
+      cloudwatchEventsClient.putEvents(
+        makeCloudwatchErrorEvent(err),
+        awsErr => {
+          log.error("Error posting exception to Cloudwatch:", awsErr);
+          resolve();
+        }
+      );
     });
   });
 }
@@ -163,6 +186,7 @@ function expressMiddleware(err, req, res, next) {
 }
 
 export default {
+  reportMetric,
   reportError,
   reportEvent,
   expressMiddleware
