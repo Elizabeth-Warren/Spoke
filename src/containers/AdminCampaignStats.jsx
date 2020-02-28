@@ -41,7 +41,7 @@ const inlineStyles = {
 const styles = StyleSheet.create({
   container: {
     ...theme.layouts.multiColumn.container,
-    marginBottom: 40,
+    marginBottom: 20,
     justifyContent: "space-around",
     flexWrap: "wrap"
   },
@@ -69,6 +69,9 @@ const styles = StyleSheet.create({
   rightAlign: {
     marginLeft: "auto",
     marginRight: 0
+  },
+  textCount: {
+    textAlign: "right"
   },
   inline: {
     display: "inline-block",
@@ -388,13 +391,16 @@ class AdminCampaignStats extends React.Component {
         </div>
         <div className={css(styles.progressBar)}>
           <LinearProgress
-            mode={"determinate"}
+            mode="determinate"
             color={theme.colors.EWlibertyGreen}
-            // Add style to make it thicker style={}
+            style={{ height: 16, marginBottom: 8 }}
             value={distinctContactsMessaged}
             max={campaign.contactsCount}
             min={0}
           />
+          <div className={css(styles.textCount)}>
+            {`Initial Texts: ${distinctContactsMessaged} of ${campaign.contactsCount}`}
+          </div>
         </div>
         <div className={css(styles.header)}>Texter stats</div>
         {this.renderTexterStats()}
