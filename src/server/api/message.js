@@ -7,6 +7,7 @@ import { ApolloError } from "src/server/api/errors";
 
 const redisSet = promisify(r.redis.set).bind(r.redis);
 
+const DEDUPE_LOCK_EXPIRATION_SECONDS = 2;
 const DEDUPE_EXPIRATION_SECONDS = 60 * 60 * 24;
 
 export const resolvers = {
@@ -27,20 +28,27 @@ export const resolvers = {
   }
 };
 
-export async function messageDedupe(contact, message, isInitialMessage) {
+function hashMessageForDedupe(contact, message) {
   const hash = crypto.createHash("sha1");
   hash.update(message.text);
 
-  const messageKey = `spoke-messageDedupe:${contact.id}:${hash.digest(
-    "base64"
-  )}`;
+  return `spoke-messageDedupe:${contact.id}:${hash.digest("base64")}`;
+}
 
+export async function checkForMessageDuplicate(
+  contact,
+  message,
+  isInitialMessage
+) {
+  const key = hashMessageForDedupe(contact, message);
+  // Rather than using a GET here, we set the key with a short expiration
+  // to act as lock on the message, which mitigates a potential race.
   const checkResult = await redisSet(
-    messageKey,
+    key,
     "true",
     "EX",
-    DEDUPE_EXPIRATION_SECONDS,
-    "NX"
+    DEDUPE_LOCK_EXPIRATION_SECONDS,
+    "NX" // Don't overwrite the TTL if the key exists
   );
 
   if (!checkResult) {
@@ -50,4 +58,9 @@ export async function messageDedupe(contact, message, isInitialMessage) {
 
     throw new ApolloError("Duplicate reply message", "DUPLICATE_REPLY_MESSAGE");
   }
+}
+
+export async function putMessageForDedupe(contact, message) {
+  const key = hashMessageForDedupe(contact, message);
+  await redisSet(key, "true", "EX", DEDUPE_EXPIRATION_SECONDS);
 }

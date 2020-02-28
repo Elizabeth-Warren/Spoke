@@ -44,7 +44,11 @@ import { resolvers as interactionStepResolvers } from "./interaction-step";
 import { saveNewIncomingMessage } from "./lib/message-sending";
 import serviceMap from "./lib/services";
 import { resolvers as labelResolvers } from "./label";
-import { resolvers as messageResolvers, messageDedupe } from "./message";
+import {
+  resolvers as messageResolvers,
+  putMessageForDedupe,
+  checkForMessageDuplicate
+} from "./message";
 import { resolvers as optOutResolvers } from "./opt-out";
 import { resolvers as organizationResolvers } from "./organization";
 import { mutations as organizationMutations } from "./mutations/organization";
@@ -1204,7 +1208,7 @@ const rootMutations = {
         );
       }
 
-      await messageDedupe(contact, message, isInitialMessage);
+      await checkForMessageDuplicate(contact, message, isInitialMessage);
 
       const messageInstance = new Message({
         text: replaceCurlyApostrophes(text),
@@ -1275,6 +1279,8 @@ const rootMutations = {
         await contact.save();
         await messageInstance.save(); // save message, not transactional
       }
+
+      await putMessageForDedupe(contact, message);
 
       log.debug({
         msg: "Sending message",
