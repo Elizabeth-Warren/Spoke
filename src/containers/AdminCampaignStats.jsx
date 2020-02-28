@@ -17,7 +17,8 @@ import LinearProgress from "material-ui/LinearProgress";
 import _ from "lodash";
 import moment from "moment";
 import CampaignStatusModal from "../components/CampaignStatusModal.jsx";
-import { CampaignStatus } from "../lib/campaign-statuses";
+import { CampaignStatus, getStatusDisplayName } from "../lib/campaign-statuses";
+
 const { ARCHIVED } = CampaignStatus;
 
 const inlineStyles = {
@@ -280,6 +281,8 @@ class AdminCampaignStats extends React.Component {
             {campaign.title}
             <br />
             Campaign ID: {campaign.id}
+            <br />
+            Campaign Status: {getStatusDisplayName(campaign.status)}
             <br />
             Due By: {moment(campaign.dueBy).format("MMM D, YYYY")}
           </div>

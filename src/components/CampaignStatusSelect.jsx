@@ -2,42 +2,12 @@ import PropTypes from "prop-types";
 import React from "react";
 import DropDownMenu from "material-ui/DropDownMenu";
 import MenuItem from "material-ui/MenuItem";
-import { CampaignStatus } from "../lib/campaign-statuses";
-const {
-  ACTIVE,
-  ARCHIVED,
-  CLOSED,
-  CLOSED_FOR_INITIAL_SENDS,
-  NOT_STARTED
-} = CampaignStatus;
+import { CampaignStatusValues } from "../lib/campaign-statuses";
 
-const STATUSES = {
-  ACTIVE: {
-    display: "Active",
-    value: ACTIVE
-  },
-  CLOSED_FOR_INITIAL_SENDS: {
-    display: "Closed for Initial Sends",
-    value: CLOSED_FOR_INITIAL_SENDS
-  },
-  CLOSED: {
-    display: "Closed",
-    value: CLOSED
-  },
-  NOT_STARTED: {
-    display: "Not Started",
-    value: NOT_STARTED
-  },
-  ARCHIVED: {
-    display: "Archived",
-    value: ARCHIVED
-  }
-};
-
-export const DEFAULT_STATUS_FILTER = STATUSES.ACTIVE.value;
+export const DEFAULT_STATUS_FILTER = CampaignStatusValues.ACTIVE.value;
 
 const CampaignStatusSelect = props => {
-  const allKeys = Object.keys(STATUSES);
+  const allKeys = Object.keys(CampaignStatusValues);
   const statusKeys = props.statusOptions
     ? allKeys.filter(key => props.statusOptions.includes(key))
     : allKeys;
@@ -49,7 +19,7 @@ const CampaignStatusSelect = props => {
       style={{ minWidth: 220 }}
     >
       {statusKeys.map(key => {
-        const status = STATUSES[key];
+        const status = CampaignStatusValues[key];
         return (
           <MenuItem
             value={status.value}
