@@ -39,6 +39,7 @@ async function prepareMessagingService(campaign) {
         error: e
       });
       await twilio.deleteMessagingService(msgSrvSid);
+      throw e;
     }
   });
 
