@@ -29,7 +29,7 @@ const descriptions = {
 
 const styles = {
   dialog: {
-    width: "50%"
+    width: 500
   },
   iconStyle: { marginRight: 5, height: 18 },
   statusInfoStyle: {
@@ -103,7 +103,7 @@ class CampaignStatusModal extends React.Component {
     const { campaignStatus } = this.props;
     const { archiveText } = this.state;
     const isArchive = campaignStatus === ARCHIVED;
-    const typedArchive = archiveText === "ARCHIVE";
+    const typedArchive = archiveText === "DELETE";
     const validated = isArchive ? typedArchive : true;
     if (validated) {
       this.props.handleSave();
