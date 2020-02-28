@@ -16,21 +16,21 @@ const STATUSES = {
     display: "Active",
     value: ACTIVE
   },
-  ARCHIVED: {
-    display: "Archived",
-    value: ARCHIVED
+  CLOSED_FOR_INITIAL_SENDS: {
+    display: "Closed for Initial Sends",
+    value: CLOSED_FOR_INITIAL_SENDS
   },
   CLOSED: {
     display: "Closed",
     value: CLOSED
   },
-  CLOSED_FOR_INITIAL_SENDS: {
-    display: "Closed for Initial Sends",
-    value: CLOSED_FOR_INITIAL_SENDS
-  },
   NOT_STARTED: {
     display: "Not Started",
     value: NOT_STARTED
+  },
+  ARCHIVED: {
+    display: "Archived",
+    value: ARCHIVED
   }
 };
 

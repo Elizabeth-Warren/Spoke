@@ -125,7 +125,7 @@ class CampaignStatusModal extends React.Component {
     const statusDropdownOptions =
       campaignStatus === NOT_STARTED
         ? [ARCHIVED]
-        : [ACTIVE, CLOSED, CLOSED_FOR_INITIAL_SENDS, ARCHIVED];
+        : [ACTIVE, CLOSED_FOR_INITIAL_SENDS, CLOSED, ARCHIVED];
 
     return (
       <Dialog
