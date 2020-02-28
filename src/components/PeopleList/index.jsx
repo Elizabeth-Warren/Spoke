@@ -300,6 +300,7 @@ export class PeopleList extends Component {
           page={displayPage}
           rowSize={this.state.pageSize}
           count={total}
+          showRowHover={true}
           onNextPageClick={this.handleNextPageClick}
           onPreviousPageClick={this.handlePreviousPageClick}
           onRowSizeChange={this.handleRowSizeChanged}

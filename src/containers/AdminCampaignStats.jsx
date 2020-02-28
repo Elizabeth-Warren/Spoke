@@ -181,6 +181,7 @@ class AdminCampaignStats extends React.Component {
         columns={texterStatColumns}
         rowSize={data.length}
         count={data.length}
+        showRowHover={true}
       />
     );
   }
