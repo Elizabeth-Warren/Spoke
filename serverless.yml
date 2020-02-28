@@ -57,7 +57,9 @@ provider:
       Action: lambda:InvokeFunction
       Resource: "arn:aws:lambda:${self:custom.region}:445320746747:function:internal-spoke-${self:custom.stage}-worker"
     - Effect: Allow
-      Action: events:PutEvents
+      Action:
+        - "events:PutEvents"
+        - "cloudwatch:PutMetricData"
       Resource: "*"
     - Effect: Allow
       Action:
