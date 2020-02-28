@@ -59,6 +59,12 @@ class TexterTodoList extends React.Component {
   renderAssignmentList() {
     const organizationId = this.props.params.organizationId;
     return this.sortSummaries(this.props.data.currentUser.assignmentSummaries)
+      .filter(
+        s =>
+          ["ACTIVE", "CLOSED_FOR_INITIAL_SENDS"].indexOf(
+            s.assignment.campaign.status
+          ) !== -1
+      )
       .map(summary => (
         <AssignmentSummary
           organizationId={organizationId}
