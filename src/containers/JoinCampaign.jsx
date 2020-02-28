@@ -18,6 +18,10 @@ const styles = StyleSheet.create({
     width: "150px",
     height: "150px"
   },
+  errorImageLarge: {
+    width: "300px",
+    height: "200px"
+  },
   errorHeader: {
     fontFamily: "Ringside Compressed A",
     textTransform: "uppercase"
@@ -32,10 +36,11 @@ const errors = {
       "This campaign is no longer active. Check the Slack for a different invite link."
   },
   CAMPAIGN_FULL: {
-    image: "https://ew-spoke-public.elizabethwarren.codes/crowd-2.png",
+    image: "https://ew-spoke-public.elizabethwarren.codes/crowded.png",
     title: "Whoa, It's Crowded In Here!",
     message:
-      "This campaign is full! Check the Slack for a different invite link."
+      "This campaign is full! Check the Slack for a different invite link.",
+    style: "errorImageLarge"
   },
   NOT_FOUND: {
     image: "https://ew-spoke-public.elizabethwarren.codes/sad-bailey.png",
@@ -107,8 +112,8 @@ class JoinCampaign extends React.Component {
         <div className={css(styles.errorMessageWrapper)}>
           <img
             src={errorConfig.image}
-            className={css(styles.errorImage)}
-            alt="EW Making Calls"
+            className={css(styles[errorConfig.style || "errorImage"])}
+            alt="Error"
           />
           <h2 className={css(styles.errorHeader)}>{errorConfig.title}</h2>
           <p>{errorConfig.message}</p>
