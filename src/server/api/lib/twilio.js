@@ -276,7 +276,7 @@ async function sendMessage(message, contact, trx) {
     log.debug("messageToSave", messageToSave);
     await Message.save(messageToSave, options);
 
-    throw new Error(JSON.stringify(response));
+    throw new Error(JSON.stringify(response || (err && err.message)));
   } else {
     const options = { conflict: "update" };
     if (trx) {
