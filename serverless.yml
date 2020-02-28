@@ -157,7 +157,7 @@ functions:
     vpc: ${self:custom.vpcConfig}
     timeout: 900
     events:
-      - schedule: cron(0 1 * * ? *)
+      - schedule: cron(0 1,17 * * ? *)
   preflight:
     handler: build/server/server/lambda/codedeploy.preflight
     vpc: ${self:custom.vpcConfig}
