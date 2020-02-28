@@ -79,7 +79,8 @@ const config = {
     ]
   },
   resolve: {
-    extensions: [".js", ".jsx"]
+    extensions: [".js", ".jsx", ".css", ".scss"],
+    modules: ["node_modules"]
   },
   plugins,
   output: {

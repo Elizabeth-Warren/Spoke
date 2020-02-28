@@ -13,6 +13,7 @@ import { Toolbar, ToolbarGroup } from "material-ui/Toolbar";
 import CircularProgress from "material-ui/CircularProgress";
 import Snackbar from "material-ui/Snackbar";
 import CreateIcon from "material-ui/svg-icons/content/create";
+import MoodIcon from "material-ui/svg-icons/social/mood";
 import Dialog from "material-ui/Dialog";
 import FlatButton from "material-ui/FlatButton";
 
@@ -37,6 +38,8 @@ import GSForm from "src/components/forms/GSForm";
 import SendButton from "src/components/SendButton";
 import SendButtonArrow from "src/components/SendButtonArrow";
 import Empty from "src/components/Empty";
+import "emoji-mart/css/emoji-mart.css";
+import { Picker } from "emoji-mart";
 
 import {
   OptOutDialog,
@@ -137,9 +140,27 @@ const styles = StyleSheet.create({
     }
   },
   textField: {
+    // backgroundColor: "lightSteelBlue",
     "@media(maxWidth: 350px)": {
       overflowY: "scroll !important"
     }
+  },
+  emojiPickerWrapper: {
+    display: "flex",
+    alignItems: "center",
+    cursor: "pointer"
+  },
+  moodIcon: {
+    height: 30,
+    width: 30,
+    ":hover": {
+      fill: theme.colors.EWlibertyGreen
+    }
+  },
+  messageWrapper: {
+    display: "flex",
+    flexDirection: "row",
+    position: "relative"
   },
   lgMobileToolBar: {
     "@media(maxWidth: 449px) and (minWidth: 300px)": {
@@ -184,7 +205,12 @@ const inlineStyles = {
   buttonWidth: {
     minWidth: "110px"
   },
-
+  picker: {
+    position: "absolute",
+    bottom: 70,
+    right: "-150px",
+    zIndex: 100
+  },
   mobileCannedReplies: {
     "@media(maxWidth: 450px)": {
       marginBottom: "1"
@@ -241,7 +267,20 @@ export class ConversationTexterContactComponent extends React.Component {
     this.state = this.resetStateForProps(props);
   }
 
+  handleClick = e => {
+    const node = ReactDOM.findDOMNode(this.refs.emojiPicker);
+    const clickedInEmojiPicker =
+      node.contains(e.target) && this.state.showEmojiPicker;
+    return !clickedInEmojiPicker && this.setState({ showEmojiPicker: false });
+  };
+
+  componentWillUnmount() {
+    document.body.removeEventListener("mousedown", this.handleClick);
+  }
+
   componentDidMount() {
+    document.body.addEventListener("mousedown", this.handleClick);
+
     const { contact } = this.props.data;
     if (!this.props.forceDisabledDisplayIfNotSendable) {
       if (contact.optOut) {
@@ -944,6 +983,16 @@ export class ConversationTexterContactComponent extends React.Component {
     );
   }
 
+  addEmoji = emoji => {
+    const { messageText } = this.state;
+    const text = `${messageText}${emoji.native}`;
+
+    this.setState({
+      messageText: text,
+      showEmojiPicker: false
+    });
+  };
+
   renderCorrectSendButton() {
     const { campaign } = this.props;
     const { contact } = this.props.data;
@@ -964,6 +1013,12 @@ export class ConversationTexterContactComponent extends React.Component {
     }
     return null;
   }
+
+  handleShowEmojiPicker = () => {
+    this.setState(prevState => ({
+      showEmojiPicker: !prevState.showEmojiPicker
+    }));
+  };
 
   renderBottomFixedSection() {
     const { optOutDialogOpen, skipDialogOpen } = this.state;
@@ -986,20 +1041,41 @@ export class ConversationTexterContactComponent extends React.Component {
                 : this.handleMessageFormChange
             }
           >
-            <Form.Field
-              className={css(styles.textField)}
-              name="messageText"
-              label="Your message"
-              multiLine
-              fullWidth
-              rowsMax={6}
-              autoFocus
-              ref="msgInput"
-              onKeyDown={this.onMessageInputKeyDown}
-              floatingLabelStyle={{ color: theme.colors.EWnavy }}
-              underlineStyle={{ borderColor: theme.colors.EWnavy }}
-              hintStyle={{ color: theme.colors.EWnavy }}
-            />
+            <div className={css(styles.messageWrapper)}>
+              <Form.Field
+                className={css(styles.textField)}
+                name="messageText"
+                label="Your message"
+                multiLine
+                fullWidth
+                rowsMax={6}
+                autoFocus
+                ref="msgInput"
+                onKeyDown={this.onMessageInputKeyDown}
+                floatingLabelStyle={{ color: theme.colors.EWnavy }}
+                underlineStyle={{ borderColor: theme.colors.EWnavy }}
+                hintStyle={{ color: theme.colors.EWnavy }}
+              />
+
+              <div ref="emojiPicker" className={css(styles.emojiPickerWrapper)}>
+                {this.state.showEmojiPicker && (
+                  <Picker
+                    style={inlineStyles.picker}
+                    className={css(styles.picker)}
+                    onSelect={this.addEmoji}
+                    color={theme.colors.EWdarkLibertyGreen}
+                    title=""
+                    emoji={"statue_of_liberty"}
+                  />
+                )}
+                <MoodIcon
+                  onClick={this.handleShowEmojiPicker}
+                  className={css(styles.moodIcon)}
+                  color={theme.colors.lightGray}
+                />
+              </div>
+            </div>
+
             {this.renderCorrectSendButton()}
           </GSForm>
         </div>
