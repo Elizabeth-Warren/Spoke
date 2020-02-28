@@ -4,14 +4,25 @@ import { StyleSheet, css } from "aphrodite";
 import _ from "lodash";
 import gql from "graphql-tag";
 import { withRouter } from "react-router";
-
+import FlatButton from "material-ui/FlatButton";
+import Dialog from "material-ui/Dialog";
 import theme from "src/styles/theme";
-
+import { campaignIsBetweenTextingHours, timeUntilTextEnd } from "src/lib";
 import loadData from "../hoc/load-data";
 import { ConversationsMenu } from "./components";
 import ConversationTexterContact from "./ConversationTexterContact";
 import EmptyState from "./components/EmptyState";
 import CampaignTopBar from "../CampaignTopBar";
+import TextingClosedModal, {
+  ALMOST_CLOSED,
+  OUTSIDE_HOURS,
+  CAMPAIGN_CLOSED,
+  FIVE_MIN_TO_CLOSED
+} from "../TextingClosedModal.jsx";
+
+const customContentStyle = {
+  width: "42%"
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -51,7 +62,10 @@ export class ConversationTexterComponent extends React.Component {
     super(props);
 
     this.state = {
-      currentContactId: this.getFirstConversationId()
+      currentContactId: this.getFirstConversationId(),
+      warningDialogOpen: false,
+      warningModalMessage: "",
+      timeouts: {}
     };
   }
 
@@ -73,6 +87,101 @@ export class ConversationTexterComponent extends React.Component {
         });
       }
     }
+  }
+
+  getTimeUntilTextingHoursEnd() {
+    const { campaign } = this.props.data.assignment;
+    return timeUntilTextEnd(campaign);
+  }
+
+  noTextingAllowed(campaign) {
+    const { status } = campaign;
+    const closedStatuses = ["CLOSED", "ARCHIVED"];
+
+    const outsideTextingHours = !campaignIsBetweenTextingHours(campaign);
+    const closedStatus = closedStatuses.includes(status);
+
+    let errorStatus;
+    if (outsideTextingHours) {
+      errorStatus = OUTSIDE_HOURS;
+    } else if (closedStatus) {
+      errorStatus = CAMPAIGN_CLOSED;
+    }
+
+    this.setState({ errorStatus });
+    return outsideTextingHours || closedStatus;
+  }
+
+  setFiveMinWarningTimeout(timeout) {
+    const fiveMinTimeout = setTimeout(() => {
+      this.setState({
+        warningDialogOpen: true,
+        errorStatus: FIVE_MIN_TO_CLOSED
+      });
+    }, timeout);
+
+    this.setState(prevState => ({
+      timeouts: { ...prevState.timeouts, fiveMinTimeout }
+    }));
+  }
+
+  setTimeToClosedTimeout(timeout) {
+    const closedTimeout = setTimeout(() => {
+      this.setState({
+        warningDialogOpen: true,
+        errorStatus: OUTSIDE_HOURS
+      });
+    }, timeout);
+    this.setState(prevState => ({
+      timeouts: { ...prevState.timeouts, closedTimeout }
+    }));
+  }
+
+  setAlmostClosedWarning() {
+    this.setState({
+      warningDialogOpen: true,
+      errorStatus: ALMOST_CLOSED
+    });
+  }
+
+  componentDidUpdate(prevProps, prevState) {
+    if (
+      this.state.sawFirstWarningModal &&
+      this.state.sawFirstWarningModal !== prevState.sawFirstWarningModal
+    ) {
+      const timeUntilClosed = this.getTimeUntilTextingHoursEnd();
+      this.setTimeToClosedTimeout(timeUntilClosed);
+    }
+  }
+
+  componentDidMount() {
+    const { assignment } = this.props.data;
+    if (assignment) {
+      const { campaign } = assignment;
+      const noTexting = this.noTextingAllowed(campaign);
+      if (noTexting) {
+        this.setState({ warningDialogOpen: true });
+      } else {
+        const timeUntilClosed = this.getTimeUntilTextingHoursEnd();
+        const fiveMinutes = 300000;
+        const timeUntilClosedMinusFiveMin = timeUntilClosed - fiveMinutes;
+
+        if (timeUntilClosed && timeUntilClosed < fiveMinutes) {
+          this.setAlmostClosedWarning();
+        } else if (timeUntilClosedMinusFiveMin > 0) {
+          this.setFiveMinWarningTimeout(timeUntilClosedMinusFiveMin);
+        } else if (timeUntilClosed && timeUntilClosed > 0) {
+          this.setTimeToClosedTimeout(timeUntilClosed);
+        }
+      }
+    }
+  }
+
+  onComponentWillUnmount() {
+    const timeouts = this.state.timeouts;
+    Object.keys(timeouts).forEach(timeout => {
+      clearTimeout(timeouts[timeout]);
+    });
   }
 
   getUnsentInitialCount() {
@@ -106,9 +215,8 @@ export class ConversationTexterComponent extends React.Component {
   getFirstConversationId(props = this.props) {
     const { contactsForAssignment: conversations } = props.conversationData;
 
-    const firstActiveConversation = conversations.find(
-      c => c.messageStatus !== "closed"
-    );
+    const firstActiveConversation =
+      conversations && conversations.find(c => c.messageStatus !== "closed");
 
     if (!firstActiveConversation) {
       return null;
@@ -214,13 +322,33 @@ export class ConversationTexterComponent extends React.Component {
     );
   }
 
+  exitTexter = () => {
+    this.props.router.push("/app/" + (this.props.params.organizationId || ""));
+  };
+
   render() {
     const {
       data: { assignment }
     } = this.props;
 
+    const almostClosed =
+      this.state.errorStatus === FIVE_MIN_TO_CLOSED ||
+      this.state.errorStatus === ALMOST_CLOSED;
+    const onClickDialog = almostClosed
+      ? () =>
+          this.setState({
+            warningDialogOpen: false,
+            sawFirstWarningModal: true
+          })
+      : this.exitTexter;
+
     return (
       <div>
+        <TextingClosedModal
+          errorStatus={this.state.errorStatus}
+          onClickDialog={onClickDialog}
+          open={this.state.warningDialogOpen}
+        />
         {assignment && (
           <CampaignTopBar
             campaign={assignment.campaign}
@@ -280,6 +408,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
             id
             title
             isArchived
+            status
             useDynamicAssignment
             hasUnassignedContactsForTexter
             overrideOrganizationTextingHours

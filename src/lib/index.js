@@ -10,6 +10,7 @@ export {
   getLocalTime,
   isBetweenTextingHours,
   campaignIsBetweenTextingHours,
+  timeUntilTextEnd,
   defaultTimezoneIsBetweenTextingHours,
   getOffsets,
   getContactTimezone,

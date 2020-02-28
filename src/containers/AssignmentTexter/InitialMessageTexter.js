@@ -10,16 +10,25 @@ import Empty from "src/components/Empty";
 import Check from "material-ui/svg-icons/action/check-circle";
 import RaisedButton from "material-ui/RaisedButton";
 import _ from "lodash";
-import { getTopMostParent, campaignIsBetweenTextingHours } from "src/lib";
+import {
+  getTopMostParent,
+  campaignIsBetweenTextingHours,
+  timeUntilTextEnd
+} from "src/lib";
 import { applyScript } from "src/lib/scripts";
 import { checkForErrorCode } from "src/client/lib/error-helpers";
 
+import TextingClosedModal, {
+  OUTSIDE_HOURS,
+  CAMPAIGN_CLOSED
+} from "../TextingClosedModal.jsx";
+
 const contactDataFragment = `
-        id
-        assignmentId
-        firstName
-        lastName
-        customFields
+  id
+  assignmentId
+  firstName
+  lastName
+  customFields
 `;
 
 class InitialMessageTexter extends Component {
@@ -34,13 +43,63 @@ class InitialMessageTexter extends Component {
     super(props);
     this.state = {
       contactsMessaged: new Set(),
-      loading: false
+      loading: false,
+      warningDialogOpen: false,
+      warningModalMessage: ""
     };
   }
 
   exitTexter = () => {
     this.props.router.push("/app/" + (this.props.params.organizationId || ""));
   };
+
+  getTimeUntilTextingHoursEnd() {
+    const { campaign } = this.props.data.assignment;
+    return timeUntilTextEnd(campaign);
+  }
+
+  noTextingAllowed(campaign) {
+    const { status } = campaign;
+    const closedStatuses = ["CLOSED", "ARCHIVED", "CLOSED_FOR_INITIAL_SENDS"];
+
+    const outsideTextingHours = !campaignIsBetweenTextingHours(campaign);
+    const closedStatus = closedStatuses.includes(status);
+
+    let errorStatus;
+    if (outsideTextingHours) {
+      errorStatus = OUTSIDE_HOURS;
+    } else if (closedStatus) {
+      errorStatus = CAMPAIGN_CLOSED;
+    }
+
+    this.setState({ errorStatus });
+    return outsideTextingHours || closedStatus;
+  }
+
+  setTimeToClosedTimeout(timeout) {
+    setTimeout(() => {
+      this.setState({
+        warningDialogOpen: true,
+        errorStatus: OUTSIDE_HOURS
+      });
+    }, timeout);
+  }
+
+  componentDidMount() {
+    const { assignment } = this.props.data;
+    if (assignment) {
+      const { campaign } = assignment;
+      const noTexting = this.noTextingAllowed(campaign);
+      if (noTexting) {
+        this.setState({ warningDialogOpen: true });
+      } else {
+        const timeUntilClosed = this.getTimeUntilTextingHoursEnd();
+        if (timeUntilClosed && timeUntilClosed > 0) {
+          this.setTimeToClosedTimeout(timeUntilClosed);
+        }
+      }
+    }
+  }
 
   // TODO: shared code
   getMessageTextFromScript = (script, contact) => {
@@ -136,13 +195,6 @@ class InitialMessageTexter extends Component {
       return null;
     }
 
-    if (!this.campaignIsBetweenTextingHours()) {
-      // TODO: more feedback if out of texting hours, this redirects to todos, which should
-      //   grey out the send messages button.
-      this.exitTexter();
-      return null;
-    }
-
     const contacts = (assignment.contacts || []).filter(
       contact => !this.state.contactsMessaged.has(contact.id)
     );
@@ -154,16 +206,23 @@ class InitialMessageTexter extends Component {
     const currentContact = _.sortBy(contacts, "id")[0];
     const { campaign, texter } = assignment;
     return (
-      <InitialMessageTexterContact
-        contactsRemaining={contacts.length}
-        contact={currentContact}
-        campaign={campaign}
-        assignment={assignment} // TODO: shouldn't need to drill assignment down
-        messageText={this.getStartingMessageText(currentContact)}
-        texter={texter}
-        sendMessage={this.sendMessage}
-        exitTexter={this.exitTexter}
-      />
+      <React.Fragment>
+        <TextingClosedModal
+          errorStatus={this.state.errorStatus}
+          onClickDialog={this.exitTexter}
+          open={this.state.warningDialogOpen}
+        />
+        <InitialMessageTexterContact
+          contactsRemaining={contacts.length}
+          contact={currentContact}
+          campaign={campaign}
+          assignment={assignment} // TODO: shouldn't need to drill assignment down
+          messageText={this.getStartingMessageText(currentContact)}
+          texter={texter}
+          sendMessage={this.sendMessage}
+          exitTexter={this.exitTexter}
+        />
+      </React.Fragment>
     );
   };
 }
@@ -186,6 +245,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
           campaign {
             id
             title
+            status
             isArchived
             useDynamicAssignment
             overrideOrganizationTextingHours

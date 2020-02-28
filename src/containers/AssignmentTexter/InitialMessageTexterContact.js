@@ -177,11 +177,6 @@ const inlineStyles = {
       marginBottom: "1"
     }
   },
-  exitTexterIconButton: {
-    float: "right",
-    height: "50px",
-    zIndex: 100
-  },
   actionToolbar: {
     backgroundColor: "white",
 
@@ -211,8 +206,7 @@ export class InitialMessageTexterContact extends Component {
     messageText: PropTypes.string,
     texter: PropTypes.object,
     sendMessage: PropTypes.func,
-    router: PropTypes.object,
-    exitTexter: PropTypes.func
+    router: PropTypes.object
   };
 
   messageSchema = yup.object({

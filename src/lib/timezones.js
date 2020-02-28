@@ -255,6 +255,52 @@ export const campaignIsBetweenTextingHours = campaign => {
       timezone: campaign.timezone
     };
   }
-
   return isBetweenTextingHours(null, config);
+};
+
+export const timeUntilTextEnd = campaign => {
+  const { organization, overrideOrganizationTextingHours } = campaign;
+  const {
+    textingHoursEnd: orgTextHoursEnd,
+    textingHoursEnforced: orgTextHoursEnforced
+  } = organization;
+
+  const {
+    textingHoursEnd: campaignTextHoursEnd,
+    textingHoursEnforced: campaignTextHoursEnforced,
+    timezone: campaignTimezone
+  } = campaign;
+
+  const end = overrideOrganizationTextingHours
+    ? campaignTextHoursEnd
+    : orgTextHoursEnd;
+  const enforce = overrideOrganizationTextingHours
+    ? campaignTextHoursEnforced
+    : orgTextHoursEnforced;
+  const timezone = overrideOrganizationTextingHours
+    ? campaignTimezone
+    : getProcessEnvDstReferenceTimezone();
+
+  if (!enforce) {
+    return null;
+  }
+
+  const missingTimezoneConfig =
+    (overrideOrganizationTextingHours && {
+      allowedEnd: end,
+      offset: DstHelper.getTimezoneOffsetHours(timezone),
+      hasDST: DstHelper.timezoneHasDst(timezone)
+    }) ||
+    TIMEZONE_CONFIG.missingTimeZone;
+
+  const { allowedEnd, offset, hasDST } = missingTimezoneConfig;
+
+  const localTime = getLocalTime(offset, hasDST, timezone);
+  const enforcedEnd = localTime
+    .clone()
+    .hour(allowedEnd)
+    .minute(0)
+    .second(0);
+
+  return enforcedEnd.diff(localTime, "milliseconds");
 };

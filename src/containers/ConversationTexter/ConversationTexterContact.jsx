@@ -216,11 +216,6 @@ const inlineStyles = {
       marginBottom: "1"
     }
   },
-  exitTexterIconButton: {
-    float: "right",
-    height: "50px",
-    zIndex: 100
-  },
   toolbarIconButton: {
     position: "absolute",
     top: 0
