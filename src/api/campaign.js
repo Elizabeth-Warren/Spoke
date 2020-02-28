@@ -10,7 +10,6 @@ export const schema = gql`
   }
 
   input CampaignsFilter {
-    isArchived: Boolean
     campaignId: Int
     campaignIds: [Int]
     listSize: Int

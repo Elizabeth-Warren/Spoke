@@ -28,25 +28,6 @@ export function addCampaignsFilterToQuery(queryParam, campaignsFilter) {
 
     if ("status" in campaignsFilter) {
       query = query.where("campaign.status", campaignsFilter.status);
-      const { status } = campaignsFilter;
-      if (status === CampaignStatus.NOT_STARTED) {
-        query = query.whereRaw(
-          "(campaign.status = 'NOT_STARTED' or (campaign.status is null and not campaign.is_archived and not campaign.is_started))"
-        );
-      }
-      if (status === CampaignStatus.ACTIVE) {
-        query = query.whereRaw(
-          "(campaign.status = 'ACTIVE' or (campaign.status is null and not campaign.is_archived and campaign.is_started))"
-        );
-      }
-      if (status === CampaignStatus.ARCHIVED) {
-        query = query.whereRaw(
-          "(campaign.status = 'ARCHIVED' or (campaign.status is null and campaign.is_archived))"
-        );
-      }
-    }
-    if ("isArchived" in campaignsFilter) {
-      query = query.where("campaign.is_archived", campaignsFilter.isArchived);
     }
 
     if ("campaignId" in campaignsFilter) {

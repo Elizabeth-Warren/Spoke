@@ -355,7 +355,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
         organization(id: $organizationId) {
           id
           uuid
-          campaigns(campaignsFilter: { isArchived: false }, sortBy: $sortBy) {
+          campaigns(sortBy: $sortBy) {
             ... on CampaignsList {
               campaigns {
                 id
