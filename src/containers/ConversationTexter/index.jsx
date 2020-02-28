@@ -447,7 +447,6 @@ const mapQueriesToProps = ({ ownProps }) => ({
     variables: {
       assignmentId: ownProps.params.assignmentId
     },
-    fetchPolicy: "network-only",
     pollInterval: 60000
   },
   conversationData: {

@@ -110,7 +110,7 @@ export default async function renderIndex(req) {
       window.NOT_IN_USA=${process.env.NOT_IN_USA || 0}
       window.ALLOW_SEND_ALL=${process.env.ALLOW_SEND_ALL || 0}
       window.BULK_SEND_CHUNK_SIZE=${process.env.BULK_SEND_CHUNK_SIZE || 0}
-      window.MAX_MESSAGE_LENGTH=${process.env.MAX_MESSAGE_LENGTH || 99999}
+      window.MAX_MESSAGE_LENGTH=${process.env.MAX_MESSAGE_LENGTH || 1500}
       window.CONTACTS_PER_PHONE_NUMBER=${process.env
         .CONTACTS_PER_PHONE_NUMBER || 150}
       window.TERMS_REQUIRE="${process.env.TERMS_REQUIRE || ""}"
