@@ -21,7 +21,8 @@ import { checkForErrorCode } from "src/client/lib/error-helpers";
 import TextingClosedModal, {
   OUTSIDE_HOURS,
   CAMPAIGN_CLOSED
-} from "../TextingClosedModal.jsx";
+} from "../TextingClosedModal";
+import { getGraphQLErrors } from "src/client/lib/error-helpers";
 
 const contactDataFragment = `
   id
@@ -61,7 +62,6 @@ class InitialMessageTexter extends Component {
   noTextingAllowed(campaign) {
     const { status } = campaign;
     const closedStatuses = ["CLOSED", "ARCHIVED", "CLOSED_FOR_INITIAL_SENDS"];
-
     const outsideTextingHours = !campaignIsBetweenTextingHours(campaign);
     const closedStatus = closedStatuses.includes(status);
 
@@ -100,6 +100,10 @@ class InitialMessageTexter extends Component {
       }
     }
   }
+
+  showClosedModal = (status = CAMPAIGN_CLOSED) => {
+    this.setState({ warningDialogOpen: true, errorStatus: status });
+  };
 
   // TODO: shared code
   getMessageTextFromScript = (script, contact) => {
@@ -144,6 +148,19 @@ class InitialMessageTexter extends Component {
         messageInput,
         contactId
       );
+
+      const graphQLErrors = getGraphQLErrors(response);
+      const codes = graphQLErrors.map(error => error.code);
+      const campaignClosed =
+        codes.includes("CAMPAIGN_CLOSED") ||
+        codes.includes("CAMPAIGN_CLOSED_FOR_INITIAL_SENDS");
+
+      if (campaignClosed) {
+        this.showClosedModal();
+      } else if (codes.includes("TEXTING_HOURS")) {
+        this.showClosedModal(OUTSIDE_HOURS);
+      }
+
       // This can happen if a user has the initial message texter open in multiple windows
       const dupMessage = checkForErrorCode(response, "DUPLICATE_MESSAGE");
       if (dupMessage) {

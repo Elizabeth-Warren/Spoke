@@ -18,7 +18,7 @@ import TextingClosedModal, {
   OUTSIDE_HOURS,
   CAMPAIGN_CLOSED,
   FIVE_MIN_TO_CLOSED
-} from "../TextingClosedModal.jsx";
+} from "../TextingClosedModal";
 
 const customContentStyle = {
   width: "42%"
@@ -153,6 +153,10 @@ export class ConversationTexterComponent extends React.Component {
       this.setTimeToClosedTimeout(timeUntilClosed);
     }
   }
+
+  showClosedModal = (status = CAMPAIGN_CLOSED) => {
+    this.setState({ warningDialogOpen: true, errorStatus: status });
+  };
 
   componentDidMount() {
     const { assignment } = this.props.data;
@@ -318,6 +322,7 @@ export class ConversationTexterComponent extends React.Component {
         texter={assignment.texter}
         router={router}
         advanceContact={this.handleAdvanceContact}
+        showCampaignClosedModal={this.showClosedModal}
       />
     );
   }

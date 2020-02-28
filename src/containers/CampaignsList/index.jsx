@@ -10,7 +10,7 @@ import Campaign from "./Campaign";
 import PaginatedList from "../../components/Paginated/PaginatedList";
 import LoadingIndicator from "../../components/LoadingIndicator";
 import theme from "../../styles/theme";
-import CampaignStatusModal from "../../components/CampaignStatusModal.jsx";
+import CampaignStatusModal from "../../components/CampaignStatusModal";
 import { CampaignStatus } from "../../lib/campaign-statuses";
 const { ARCHIVED } = CampaignStatus;
 

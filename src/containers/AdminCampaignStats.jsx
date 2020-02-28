@@ -16,7 +16,7 @@ import DataTables from "material-ui-datatables";
 import LinearProgress from "material-ui/LinearProgress";
 import _ from "lodash";
 import moment from "moment";
-import CampaignStatusModal from "../components/CampaignStatusModal.jsx";
+import CampaignStatusModal from "../components/CampaignStatusModal";
 import { CampaignStatus, getStatusDisplayName } from "../lib/campaign-statuses";
 
 const { ARCHIVED } = CampaignStatus;

@@ -40,6 +40,8 @@ import SendButtonArrow from "src/components/SendButtonArrow";
 import Empty from "src/components/Empty";
 import "emoji-mart/css/emoji-mart.css";
 import { Picker } from "emoji-mart";
+import { getGraphQLErrors } from "src/client/lib/error-helpers";
+import { OUTSIDE_HOURS } from "../TextingClosedModal";
 
 import {
   OptOutDialog,
@@ -493,7 +495,6 @@ export class ConversationTexterContactComponent extends React.Component {
       const newState = {
         snackbarError: e.message
       };
-
       if (e.message === "Your assignment has changed") {
         newState.snackbarActionTitle = "Back to todos";
         newState.snackbarOnTouchTap = this.goBackToTodos;
@@ -545,6 +546,15 @@ export class ConversationTexterContactComponent extends React.Component {
         message,
         contact.id
       );
+
+      const graphQLErrors = getGraphQLErrors(sendMessageResult);
+      const codes = graphQLErrors.map(error => error.code);
+
+      if (codes.includes("CAMPAIGN_CLOSED")) {
+        this.props.showCampaignClosedModal();
+      } else if (codes.includes("TEXTING_HOURS")) {
+        this.props.showCampaignClosedModal(OUTSIDE_HOURS);
+      }
 
       if (sendMessageResult.errors && this.props.campaign.organization.id) {
         this.handleSendMessageError(sendMessageResult.errors);
