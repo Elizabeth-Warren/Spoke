@@ -822,7 +822,7 @@ function AdminCampaignEditRouter(props) {
   if (contactJob.status === "FAILED") {
     return (
       <CreateContainer
-        initialError={job.resultMessage}
+        initialError={contactJob.resultMessage}
         organizationId={props.organizationData.organization.id}
         updateCampaign={props.campaignData.campaign.id}
       />
