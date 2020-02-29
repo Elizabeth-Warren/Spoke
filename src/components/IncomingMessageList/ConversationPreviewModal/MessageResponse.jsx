@@ -133,7 +133,6 @@ class MessageResponse extends Component {
               <Form.Field
                 name="messageText"
                 label="Send a response"
-                multiLine
                 fullWidth
                 disabled={isSending}
                 rowsMax={6}
