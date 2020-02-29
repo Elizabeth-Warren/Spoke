@@ -122,7 +122,6 @@ provider:
     ASSETS_MAP_FILE: assets.json
     BASE_URL: ${self:custom.baseUrl.${self:custom.stage}}
     OPTOUTS_SHARE_ALL_ORGS: 1
-    ENABLE_CLOUDWATCH_REPORTING: 1
     SLACK_CLIENT_ID: ${ssm:/${self:custom.stage}/spoke/slack/CLIENT_ID~true}
     SLACK_CLIENT_SECRET: ${ssm:/${self:custom.stage}/spoke/slack/CLIENT_SECRET~true}
     SLACK_TEAM_ID: ${ssm:/${self:custom.stage}/spoke/slack/TEAM_ID~true}
