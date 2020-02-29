@@ -1,4 +1,5 @@
 import ApolloClient from "apollo-client";
+import * as Sentry from "@sentry/browser";
 
 import {
   getGraphQLErrors,
@@ -14,6 +15,14 @@ const responseMiddlewareNetworkInterface = new ResponseMiddlewareNetworkInterfac
 responseMiddlewareNetworkInterface.use({
   applyResponseMiddleware: (response, next) => {
     const errors = response.errors || [];
+
+    Sentry.addBreadcrumb({
+      category: `log data ${
+        errors.length ? "(includes errors)" : ""
+      } apollo-client-singleton`,
+      message: JSON.stringify(response),
+      level: "info"
+    });
 
     if (errors.find(e => e.code === "UNAUTHORIZED")) {
       window.location = `/login?nextUrl=${encodeURIComponent(
