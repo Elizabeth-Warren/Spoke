@@ -212,7 +212,7 @@ app.use(
       });
 
       if (TELEMETRY_IGNORED_ERROR_CODES.indexOf(error.code) === -1) {
-        telemetry.reportError(error.originalError, {
+        telemetry.reportError(error.originalError || error, {
           userId: request.user && request.user.id,
           code,
           awsRequestId: request.awsContext
