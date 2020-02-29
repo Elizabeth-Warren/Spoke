@@ -10,6 +10,7 @@ import crypto from "crypto";
 import randomSecret from "src/server/random-secret";
 import url from "url";
 import db from "src/server/db";
+import { ApolloError } from "src/server/api/errors";
 
 let twilio = null;
 const MAX_SEND_ATTEMPTS = 5;
@@ -147,9 +148,7 @@ async function sendMessage(message, contact, trx) {
       MESSAGE_VALIDITY_PADDING_SECONDS;
 
     if (messageValidityPeriod < 0) {
-      // this is an edge case
-      // it means the message arrived in this function already too late to be sent
-      // pass the negative validity period to twilio, and let twilio respond with an error
+      throw new ApolloError("Outside permitted texting hours", "TEXTING_HOURS");
     }
 
     if (twilioValidityPeriod) {
