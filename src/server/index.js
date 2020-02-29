@@ -19,10 +19,7 @@ import { twiml } from "twilio";
 import { existsSync } from "fs";
 import telemetry from "src/server/telemetry";
 import renderIndex from "src/server/middleware/render-index";
-
-const SLOW_REQUEST_LOG_THRESHOLD = process.env.SLOW_REQUEST_LOG_THRESHOLD
-  ? parseInt(process.env.SLOW_REQUEST_LOG_THRESHOLD, 10)
-  : 500;
+import responseTimeMiddleware from "src/server/middleware/graphql-response-time";
 
 const TELEMETRY_IGNORED_ERROR_CODES = [
   "FORBIDDEN",
@@ -155,32 +152,6 @@ addMockFunctionsToSchema({
   mocks,
   preserveResolvers: true
 });
-
-const responseTimeMiddleware = (req, res, next) => {
-  const start = new Date();
-
-  res.on("finish", () => {
-    const end = new Date();
-    const duration = end - start;
-    if (duration > SLOW_REQUEST_LOG_THRESHOLD) {
-      log.info({ msg: "Slow Request", duration, body: req.body });
-    }
-
-    telemetry.reportMetric({
-      name: "GraphQLRequestTime",
-      value: duration,
-      unit: "Milliseconds",
-      dimensions: [
-        {
-          Name: "OperationName",
-          Value: req.body.operationName || "NOT_SET"
-        }
-      ]
-    });
-  });
-
-  next();
-};
 
 app.use(
   "/graphql",

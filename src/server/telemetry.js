@@ -7,8 +7,6 @@ import * as Sentry from "@sentry/node";
 const stage = process.env.STAGE || "local";
 const functionName = process.env.AWS_LAMBDA_FUNCTION_NAME || "NOT_SET";
 
-// https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/MonitoringLogData.html
-let reportMetric = _ => {};
 const reportEventCallbacks = [];
 const reportErrorCallbacks = [];
 const expressMiddlewareCallbacks = [];
@@ -98,28 +96,6 @@ if (process.env.SENTRY_DSN) {
 // Specific to the Warren AWS deploy: report a cloudwatch event to "Mission Control"
 if (process.env.ENABLE_CLOUDWATCH_REPORTING === "1") {
   const cloudwatchEventsClient = new AWS.CloudWatchEvents();
-  const cloudwatchClient = new AWS.CloudWatch();
-  const metricNamespace = `ew/${stage}/spoke`;
-
-  reportMetric = async ({ name, value, unit, dimensions }) => {
-    const metric = {
-      MetricData: [
-        {
-          MetricName: name,
-          Dimensions: dimensions,
-          Timestamp: new Date(),
-          Unit: unit,
-          Value: value
-        }
-      ],
-      Namespace: metricNamespace
-    };
-    try {
-      await cloudwatchClient.putMetricData(metric).promise();
-    } catch (e) {
-      log.error("Error posting metric to Cloudwatch:", e);
-    }
-  };
 
   reportErrorCallbacks.push(async (err, details) => {
     const payload = makeCloudwatchErrorEvent(err, details);
@@ -190,7 +166,6 @@ function expressMiddleware(err, req, res, next) {
 }
 
 export default {
-  reportMetric,
   reportError,
   reportEvent,
   expressMiddleware

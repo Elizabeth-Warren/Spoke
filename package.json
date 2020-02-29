@@ -71,6 +71,7 @@
     "body-parser": "^1.15.2",
     "camelcase-keys": "^4.1.0",
     "canvas-confetti": "^1.0.3",
+    "cloudwatch-metrics": "^1.2.0",
     "cookie-session": "^2.0.0-alpha.1",
     "css-loader": "^3.4.2",
     "dataloader": "^1.2.0",

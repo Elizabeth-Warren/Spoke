@@ -2,6 +2,8 @@ function optionalInt(stringVal, defaultVal = undefined) {
   return stringVal ? parseInt(stringVal, 10) : defaultVal;
 }
 
+const stage = process.env.STAGE || "local";
+
 export const JobExecutor = {
   LAMBDA: "LAMBDA",
   IN_PROCESS: "IN_PROCESS",
@@ -47,6 +49,8 @@ export default {
   BASE_URL: process.env.BASE_URL,
   DEFAULT_CACHE_TTL: optionalInt(process.env.DEFAULT_CACHE_TTL, 3600), // 1 hour
   CACHE_PREFIX: process.env.CACHE_PREFIX || "",
+  CLOUDWATCH_METRICS_NAMESPACE: `ew/${stage}/spoke`,
+  CLOUDWATCH_METRICS_ENABLED: process.env.CLOUDWATCH_METRICS_ENABLED === "1",
   OPTOUTS_SHARE_ALL_ORGS: !!process.env.OPTOUTS_SHARE_ALL_ORGS,
   LOG_LEVEL: process.env.LOG_LEVEL || "info",
   SES_CONFIGURATION_SET_NAME:

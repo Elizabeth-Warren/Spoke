@@ -2430,6 +2430,21 @@ auth0-js@^9.10.0:
     url-join "^4.0.0"
     winchan "^0.2.1"
 
+aws-sdk@^2.4.14:
+  version "2.630.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.630.0.tgz#108ccd50b585226db8d1798def73f7b873a2efa6"
+  integrity sha512-7BDPUIqmMZfZf+KN2Z3RpGDYGkEucQORLM2EqXuE91ETW5ySvoNd771+EaE3OS+FUx3JejfcVk8Rr2ZFU38RjA==
+  dependencies:
+    buffer "4.9.1"
+    events "1.1.1"
+    ieee754 "1.1.13"
+    jmespath "0.15.0"
+    querystring "0.2.0"
+    sax "1.2.1"
+    url "0.10.3"
+    uuid "3.3.2"
+    xml2js "0.4.19"
+
 aws-sdk@^2.490.0, aws-sdk@^2.603.0:
   version "2.608.0"
   resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.608.0.tgz#614f90e9e67afb2e44587e03df2e1c6c0adcb626"
@@ -3367,6 +3382,13 @@ clone-response@1.0.2, clone-response@^1.0.2:
   integrity sha1-0dyXOSAxTfZ/vrlCI7TuNQI56Ws=
   dependencies:
     mimic-response "^1.0.0"
+
+cloudwatch-metrics@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/cloudwatch-metrics/-/cloudwatch-metrics-1.2.0.tgz#758675cf967983701900e6bdb55860fe8a3d2024"
+  integrity sha512-yOVT3gTrHv0IrWJ7Nl2d85qyJ5GQULvz6hzHENOU8zhp8n0dqNJvVYfTS+GzWJTrE1BGyNKhzN3OY2HMM7F4ug==
+  dependencies:
+    aws-sdk "^2.4.14"
 
 co@^4.6.0:
   version "4.6.0"
