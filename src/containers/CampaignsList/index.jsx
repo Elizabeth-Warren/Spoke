@@ -136,6 +136,7 @@ export class CampaignList extends React.Component {
 
   handleArchiveCampaign = async () => {
     await this.props.mutations.archiveCampaign(this.state.campaignIdToArchive);
+    this.setState({ campaignIdToArchive: null });
   };
 
   showArchiveConfirmModal = campaignId => {

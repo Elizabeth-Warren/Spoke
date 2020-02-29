@@ -267,7 +267,7 @@ export class ConversationTexterContactComponent extends React.Component {
   handleClick = e => {
     const node = ReactDOM.findDOMNode(this.refs.emojiPicker);
     const clickedInEmojiPicker =
-      node.contains(e.target) && this.state.showEmojiPicker;
+      node && node.contains(e.target) && this.state.showEmojiPicker;
     return !clickedInEmojiPicker && this.setState({ showEmojiPicker: false });
   };
 
