@@ -26,7 +26,14 @@ export function searchFor(query, objectsToSearch, keysToSearch) {
   for (var i = 0; i < objectsToSearch.length; i++) {
     for (var x = 0; x < keysToSearch.length; x++) {
       const key = keysToSearch[x];
-      const field = objectsToSearch[i][key];
+
+      let field;
+      if (typeof key === "function") {
+        field = key(objectsToSearch[i]);
+      } else {
+        field = objectsToSearch[i][key];
+      }
+
       if (field && field.toLowerCase().indexOf(toSearch) != -1) {
         if (!itemExists(results, objectsToSearch[i]))
           results.push(objectsToSearch[i]);

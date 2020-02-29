@@ -41,7 +41,8 @@ const styles = StyleSheet.create({
   contactName: {
     whiteSpace: "initial",
     wordWrap: "break-word",
-    maxWidth: "90%"
+    maxWidth: "90%",
+    color: theme.colors.EWlightLibertyGreen
   },
   noIcon: {
     paddingLeft: 22

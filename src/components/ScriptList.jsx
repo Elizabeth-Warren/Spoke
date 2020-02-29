@@ -23,7 +23,8 @@ const styles = StyleSheet.create({
     display: "flex"
   },
   title: {
-    marginTop: 0
+    marginTop: 0,
+    fontWeight: "bold"
   }
 });
 

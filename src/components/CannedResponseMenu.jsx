@@ -42,10 +42,16 @@ class CannedResponseMenu extends React.Component {
   componentDidMount() {
     this.setState({ results: this.props.campaignCannedResponses });
   }
+
   handleOnChange(e) {
     const searchValue = e.target.value;
     const { campaignCannedResponses } = this.props;
-    const keysToSearch = ["surveyQuestion", "text", "title"];
+    const keysToSearch = [
+      "surveyQuestion",
+      "text",
+      "title",
+      r => (r.labels || []).map(l => l.displayValue).join(" ")
+    ];
     const results = searchFor(
       searchValue,
       campaignCannedResponses,

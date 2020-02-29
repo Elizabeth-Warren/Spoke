@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     textAlign: "left",
     backgroundColor: theme.colors.EWnavy,
-    color: "white",
+    color: theme.colors.EWlightLibertyGreen,
     position: "relative",
 
     ":before": {

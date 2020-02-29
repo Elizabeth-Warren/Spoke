@@ -14,7 +14,7 @@ const inlineStyles = {
     height: "48px"
   },
   cellToolbarTitle: {
-    color: theme.colors.white,
+    color: theme.colors.EWlightLibertyGreen,
     fontSize: 20
   },
   locationToolbarTitle: {

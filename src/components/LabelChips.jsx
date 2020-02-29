@@ -1,6 +1,7 @@
 import React from "react";
 import _ from "lodash";
 import { Chip } from "material-ui";
+import theme from "src/styles/theme";
 
 export default function LabelChips({ labels, labelIds, onRequestDelete }) {
   const labelsById = _.keyBy(labels, "id");
@@ -19,9 +20,19 @@ export default function LabelChips({ labels, labelIds, onRequestDelete }) {
           <Chip
             key={labelId}
             onRequestDelete={onDelete}
-            style={{ marginBottom: "5px", marginRight: "10px" }}
+            style={{
+              marginBottom: "5px",
+              marginRight: "10px",
+              backgroundColor: theme.colors.EWdarkLibertyGreen
+            }}
           >
-            {label.displayValue}
+            <span
+              style={{
+                color: theme.colors.EWnavy
+              }}
+            >
+              {label.displayValue}
+            </span>
           </Chip>
         );
       })}
