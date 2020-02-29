@@ -127,7 +127,7 @@ provider:
     SLACK_TEAM_ID: ${ssm:/${self:custom.stage}/spoke/slack/TEAM_ID~true}
     EMBEDDED_SHIFTER_URL: ${ssm:/${self:custom.stage}/spoke/shifter/URL~true}
     SENTRY_DSN: ${ssm:/shared/spoke/sentry/DSN~true}
-    MAX_CONTACTS: 50000
+    MAX_CONTACTS: 75000
     ASSET_DOMAIN: https://ew-spoke-public.elizabethwarren.codes/${self:custom.stage}
     SLOW_REQUEST_LOG_THRESHOLD: 500
     CLOUDWATCH_METRICS_ENABLED: 1
