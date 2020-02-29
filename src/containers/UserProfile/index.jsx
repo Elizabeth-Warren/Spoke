@@ -99,6 +99,7 @@ const mapQueriesToProps = () => ({
     query: gql`
       query getCurrentUser {
         currentUser {
+          id
           firstName
           lastName
           subscribedToReminders
