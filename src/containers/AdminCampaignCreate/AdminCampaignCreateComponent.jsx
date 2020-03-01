@@ -212,7 +212,7 @@ export default class AdminCampaignCreateComponent extends Component {
                   </strong>
                   <ul>
                     <li>
-                      <tt>source_id</tt> must be an integer ≥ 100000000.
+                      <tt>source_id</tt> must be an integer ≥ 1.
                     </li>
                     <li>
                       <tt>van_statecode</tt> must be a valid US state code.
@@ -225,8 +225,7 @@ export default class AdminCampaignCreateComponent extends Component {
                   </strong>
                   <ul>
                     <li>
-                      <tt>source_id</tt> must be an integer between 1 and
-                      9999999.
+                      <tt>source_id</tt> must be an integer ≥ 1.
                     </li>
                     <li>
                       <tt>van_statecode</tt> must be a valid US state code.
@@ -239,7 +238,7 @@ export default class AdminCampaignCreateComponent extends Component {
                   </strong>
                   <ul>
                     <li>
-                      <tt>source_id</tt> must be an integer ≥ 100000000.
+                      <tt>source_id</tt> must be an integer ≥ 1.
                     </li>
                     <li>
                       <tt>van_statecode</tt> is optional, but if it&apos;s sent,
