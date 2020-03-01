@@ -17,6 +17,7 @@ import {
   TableRow,
   TableRowColumn
 } from "material-ui/Table";
+import { inputNameForColumn } from "src/lib/fields-helpers";
 
 const fieldsToSkip = ["customFields", "id", "__typename"];
 
@@ -52,13 +53,11 @@ const styles = StyleSheet.create({
 
 export default class CampaignContactsForm extends React.Component {
   getColumnHeaders(columns) {
-    const columnTitle = col =>
-      col === "cell" ? "phone_number" : humps.decamelize(col);
     return (
       <TableHeader adjustForCheckbox={false} displaySelectAll={false}>
         <TableRow>
           {columns.map(col => (
-            <TableHeaderColumn>{columnTitle(col)}</TableHeaderColumn>
+            <TableHeaderColumn>{inputNameForColumn(col)}</TableHeaderColumn>
           ))}
         </TableRow>
       </TableHeader>

@@ -3,8 +3,10 @@ import Dropzone from "react-dropzone";
 import classNames from "classnames";
 import UploadIcon from "material-ui/svg-icons/file/cloud-upload";
 import { StyleSheet, css } from "aphrodite";
-import theme from "src/styles/theme";
 import { Card } from "material-ui";
+import types from "prop-types";
+
+import theme from "src/styles/theme";
 
 const styles = StyleSheet.create({
   uploadColumnRight: {
@@ -53,3 +55,7 @@ export default function FilePicker({ onPick }) {
     </Dropzone>
   );
 }
+
+FilePicker.propTypes = {
+  onPick: types.func.isRequired
+};

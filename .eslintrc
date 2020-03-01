@@ -31,7 +31,13 @@
     "no-nested-ternary": "warn",
     "react/no-string-refs": "off",
     "react/no-unused-state": "warn",
-    "react/static-property-placement": "off"
+    "react/static-property-placement": "off",
+    "react/jsx-one-expression-per-line": "off",
+    "react/no-array-index-key": "warn",
+    "react/state-in-constructor": "off",
+    "react/sort-comp": "off",
+    "react/jsx-curly-newline": "off",
+    "react/jsx-wrap-multilines": "off"
   },
   "env": { "jest": true, "node": true, "browser": true, "jasmine": true },
   "settings": {

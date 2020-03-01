@@ -1,9 +1,8 @@
 import _ from "lodash";
-import { parseCSV } from "src/lib";
+import parseCSV from "src/containers/CSVUploader/parseCSV";
+import { PRESET_FIELDS } from "src/lib/fields-helpers";
 
-function parseCSVPromise(...args) {
-  return new Promise(r => parseCSV(...args, r));
-}
+const columnConfig = PRESET_FIELDS.filter(field => !field.virtual);
 
 describe("parseCSV", () => {
   beforeEach(() => {
@@ -11,18 +10,18 @@ describe("parseCSV", () => {
   });
 
   describe("with PHONE_NUMBER_COUNTRY set", () => {
-    beforeEach(() => (process.env.PHONE_NUMBER_COUNTRY = "AU"));
+    beforeEach(() => (process.env.PHONE_NUMBER_COUNTRY = "US"));
     afterEach(() => delete process.env.PHONE_NUMBER_COUNTRY);
 
     it("should consider phone numbers from that country as valid", async () => {
-      const csv = "firstName,lastName,phone_number\ntest,test,61468511000";
-      const { contacts, error } = await parseCSVPromise(csv, {
-        optOuts: [],
-        maxContacts: 1000
+      const csv = "firstName,lastName,phone_number\ntest,test,6146851100";
+      const { data, error } = await parseCSV(csv, {
+        maxRows: 1000,
+        columnConfig
       });
 
       expect(error).toBeFalsy();
-      expect(contacts.length).toEqual(1);
+      expect(data.length).toEqual(1);
     });
   });
 
@@ -36,17 +35,19 @@ describe("parseCSV", () => {
       return csvRows.join("\n");
     }
 
-    const result1 = await parseCSVPromise(csvWithRows(100), {
-      maxContacts: 100
+    const result1 = await parseCSV(csvWithRows(100), {
+      maxRows: 100,
+      columnConfig
     });
     expect(result1.error).toBeFalsy();
-    expect(result1.contacts.length).toEqual(100);
+    expect(result1.data.length).toEqual(100);
 
-    const result2 = await parseCSVPromise(csvWithRows(101), {
-      maxContacts: 100
+    const result2 = await parseCSV(csvWithRows(101), {
+      maxRows: 100,
+      columnConfig
     });
     expect(result2.error).toEqual(
-      "You can only have 100 contacts in a single campaign. You uploaded a CSV with 101 contacts."
+      "You may not upload a CSV with more than 100 rows. You uploaded a CSV with 101 rows"
     );
   });
 });

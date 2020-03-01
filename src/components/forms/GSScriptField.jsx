@@ -1,13 +1,16 @@
 import React from "react";
 import pick from "lodash/pick";
-import GSFormField from "./GSFormField";
-import { allScriptFields } from "../../lib/scripts";
-import ScriptEditor from "../ScriptEditor";
+
 import Dialog from "material-ui/Dialog";
 import FlatButton from "material-ui/FlatButton";
 import RaisedButton from "material-ui/RaisedButton";
 import TextField from "material-ui/TextField";
-import { dataTest } from "../../lib/attributes";
+
+import { dataTest } from "src/lib/attributes";
+import { allFields, allInputFields } from "src/lib/fields-helpers";
+
+import ScriptEditor from "../ScriptEditor";
+import GSFormField from "./GSFormField";
 
 const styles = {
   dialog: {
@@ -48,7 +51,8 @@ export default class GSScriptField extends GSFormField {
   renderDialog() {
     const { open } = this.state;
     const { customFields, sampleContact } = this.props;
-    const scriptFields = allScriptFields(customFields);
+    const scriptFields = allFields(customFields);
+    const scriptInputFields = allInputFields(customFields);
 
     return (
       <Dialog
@@ -76,6 +80,7 @@ export default class GSScriptField extends GSFormField {
           scriptText={this.state.script}
           sampleContact={sampleContact}
           scriptFields={scriptFields}
+          scriptInputFields={scriptInputFields}
           onChange={val => this.setState({ script: val })}
         />
       </Dialog>

@@ -1,15 +1,16 @@
 import React, { Component } from "react";
 import types from "prop-types";
-import ColumnName from "./ColumnName";
 import { RaisedButton, Card, CardHeader, CardText } from "material-ui";
-import _ from "lodash";
 import theme from "src/styles/theme";
 import { StyleSheet, css } from "aphrodite";
 import axios from "axios";
+import _ from "lodash";
 
-import { parseCSV } from "src/lib";
-import FilePicker from "./FilePicker";
-import ValidationStats from "./ValidationStats";
+import {
+  PRESET_FIELDS,
+  PRESET_FIELDS_BY_API_NAME
+} from "src/lib/fields-helpers";
+import CSVUploader from "../CSVUploader";
 
 const styles = StyleSheet.create({
   header: {
@@ -18,17 +19,6 @@ const styles = StyleSheet.create({
   },
   cardHeader: {
     backgroundColor: theme.colors.EWlibertyGreen
-  },
-  uploadColumnsWrapper: {
-    display: "flex",
-    flexDirection: "row"
-  },
-  uploadColumn: {
-    flex: "1"
-  },
-  errorMessage: {
-    backgroundColor: theme.colors.red,
-    padding: "10px 5px"
   }
 });
 
@@ -41,7 +31,6 @@ export default class AdminCampaignCreateComponent extends Component {
     router: types.object,
     initialError: types.string,
     organizationId: types.string.isRequired,
-    updateCampaign: types.string,
     copiedCampaign: types.object,
     organization: types.object
   };
@@ -65,210 +54,96 @@ export default class AdminCampaignCreateComponent extends Component {
     }
 
     this.state = {
-      state: "idle", // idle, parsing, parsed, uploading
-      error: this.props.initialError, // Errors from CSV parsing or input -- blocks trying to upload
-      uploadError: null, // Errors from upload -- does not block trying to upload again
-      parsedData: null,
-      shiftConfiguration, // off, perContact, static
-      validationStats: null,
-      fields: null
+      shiftConfiguration // off, perContact, static
     };
   }
 
-  onPickCSV = (acceptedFiles, rejectedFiles) => {
-    if (
-      rejectedFiles.length > 0 ||
-      acceptedFiles.length + rejectedFiles.length > 1
-    ) {
-      this.setState({ error: "Please upload a single CSV file" });
-      return;
-    }
+  onSave = async ({ data, fileName, onUploadProgress }) => {
+    const contacts = data.map(item => {
+      const contact = { customFields: {} };
 
-    this.setState({
-      error: null,
-      parsedData: null,
-      validationStats: null,
-      fields: null,
-      state: "parsing"
-    });
-
-    parseCSV(
-      acceptedFiles[0],
-      {
-        optOuts: [],
-        maxContacts: this.props.organization.organization.maxContacts
-      },
-      ({ contacts, fields, validationStats, fileName, error }) => {
-        if (error) {
-          this.setState({
-            state: "idle",
-            error
-          });
+      _.each(item, (val, key) => {
+        if (PRESET_FIELDS_BY_API_NAME[key]) {
+          contact[key] = val;
         } else {
-          this.setState({
-            state: "parsed",
-            validationStats,
-            fields,
-            fileName,
-            parsedData: contacts,
-            error:
-              contacts.length > 0
-                ? null
-                : "Please upload at least one valid contact."
-          });
+          contact.customFields[key] = val;
         }
-      }
-    );
-  };
-
-  onDelete = () => {
-    this.setState({
-      error: null,
-      uploadError: null,
-      parsedData: null,
-      validationStats: null,
-      fields: null,
-      state: "idle"
-    });
-  };
-
-  onSave = async () => {
-    this.setState({
-      state: "uploading",
-      uploadError: null,
-      uploadProgress: 0
-    });
-
-    try {
-      const payload = JSON.stringify(this.state.parsedData);
-
-      const { s3Key, presignedPutUrl } = JSON.parse(
-        (await this.props.mutations.createUploadUrl()).data
-          .createPresignedUploadUrl
-      );
-
-      const config = {
-        onUploadProgress: progressEvent => {
-          if (this.state.state === "uploading") {
-            const percentCompleted = Math.round(
-              progressEvent.loaded / progressEvent.total
-            );
-
-            this.setState({
-              uploadProgress: percentCompleted
-            });
-          }
-        }
-      };
-
-      await axios.put(presignedPutUrl, payload, config);
-
-      const createOrUpdateResult = await this.props.mutations.createOrUpdateCampaign(
-        s3Key,
-        this.state.fileName,
-        this.state.shiftConfiguration !== "off"
-      );
-
-      // If we created a new campaign, go there
-      let newCampaignId;
-      if (createOrUpdateResult.data.copyCampaign) {
-        newCampaignId = createOrUpdateResult.data.copyCampaign.id;
-      } else if (createOrUpdateResult.data.createCampaign) {
-        newCampaignId = createOrUpdateResult.data.createCampaign.id;
-      }
-
-      if (newCampaignId) {
-        this.props.router.push(
-          `/admin/${this.props.organizationId}/campaigns/${newCampaignId}/edit?new=true`
-        );
-      }
-    } catch (e) {
-      console.error(e);
-
-      this.setState({
-        state: "parsed",
-        uploadError: e.message
       });
+
+      return contact;
+    });
+
+    const payload = JSON.stringify(contacts);
+
+    const { s3Key, presignedPutUrl } = JSON.parse(
+      (await this.props.mutations.createUploadUrl()).data
+        .createPresignedUploadUrl
+    );
+
+    const config = {
+      onUploadProgress
+    };
+
+    await axios.put(presignedPutUrl, payload, config);
+
+    const createOrUpdateResult = await this.props.mutations.createOrUpdateCampaign(
+      s3Key,
+      fileName,
+      this.state.shiftConfiguration !== "off"
+    );
+
+    // If we created a new campaign, go there
+    let newCampaignId;
+    if (createOrUpdateResult.data.copyCampaign) {
+      newCampaignId = createOrUpdateResult.data.copyCampaign.id;
+    } else if (createOrUpdateResult.data.createCampaign) {
+      newCampaignId = createOrUpdateResult.data.createCampaign.id;
+    }
+
+    if (newCampaignId) {
+      this.props.router.push(
+        `/admin/${this.props.organizationId}/campaigns/${newCampaignId}/edit?new=true`
+      );
     }
   };
-
-  columnIsPresent(name) {
-    if (!this.state.fields) {
-      return null;
-    }
-
-    return this.state.fields.indexOf(name) !== -1;
-  }
 
   render() {
-    const requiredColumns = [
-      { name: "first_name", desc: "contact's first name", type: "required" },
-      { name: "last_name", desc: "contact's last name", type: "required" },
-      { name: "phone_number", desc: "contact's phone number", type: "required" }
-    ];
-
-    const optionalColumns = [
-      {
-        name: "external_id",
-        desc: "external ID for mapping back to external data sources",
-        type: "optional"
-      },
-      {
-        name: "external_id_type",
-        desc: "external ID type for mapping back to external data sources",
-        type: "optional"
-      },
-      {
-        name: "state_code",
-        desc: "state code for mapping back to external data sources",
-        type: "optional"
-      }
-    ];
+    const fields = PRESET_FIELDS.filter(field => !field.virtual);
 
     if (this.state.shiftConfiguration !== "off") {
-      requiredColumns.push(
+      fields.push(
         {
-          name: "email",
-          desc: "contact's email address for event shifting",
-          type: "required"
+          inputName: "email",
+          apiName: "email",
+          required: true,
+          description: "contact's email address for event shifting"
         },
         {
-          name: "zip",
-          desc: "contact's zip code for event shifting",
-          type: "required"
+          inputName: "zip",
+          apiName: "zip",
+          required: true,
+          description: "contact's zip code for event shifting"
         }
       );
 
       if (this.state.shiftConfiguration === "perContact") {
-        requiredColumns.push({
-          name: "event_id",
-          desc: "the Mobilize America event for the embedded shifter",
-          type: "required"
-        });
-
-        optionalColumns.push({
-          name: "timeslot_id",
-          desc:
-            "which timeslot of the Mobilize America event the embedded shifter should default to",
-          type: "optional"
-        });
+        fields.push(
+          {
+            inputName: "event_id",
+            apiName: "event_id",
+            required: true,
+            description: "the Mobilize America event for the embedded shifter"
+          },
+          {
+            inputName: "timeslot_id",
+            apiName: "timeslot_id",
+            required: false,
+            description:
+              "which timeslot of the Mobilize America event the embedded shifter should default to"
+          }
+        );
       }
     }
-
-    const canSaveAndContinue =
-      !this.state.error &&
-      this.state.state !== "uploading" &&
-      _.every(requiredColumns, c => this.columnIsPresent(c.name));
-
-    let customFields = [];
-    if (this.state.parsedData) {
-      const firstContact = this.state.parsedData[0];
-      if (firstContact && firstContact.customFields) {
-        customFields = Object.keys(firstContact.customFields);
-      }
-    }
-
-    const errorMessage = this.state.uploadError || this.state.error;
 
     let title = "Create Campaign";
     if (this.props.copiedCampaign) {
@@ -314,68 +189,94 @@ export default class AdminCampaignCreateComponent extends Component {
                 label="Per-Contact Events"
               />
             </div>
-            <h2>Upload CSV</h2>
+
+            <CSVUploader
+              onUpload={this.onSave}
+              initialError={this.props.initialError}
+              maxRows={this.props.organization.organization.maxContacts}
+              dedupeOn="phone_number"
+              columnConfig={fields}
+            />
+
+            <h2>Contact Data Validation Requirements</h2>
             <p>
-              Upload a CSV of contacts. The first row should be column headings.
+              All contact uploads should include source_id and source_id_type
+              for each contact. Depending on the source_id_type, there are
+              different different requirements for source_id and van_statecode.
             </p>
-            {errorMessage && (
-              <div className={css(styles.errorMessage)}>{errorMessage}</div>
-            )}
-            <div className={css(styles.uploadColumnsWrapper)}>
-              <div className={css(styles.uploadColumn)}>
-                <h3>Required Columns</h3>
-                <div>
-                  {requiredColumns.map(c => (
-                    <ColumnName
-                      key={c.name}
-                      {...c}
-                      present={this.columnIsPresent(c.name)}
-                    />
-                  ))}
-                </div>
-                <h3 style={{ paddingTop: "20px" }}>Optional Columns</h3>
-                <div>
-                  {optionalColumns.map(c => (
-                    <ColumnName
-                      key={c.name}
-                      {...c}
-                      present={this.columnIsPresent(c.name)}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              {this.state.state === "idle" && (
-                <FilePicker onPick={this.onPickCSV} />
-              )}
-
-              {(this.state.state === "parsed" ||
-                this.state.state === "uploading") && (
-                <ValidationStats
-                  nContacts={this.state.parsedData.length}
-                  customFields={customFields}
-                  stats={this.state.validationStats}
-                  canDelete={this.state.state === "parsed"}
-                  onDelete={this.onDelete}
-                />
-              )}
-            </div>
-
-            <div>
-              <RaisedButton
-                primary
-                label="Save And Goto Next Section"
-                disabled={!canSaveAndContinue}
-                onClick={() => canSaveAndContinue && this.onSave()}
-              />
-              <span style={{ marginLeft: "10px" }}>
-                {this.state.state === "uploading"
-                  ? `Uploading: ${(this.state.uploadProgress * 100).toFixed(
-                      1
-                    )}%`
-                  : ""}
-              </span>
-            </div>
+            <p>
+              <ul>
+                <li>
+                  <strong>
+                    <tt>myc_van_id</tt>
+                  </strong>
+                  <ul>
+                    <li>
+                      <tt>source_id</tt> must be an integer ≥ 100000000.
+                    </li>
+                    <li>
+                      <tt>van_statecode</tt> must be a valid US state code.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>
+                    <tt>myv_van_id</tt>
+                  </strong>
+                  <ul>
+                    <li>
+                      <tt>source_id</tt> must be an integer between 1 and
+                      9999999.
+                    </li>
+                    <li>
+                      <tt>van_statecode</tt> must be a valid US state code.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>
+                    <tt>ngp_van_id</tt>
+                  </strong>
+                  <ul>
+                    <li>
+                      <tt>source_id</tt> must be an integer ≥ 100000000.
+                    </li>
+                    <li>
+                      <tt>van_statecode</tt> is optional, but if it&apos;s sent,
+                      it must be a valid US state code.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>
+                    <tt>bsd_cons_id</tt>
+                  </strong>
+                  <ul>
+                    <li>
+                      <tt>source_id</tt> must be an integer ≥ 1.
+                    </li>
+                    <li>
+                      <tt>van_statecode</tt> is optional, but if it&apos;s sent,
+                      it must be a valid US state code.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  <strong>
+                    <tt>custom</tt>
+                  </strong>
+                  <ul>
+                    <li>
+                      <tt>source_id</tt> must be any value.{" "}
+                    </li>
+                    <li>
+                      <tt>van_statecode</tt> is optional, but if it&apos;s
+                      present, it must be a valid US state code.
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </p>
           </CardText>
         </Card>
       </div>

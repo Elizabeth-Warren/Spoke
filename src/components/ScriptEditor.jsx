@@ -174,10 +174,10 @@ class ScriptEditor extends React.Component {
   }
 
   renderCustomFields() {
-    const { scriptFields } = this.props;
+    const { scriptInputFields } = this.props;
     return (
       <div style={styles.scriptFieldButtonSection}>
-        {scriptFields.map(field => (
+        {scriptInputFields.map(field => (
           <Chip
             key={field}
             style={styles.scriptFieldButton}

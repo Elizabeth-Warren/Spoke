@@ -6,6 +6,7 @@ import CheckCircleIcon from "material-ui/svg-icons/action/check-circle";
 import WarningIcon from "material-ui/svg-icons/alert/warning";
 import ErrorIcon from "material-ui/svg-icons/alert/error";
 import HighlightOffIcon from "material-ui/svg-icons/action/highlight-off";
+
 import theme from "src/styles/theme";
 
 const styles = StyleSheet.create({

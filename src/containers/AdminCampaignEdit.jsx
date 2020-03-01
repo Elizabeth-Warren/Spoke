@@ -24,8 +24,8 @@ import ShiftingConfigurationForm from "src/components/ShiftingConfigurationForm"
 import DisplayLink from "src/components/DisplayLink";
 import { CreateContainer } from "./AdminCampaignCreate";
 import JobProgress from "./JobProgress";
-import { validateCustomFieldsInBody } from "../lib/custom-fields-helpers";
 import ConfirmCampaignArchiveModal from "../components/ConfirmCampaignArchiveModal";
+import { validateScript } from "../lib/scripts";
 
 const campaignInfoFragment = `
   id
@@ -330,10 +330,10 @@ class AdminCampaignEdit extends React.Component {
       response => !response.deleted
     );
     const missingFields = activeResponses.reduce((acc, response) => {
-      const { missingFields = [] } = validateCustomFieldsInBody(
-        response.text,
+      const { missingFields = [] } = validateScript({
+        script: response.text,
         customFields
-      );
+      });
       return [...acc, ...missingFields];
     }, []);
 

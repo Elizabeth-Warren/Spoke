@@ -1,28 +1,29 @@
 import type from "prop-types";
 import React from "react";
-import CampaignCannedResponseForm from "./CampaignCannedResponseForm";
-import FlatButton from "material-ui/FlatButton";
+import _ from "lodash";
 import Form from "react-formal";
-import GSForm from "./forms/GSForm";
-import { List, ListItem } from "material-ui/List";
-import Divider from "material-ui/Divider";
-import CampaignFormSectionHeading from "./CampaignFormSectionHeading";
-import DeleteIcon from "material-ui/svg-icons/action/delete";
-import IconButton from "material-ui/IconButton";
 import yup from "yup";
-import CreateIcon from "material-ui/svg-icons/content/create";
-import theme from "../styles/theme";
 import { StyleSheet, css } from "aphrodite";
-import { dataTest } from "../lib/attributes";
 import { SortableContainer, SortableElement } from "react-sortable-hoc";
 import arrayMove from "array-move";
-import { parseResponsesCSV } from "../lib";
+
+import { List, ListItem } from "material-ui/List";
+import Divider from "material-ui/Divider";
+import DeleteIcon from "material-ui/svg-icons/action/delete";
+import IconButton from "material-ui/IconButton";
+import CreateIcon from "material-ui/svg-icons/content/create";
 import WarningIcon from "material-ui/svg-icons/alert/warning";
-import ColumnName from "../containers/AdminCampaignCreate/ColumnName";
-import FilePicker from "../containers/AdminCampaignCreate/FilePicker";
-import ValidationStats from "../containers/AdminCampaignCreate/ValidationStats";
-import { validateCustomFieldsInBody } from "../lib/custom-fields-helpers";
+import FlatButton from "material-ui/FlatButton";
+
+import { validateScript } from "src/lib/scripts";
+import { dataTest } from "src/lib/attributes";
+import theme from "src/styles/theme";
+import CSVUploader from "src/containers/CSVUploader";
+
+import CampaignCannedResponseForm from "./CampaignCannedResponseForm";
 import LabelChips from "./LabelChips";
+import CampaignFormSectionHeading from "./CampaignFormSectionHeading";
+import GSForm from "./forms/GSForm";
 
 const warningIcon = <WarningIcon color={theme.colors.EWred} />;
 
@@ -41,14 +42,7 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.white,
     padding: 10
   },
-  uploadColumnsWrapper: {
-    display: "flex",
-    flexDirection: "row"
-  },
-  uploadColumn: {
-    flex: "1"
-  },
-  errorMessage: {
+  customFieldsError: {
     backgroundColor: theme.colors.red,
     padding: "10px 5px"
   },
@@ -58,25 +52,10 @@ const styles = StyleSheet.create({
   }
 });
 
-const requiredColumns = [
-  { name: "Body", desc: "response body", type: "required" },
-  { name: "Title", desc: "response title", type: "required" }
-];
-
-const optionalColumns = [
-  { name: "Data Item", desc: "survey question", type: "optional" }
-];
-
 export default class CampaignCannedResponsesForm extends React.Component {
-  constructor(props) {
-    super(props);
-  }
-
   state = {
-    state: "idle",
     showAddForm: false,
-    currentlyEditing: [],
-    fields: null
+    currentlyEditing: []
   };
 
   formSchema = yup.object({
@@ -121,14 +100,14 @@ export default class CampaignCannedResponsesForm extends React.Component {
             // This response hasn't been saved to the backend --
             // hard-delete it
             return null;
-          } else {
-            // This response has been saved to the backend --
-            // soft-delete it
-            return {
-              ...responseToDelete,
-              deleted: true
-            };
           }
+
+          // This response has been saved to the backend --
+          // soft-delete it
+          return {
+            ...responseToDelete,
+            deleted: true
+          };
         }
 
         return responseToDelete;
@@ -141,26 +120,16 @@ export default class CampaignCannedResponsesForm extends React.Component {
   };
 
   stopEditing = responseId => {
-    this.setState({
-      currentlyEditing: this.state.currentlyEditing.filter(
-        id => id !== responseId
-      )
-    });
+    this.setState(state => ({
+      currentlyEditing: state.currentlyEditing.filter(id => id !== responseId)
+    }));
   };
 
   startEditing = responseId => {
-    this.setState({
-      currentlyEditing: this.state.currentlyEditing.concat([responseId])
-    });
+    this.setState(state => ({
+      currentlyEditing: state.currentlyEditing.concat([responseId])
+    }));
   };
-
-  columnIsPresent(name) {
-    if (!this.state.fields) {
-      return null;
-    }
-
-    return this.state.fields.indexOf(name) !== -1;
-  }
 
   handleEdit = (responseId, newData) => {
     const newVals = this.props.formValues.cannedResponses.map(
@@ -201,53 +170,66 @@ export default class CampaignCannedResponsesForm extends React.Component {
   };
 
   showUploadButton() {
-    const { responseUploadError } = this.state;
+    const labelsBySlug = _.keyBy(this.props.labels, "slug");
+
+    const fields = [
+      {
+        inputName: "Body",
+        aliases: ["body"],
+        apiName: "body",
+        required: true,
+        description: "Text of the response to send to the contact",
+        validate(value) {
+          return value && value.length > 0 && value.length <= 1500;
+        }
+      },
+      {
+        inputName: "Title",
+        aliases: ["title"],
+        apiName: "title",
+        required: true,
+        description: "Title of the response to show to the texter",
+        validate(value) {
+          return value && value.length > 0 && value.length <= 1500;
+        }
+      },
+      {
+        inputName: "Data Item",
+        aliases: ["data item", "dataItem", "data_item"],
+        apiName: "labelIds",
+        description: "Space-separated list of label slugs",
+        transformAndValidate(val) {
+          return Array.from(
+            new Set(
+              val
+                .split(/\s+/)
+                .map(slug => slug.trim().toLowerCase())
+                .filter(slug => slug.length > 0)
+                .map(slug => {
+                  if (!labelsBySlug[slug]) {
+                    throw new Error(`No label matches the data item "${slug}"`);
+                  }
+
+                  return labelsBySlug[slug].id;
+                })
+            )
+          );
+        }
+      }
+    ];
 
     return (
       <div>
-        <h3>Upload CSV</h3>
-        {responseUploadError && (
-          <div className={css(styles.errorMessage)}>{responseUploadError}</div>
-        )}
-
-        <div className={css(styles.uploadColumnsWrapper)}>
-          <div className={css(styles.uploadColumn)}>
-            <h4>Required Columns</h4>
-            <div>
-              {requiredColumns.map(c => (
-                <ColumnName
-                  key={c.name}
-                  {...c}
-                  present={this.columnIsPresent(c.name)}
-                />
-              ))}
-            </div>
-            <h4>Optional Columns</h4>
-            <div>
-              {optionalColumns.map(c => (
-                <ColumnName
-                  key={c.name}
-                  {...c}
-                  present={this.columnIsPresent(c.name)}
-                />
-              ))}
-            </div>
+        {this.state.customFieldsError && (
+          <div className={css(styles.customFieldsError)}>
+            {this.state.customFieldsError}
           </div>
-          {(this.state.state === "idle" ||
-            this.state.state === "uploading") && (
-            <FilePicker onPick={this.handleUpload} />
-          )}
-
-          {(this.state.state === "parsed" ||
-            this.state.state === "uploading") && (
-            <ValidationStats
-              stats={this.state.validationStats}
-              canDelete={this.state.state === "parsed"}
-              onDelete={this.onDelete}
-              nResponses={this.state.responses && this.state.responses.length}
-            />
-          )}
-        </div>
+        )}
+        <CSVUploader
+          onUpload={this.handleUploadSuccess}
+          maxRows={500}
+          columnConfig={fields}
+        />
       </div>
     );
   }
@@ -282,7 +264,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
   listItems(cannedResponses) {
     const { customFields } = this.props;
     const SortableItem = SortableElement(({ value: response }) => {
-      if (this.state.currentlyEditing.indexOf(response.id) != -1) {
+      if (this.state.currentlyEditing.indexOf(response.id) !== -1) {
         // we're editing this response
         return (
           <div className={css(styles.formContainer)} key={response.id}>
@@ -307,17 +289,17 @@ export default class CampaignCannedResponsesForm extends React.Component {
       }
 
       // not editing; just display it
-      const { missingFields = [] } = validateCustomFieldsInBody(
-        response.text,
+      const { missingFields = [] } = validateScript({
+        script: response.text,
         customFields
-      );
+      });
 
       return (
         <ListItem
           {...dataTest("cannedResponse")}
           value={response.text}
           key={response.id}
-          leftIcon={!!missingFields.length ? warningIcon : null}
+          leftIcon={missingFields.length ? warningIcon : null}
           rightIconButton={
             <IconButton
               onClick={() => {
@@ -339,19 +321,13 @@ export default class CampaignCannedResponsesForm extends React.Component {
       );
     });
 
-    const SortableList = SortableContainer(({ items }) => {
-      return (
-        <ul>
-          {items.map((value, index) => (
-            <SortableItem
-              key={`item-${value.id}`}
-              index={index}
-              value={value}
-            />
-          ))}
-        </ul>
-      );
-    });
+    const SortableList = SortableContainer(({ items }) => (
+      <ul>
+        {items.map((value, index) => (
+          <SortableItem key={`item-${value.id}`} index={index} value={value} />
+        ))}
+      </ul>
+    ));
 
     return (
       <SortableList
@@ -365,19 +341,19 @@ export default class CampaignCannedResponsesForm extends React.Component {
   updateMissingFields() {
     const invalidCustomFields = this.props.getMissingCustomFields();
     const fieldString = invalidCustomFields.join(", ");
-    const responseUploadError = !!invalidCustomFields.length
+    const customFieldsError = invalidCustomFields.length
       ? `The following custom fields were not included in your contacts upload: ${fieldString}`
       : null;
-    this.setState({ responseUploadError });
+    this.setState({ customFieldsError });
   }
 
-  componentWillReceiveProps() {
+  UNSAFE_componentWillReceiveProps() {
     this.updateMissingFields();
   }
 
   componentDidMount() {
     const { cannedResponses } = this.props.formValues;
-    if (!!cannedResponses.length) {
+    if (cannedResponses.length) {
       this.updateMissingFields(cannedResponses);
     }
   }
@@ -392,138 +368,26 @@ export default class CampaignCannedResponsesForm extends React.Component {
     );
   }
 
-  onDelete = () => {
-    this.setState({
-      responseUploadError: null,
-      uploadError: null,
-      parsedData: null,
-      validationStats: null,
-      fields: null,
-      state: "idle"
-    });
-  };
-
-  handleUploadError(error, validationStats, fields) {
-    this.setState({
-      validationStats,
-      responseUploadError: error,
-      responses: [],
-      fields,
-      state: "parsed"
-    });
-  }
-
-  handleUploadSuccess(validationStats, responses, fields) {
-    this.setState({
-      validationStats,
-      responseUploadError: null,
-      responses,
-      fields,
-      state: "parsed"
-    });
-
-    const newResponses = responses.map(response => {
-      const { Body, Title } = response;
-
-      const labelsBySlug = _.keyBy(this.props.labels, "slug");
-      const labelIds = (response.slugs || [])
-        .map(slug => labelsBySlug[slug])
-        .filter(label => label)
-        .map(label => label.id);
-
+  handleUploadSuccess = ({ data }) => {
+    const newResponses = data.map(response => {
       const id = Math.random()
         .toString(36)
         .replace(/[^a-zA-Z1-9]+/g, "");
+
       return {
         id,
-        title: Title,
-        text: Body,
-        labelIds,
+        title: response.title,
+        text: response.body,
+        labelIds: response.labelIds,
         isNew: true
       };
     });
+
     this.props.onChange({
       cannedResponses: [
         ...this.props.formValues.cannedResponses,
         ...newResponses
       ]
-    });
-  }
-
-  handleUpload = (acceptedFiles, rejectedFiles) => {
-    if (
-      rejectedFiles.length > 0 ||
-      acceptedFiles.length + rejectedFiles.length > 1
-    ) {
-      this.setState({ error: "Please upload a single CSV file" });
-      return;
-    }
-
-    const { customFields } = this.props;
-    const file = acceptedFiles[0];
-    this.setState({ state: "parsing" }, () => {
-      parseResponsesCSV(
-        file,
-        customFields,
-        ({ responses, fields, validationStats, error }) => {
-          const { invalidFieldCount, missingFieldCount } = validationStats;
-
-          const hasNoResponses =
-            !!invalidFieldCount.length &&
-            !!missingFieldCount.length &&
-            !!responses.length;
-
-          if (error) {
-            this.setState({ responseUploadError: error, state: "idle" });
-          } else if (hasNoResponses) {
-            this.handleUploadError("Upload at least one response");
-          } else if (responses && responses.length === 0) {
-            this.handleUploadError(
-              "Errors found in responses, none were uploaded.",
-              validationStats,
-              fields
-            );
-          } else {
-            // parse and validate uploaded slugs
-            const validSlugs = new Set(this.props.labels.map(l => l.slug));
-            const invalidSlugs = new Set();
-            responses.forEach(response => {
-              if (!response["Data Item"]) {
-                return;
-              }
-
-              const slugsStr = response["Data Item"];
-              const slugs = Array.from(
-                new Set(
-                  slugsStr
-                    .split(/\s+/)
-                    .map(s => s.trim().toLowerCase())
-                    .filter(s => s.length > 0)
-                )
-              );
-
-              slugs.forEach(slug => {
-                if (!validSlugs.has(slug)) {
-                  invalidSlugs.add(slug);
-                }
-              });
-
-              response.slugs = slugs;
-            });
-
-            if (invalidSlugs.size === 0) {
-              this.handleUploadSuccess(validationStats, responses, fields);
-            } else {
-              this.setState({
-                responseUploadError: `Invalid slugs in the Data Item column: ${Array.from(
-                  invalidSlugs
-                ).join(", ")}`,
-                state: "idle"
-              });
-            }
-          }
-        }
-      );
     });
   };
 
@@ -565,5 +429,6 @@ CampaignCannedResponsesForm.propTypes = {
   onChange: type.func,
   formValues: type.object,
   customFields: type.array,
-  labels: type.array
+  labels: type.array,
+  getMissingCustomFields: type.func
 };
