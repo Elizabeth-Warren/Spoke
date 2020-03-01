@@ -7,15 +7,15 @@ const SOURCE_ID_TYPES = {
   // [min] -> must be an integer >= min
   // [] -> no validation
   myc_van_id: {
-    idRange: [100000000],
+    idRange: [1],
     stateCodeRequired: true
   },
   myv_van_id: {
-    idRange: [1, 9999999],
+    idRange: [1],
     stateCodeRequired: true
   },
   ngp_van_id: {
-    idRange: [100000000]
+    idRange: [1]
   },
   bsd_cons_id: {
     idRange: [1]
