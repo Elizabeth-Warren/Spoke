@@ -172,6 +172,8 @@
     "react-router-redux": "^4.0.5",
     "react-sortable-hoc": "^1.11.0",
     "react-test-renderer": "16",
+    "react-virtualized-auto-sizer": "^1.0.2",
+    "react-virtualized": "^9.21.2",
     "redux": "^3.7.2",
     "redux-thunk": "^2.1.0",
     "regenerator-runtime": "^0.10.5",
