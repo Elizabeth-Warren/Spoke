@@ -27,7 +27,6 @@ export const cannedResponseCache = {
     const dbResult = await r
       .table("canned_response")
       .getAll(campaignId, { index: "campaign_id" })
-      // TODO[matteo]: is this correct when userId is undefined?
       .filter({ user_id: userId || "" })
       .orderBy("order");
     if (r.redis) {

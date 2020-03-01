@@ -200,7 +200,8 @@ export default class CampaignCannedResponsesForm extends React.Component {
           // soft-delete it
           return {
             ...responseToDelete,
-            deleted: true
+            deleted: true,
+            isUpdated: true
           };
         }
 
@@ -231,7 +232,8 @@ export default class CampaignCannedResponsesForm extends React.Component {
         if (responseToEdit.id === responseId) {
           return {
             ...responseToEdit,
-            ...newData
+            ...newData,
+            isUpdated: true
           };
         }
 

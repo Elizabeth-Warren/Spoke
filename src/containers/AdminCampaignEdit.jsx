@@ -2,7 +2,6 @@ import PropTypes from "prop-types";
 import React from "react";
 import _ from "lodash";
 import { withRouter } from "react-router";
-import FlatButton from "material-ui/FlatButton";
 import { Dialog } from "material-ui";
 import WarningIcon from "material-ui/svg-icons/alert/warning";
 import DoneIcon from "material-ui/svg-icons/action/done";

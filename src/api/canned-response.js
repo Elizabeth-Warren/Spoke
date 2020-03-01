@@ -8,6 +8,7 @@ export const schema = `
     userId: String
     deleted: Boolean
     isNew: Boolean
+    isUpdated: Boolean
     labelIds: [ID]
   }
 

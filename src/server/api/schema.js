@@ -65,7 +65,6 @@ import { dispatchJob } from "../workers";
 
 import request from "request";
 import _, { flatten, get } from "lodash";
-import humps from "humps";
 import twilio from "./lib/twilio";
 import db from "src/server/db";
 import preconditions from "src/server/preconditions";
@@ -78,6 +77,10 @@ import {
 } from "src/server/api/errors";
 
 const uuidv4 = require("uuid").v4;
+
+function cannedResponseInputToDbValue(cr) {
+  return _.omit(cr, "labelIds", "isNew", "isUpdated");
+}
 
 // TODO[matteo]: move to ./mutations
 async function updateCampaignPhoneNumbers(
@@ -213,7 +216,7 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
 
     const newResponses = [];
     const updatedResponses = [];
-
+    const responseOrdering = [];
     // Segment responses into new/updated and remove the isNew key. Also
     // add order and campaign_id and convert to snake_case for the DB.
     for (let index = 0; index < cannedResponses.length; index++) {
@@ -223,38 +226,43 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
         campaignId: id
       };
 
-      const isNew = response.isNew;
-      delete response.isNew;
-
-      if (isNew) {
+      if (response.isNew) {
         response.id = undefined;
+        newResponses.push(response);
       }
-
-      (isNew ? newResponses : updatedResponses).push(response);
+      if (response.isUpdated) {
+        updatedResponses.push(response);
+      }
+      // Note: We don't set isUpdated on existing canned responses that
+      // are not modified except for their order to avoid the expensive
+      // update operation above. Instead we bulk update the order in one go.
+      if (!response.isNew) {
+        responseOrdering.push({ id: response.id, order: response.order });
+      }
     }
 
     await r.knex.transaction(async trx => {
-      const cannedResponseLabels = [];
+      if (newResponses.length) {
+        const newResponseLabels = newResponses.map(cr => cr.labelIds || []);
+        const ids = await db.CannedResponse.createMany(
+          newResponses.map(cannedResponseInputToDbValue),
+          { transaction: trx }
+        );
+        const labelsToSave = _.zip(ids, newResponseLabels).flatMap(zipped =>
+          zipped[1].map(labelId => ({ id: zipped[0], labelId }))
+        );
+        if (labelsToSave.length > 0) {
+          await db.CannedResponse.bulkAddLabels(labelsToSave, {
+            transaction: trx
+          });
+        }
+      }
 
-      for (const newResponse of newResponses) {
-        const id = (
-          await db.CannedResponse.create(newResponse, { transaction: trx })
-        ).id;
-        const labels = (newResponse.labelIds || []).map(lid => ({
-          cannedResponseId: id,
-          labelId: lid
-        }));
-        cannedResponseLabels.push(...labels);
-      }
-      if (cannedResponseLabels.length > 0) {
-        await db.CannedResponse.bulkAddLabels(cannedResponseLabels, {
-          transaction: trx
-        });
-      }
       // update existing rows
       for (const updatedResponse of updatedResponses) {
-        if (!_.isEmpty(_.omit(updatedResponse, "labelIds"))) {
-          await db.CannedResponse.update(updatedResponse.id, updatedResponse, {
+        const dbValue = cannedResponseInputToDbValue(updatedResponse);
+        if (!_.isEmpty(dbValue)) {
+          await db.CannedResponse.update(dbValue.id, dbValue, {
             transaction: trx
           });
         }
@@ -264,6 +272,12 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
             updatedResponse.labelIds
           );
         }
+      }
+
+      if (responseOrdering.length) {
+        await db.CannedResponse.bulkUpdateOrder(responseOrdering, {
+          transaction: trx
+        });
       }
     });
 
@@ -824,7 +838,7 @@ const rootMutations = {
 
           (await db.CannedResponse.listLabels(cr.id)).forEach(label => {
             newLabels.push({
-              cannedResponseId: newResponse.id,
+              id: newResponse.id,
               labelId: label.id
             });
           });

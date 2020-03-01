@@ -6,7 +6,8 @@ import {
   decamelize,
   insertAndReturn,
   updateAndReturn,
-  knex
+  knex,
+  camelize
 } from "./common";
 
 async function create(
@@ -25,6 +26,13 @@ async function create(
     },
     opts
   );
+}
+
+async function createMany(cannedResponses, opts) {
+  const returning = opts.returning || "id";
+  return queryBuilder(Table.CANNED_RESPONSE, opts)
+    .insert(decamelize(cannedResponses))
+    .returning(returning);
 }
 
 async function update(
@@ -49,14 +57,14 @@ async function update(
 
 /**
  * Label many canned responses simultaneously.
- * rows is a list of { cannedResponseId, labelId } rows
+ * rows is a list of { id, labelId } rows
  */
 async function bulkAddLabels(rows, opts = {}) {
   return withTransaction(opts, async newOpts => {
     const insertedIds = await knex
       .batchInsert(
         Table.CANNED_RESPONSE_LABEL,
-        decamelize(rows),
+        rows.map(r => ({ canned_response_id: r.id, label_id: r.labelId })),
         opts.chunkSize || 1000
       )
       .returning("id")
@@ -85,6 +93,26 @@ async function bulkAddLabels(rows, opts = {}) {
   });
 }
 
+/**
+ * Bulk update ordering of canned responses
+ *
+ * Rows is a list of { id, labelId } objects
+ */
+async function bulkUpdateOrder(rows, opts = {}) {
+  const placeholders = rows.map(_ => "(?::integer , ?::integer)").join();
+  let query = knex.raw(
+    `UPDATE canned_response
+     SET "order" = updates."order"
+     FROM (VALUES ${placeholders}) as updates (id, "order")
+     WHERE updates.id = canned_response.id`,
+    rows.flatMap(r => [parseInt(r.id, 10), r.order])
+  );
+  if (opts.transaction) {
+    query = query.transacting(opts.transaction);
+  }
+  return query;
+}
+
 async function hardDeleteLabels(cannedResponseId, opts) {
   return queryBuilder(Table.CANNED_RESPONSE_LABEL, opts)
     .delete()
@@ -95,7 +123,7 @@ async function updateLabels(cannedResponseId, labelIds, opts) {
   return withTransaction(opts, async newOpts => {
     await hardDeleteLabels(cannedResponseId, newOpts);
     await bulkAddLabels(
-      labelIds.map(labelId => ({ labelId, cannedResponseId })),
+      labelIds.map(labelId => ({ labelId, id: cannedResponseId })),
       newOpts
     );
   });
@@ -113,8 +141,10 @@ async function listLabels(cannedResponseId, opts) {
 
 export default {
   create,
+  createMany,
   update,
   updateLabels,
   bulkAddLabels,
-  listLabels
+  listLabels,
+  bulkUpdateOrder
 };
