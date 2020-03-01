@@ -1165,6 +1165,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
           lastName
           cell
           customFields
+          state_code
           hasUnresolvedTags
           optOut {
             id

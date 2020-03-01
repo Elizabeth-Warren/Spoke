@@ -31,20 +31,14 @@ export const PRESET_FIELDS = [
     aliases: ["firstName"],
     apiName: "firstName",
     required: true,
-    description: "contact's first name",
-    validate(value) {
-      return value && value.length > 0;
-    }
+    description: "contact's first name"
   },
   {
     inputName: "last_name",
     aliases: ["lastName"],
     apiName: "lastName",
     required: true,
-    description: "contact's last name",
-    validate(value) {
-      return value && value.length > 0;
-    }
+    description: "contact's last name"
   },
   {
     inputName: "phone_number",
@@ -59,7 +53,8 @@ export const PRESET_FIELDS = [
       }
 
       return phone;
-    }
+    },
+    hideFromEditor: true
   },
   {
     inputName: "source_id_type",

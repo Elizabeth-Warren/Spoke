@@ -34,10 +34,10 @@ function buildAliasTranslator(columnConfig) {
   return row => {
     const rowCopy = { ...row };
     _.each(aliasMap, (inputName, alias) => {
-      if (rowCopy[alias]) {
+      if (rowCopy[alias] && !rowCopy[inputName]) {
         rowCopy[inputName] = rowCopy[alias];
-        delete rowCopy[alias];
       }
+      delete rowCopy[alias];
     });
 
     return rowCopy;
@@ -158,7 +158,9 @@ export default async function parseCSV(
 
   return {
     data: validatedAndTransformedData,
-    fields: meta.fields,
+    // use the alias-transformed keys rather than the raw keys
+    fields:
+      data.length === 0 ? meta.fields : Object.keys(translateAliases(data[0])),
     validationStats: {
       nValid,
       nInvalid,

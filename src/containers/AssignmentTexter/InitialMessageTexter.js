@@ -29,6 +29,7 @@ const contactDataFragment = `
   assignmentId
   firstName
   lastName
+  state_code
   customFields
 `;
 
