@@ -133,6 +133,7 @@
     "babel-eslint": "^10.0.3",
     "babel-jest": "^25.1.0",
     "babel-loader": "^8.0.6",
+    "babel-plugin-graphql-tag": "^2.5.0",
     "babel-plugin-module-resolver": "^4.0.0",
     "classnames": "^2.2.6",
     "dotenv": "^8.2.0",

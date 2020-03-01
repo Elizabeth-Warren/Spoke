@@ -22,6 +22,12 @@ const jsxLoaders = [
     loader: "babel-loader",
     options: {
       babelrc: false,
+
+      // The documentatio around babelrc: false is unclear and it doesn't seem to
+      // actually disable reading babelrc files, so we do this too. See:
+      // https://github.com/babel/website/issues/2054
+      // https://github.com/babel/babel-loader/issues/464
+      babelrcRoots: "/dev/null",
       presets: [
         "@babel/react",
         [
