@@ -52,7 +52,7 @@ function buildValidatorAndTransformer(columnConfig) {
   const normalizedConfig = {};
   columnConfig.forEach(
     ({ inputName, apiName, validate, transformAndValidate }) => {
-      let transformAndValidateFn = val => val;
+      let transformAndValidateFn = val => ({ valid: true, value: val });
       if (transformAndValidate) {
         transformAndValidateFn = transformAndValidate;
       } else if (validate) {
@@ -60,7 +60,7 @@ function buildValidatorAndTransformer(columnConfig) {
           if (!validate(val, row)) {
             throw new Error(`Invalid ${inputName}: ${val}`);
           }
-          return val;
+          return { valid: true, value: val };
         };
       }
 
@@ -75,17 +75,26 @@ function buildValidatorAndTransformer(columnConfig) {
   // transformAndValidate; other columns will be left as-is.
   return row => {
     const newRow = {};
+    let allValid = true;
 
     _.each(row, (val, key) => {
       const config = normalizedConfig[key];
       if (!config) {
         newRow[key] = val;
       } else {
-        newRow[config.apiName] = config.transformAndValidate(val, row);
+        const { valid, value } = config.transformAndValidate(val, row);
+        if (valid) {
+          newRow[config.apiName] = value;
+        } else {
+          allValid = false;
+        }
       }
     });
 
-    return newRow;
+    if (!allValid) {
+      return { valid: false };
+    }
+    return { valid: true, value: newRow };
   };
 }
 
@@ -132,9 +141,22 @@ export default async function parseCSV(
     }
 
     try {
-      validatedAndTransformedData.push(validateAndTransformRow(row));
-      nValid += 1;
+      const { valid, value } = validateAndTransformRow(row);
+
+      if (valid) {
+        // valid row
+        validatedAndTransformedData.push(value);
+        nValid += 1;
+      } else {
+        console.log("Filtering out row due to invalid values", row);
+
+        // invalid, but not an error -- just mark
+        // it as invalid so it gets filtered out
+        nInvalid += 1;
+      }
     } catch (e) {
+      // hard error -- keep parsing so we can give a full report
+      // to the user, and mark this run as errored.
       console.log(e);
       nInvalid += 1;
 

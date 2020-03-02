@@ -49,10 +49,10 @@ export const PRESET_FIELDS = [
     transformAndValidate(value) {
       const phone = getFormattedPhoneNumber(value, "US");
       if (!phone) {
-        throw new Error(`Invalid phone number: ${value}`);
+        return { valid: false };
       }
 
-      return phone;
+      return { valid: true, value: phone };
     },
     hideFromEditor: true
   },

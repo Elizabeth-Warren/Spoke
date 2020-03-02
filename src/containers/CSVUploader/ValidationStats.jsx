@@ -35,7 +35,7 @@ export default function ValidationStats({ stats, canDelete, onDelete }) {
       icon: nValid > 0 ? infoIcon : errorIcon
     },
     {
-      text: `${nInvalid} invalid responses`,
+      text: `${nInvalid} invalid rows`,
       icon: nInvalid > 0 ? infoIcon : infoIcon
     },
     {

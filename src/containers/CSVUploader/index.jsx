@@ -51,12 +51,26 @@ export default class CSVUploader extends Component {
         // and false otherwise. Receives (value, row) where
         // row is the row AFTER aliases have been applied (so
         // all data will show up under the inputName).
+        //
+        // If ANY validate() function in the CSV upload fails, the
+        // user will be blocked from uploading any rows. If you
+        // want to distinguish between blocking errors like this,
+        // and non-blocking errors that should just filter
+        // out the row, then use transformAndValidate() instead
+        // for more control over the validation process.
         validate: types.func,
 
         // Instead of providing a validate() function, you
         // may instead provide this transformAndValidate
-        // function. This function should return the
-        // transformed data, or throw an error.
+        // function. This function should throw an error if you
+        // want to prevent the whole CSV from being uploaded,
+        // or return:
+        //
+        // { valid: Boolean, value: any }
+        //
+        // If you return valid: false, the row will be filtered out
+        // and reported in the count of invalid rows, but the user
+        // will still be able to upload the rest of the rows.
         transformAndValidate: types.func
       })
     ),

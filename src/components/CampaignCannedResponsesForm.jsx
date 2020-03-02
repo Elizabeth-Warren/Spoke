@@ -306,7 +306,7 @@ export default class CampaignCannedResponsesForm extends React.Component {
         apiName: "labelIds",
         description: "Space-separated list of label slugs",
         transformAndValidate(val) {
-          return Array.from(
+          const slugIds = Array.from(
             new Set(
               val
                 .split(/\s+/)
@@ -321,6 +321,8 @@ export default class CampaignCannedResponsesForm extends React.Component {
                 })
             )
           );
+
+          return { valid: true, value: slugIds };
         }
       }
     ];
