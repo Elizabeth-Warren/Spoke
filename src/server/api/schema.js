@@ -230,16 +230,17 @@ async function editCampaign(id, campaign, loaders, user, origCampaignRecord) {
       if (response.isNew) {
         response.id = undefined;
         newResponses.push(response);
+        continue;
       }
+
+      // process already existing responses
       if (response.isUpdated) {
         updatedResponses.push(response);
       }
       // Note: We don't set isUpdated on existing canned responses that
       // are not modified except for their order to avoid the expensive
       // update operation above. Instead we bulk update the order in one go.
-      if (!response.isNew) {
-        responseOrdering.push({ id: response.id, order: response.order });
-      }
+      responseOrdering.push({ id: response.id, order: response.order });
     }
 
     await r.knex.transaction(async trx => {
