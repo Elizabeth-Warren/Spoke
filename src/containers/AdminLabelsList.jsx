@@ -49,6 +49,7 @@ function AdminLabelsList(props) {
       columns={labelListColumns}
       rowSize={labels.length}
       count={labels.length}
+      showRowHover={true}
       showFooterToolbar={false}
     />
   );
