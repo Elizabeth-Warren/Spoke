@@ -131,7 +131,7 @@ provider:
     ASSET_DOMAIN: https://ew-spoke-public.elizabethwarren.codes/${self:custom.stage}
     SLOW_REQUEST_LOG_THRESHOLD: 500
     CLOUDWATCH_METRICS_ENABLED: 1
-    # SUPPRESS_PHONE_VALIDATION: ${self:custom.suppressPhoneValidation.${self:custom.stage}}
+    SUPPRESS_PHONE_VALIDATION: 1
     # SKIP_TWILIO_AND_AUTOREPLY: ${self:custom.skipTwilioAndAutoReply.${self:custom.stage}}
     # DROP_MESSAGE_RATIO: ${self:custom.dropMessageRatio.${self:custom.stage}}
 
