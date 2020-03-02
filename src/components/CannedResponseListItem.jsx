@@ -10,44 +10,35 @@ const styles = StyleSheet.create({
   listItem: {
     position: "relative",
     height: "250px",
-    overflow: "hidden"
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between"
+  },
+  textContainer: {
+    height: "230px",
+    display: "flex",
+    flexDirection: "column"
   },
   titleWrapper: {
-    display: "flex",
-    height: "30px",
-    margin: 0,
-    position: "absolute",
-    top: 20,
-    width: "calc(100% - 50px)"
+    marginBottom: 8
   },
   title: {
-    fontWeight: "bold",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    minWidth: 0
+    fontWeight: "bold"
   },
   body: {
     fontSize: 14,
-    height: "200px",
     margin: 0,
     overflow: "hidden",
-    position: "absolute",
-    top: "50px"
+    flex: 1
   },
   bodyFade: {
-    position: "absolute",
-    top: "150px",
-    width: "100%",
-    height: "100px"
+    width: "100%"
   },
   chipsWrapper: {
-    height: "200px",
-    margin: 0,
-    overflow: "hidden",
-    position: "absolute",
-    top: "50px",
-    display: "flex"
+    display: "flex",
+    paddingTop: 4,
+    flex: 0
   },
   chipsWrapperInner: {
     alignSelf: "flex-end"
@@ -82,19 +73,21 @@ export default function CannedResponseListItem({
       className={css(styles.listItem)}
       // hoverColor="rgba(0, 0, 0, 0)"
     >
-      <div className={css(styles.titleWrapper)}>
-        <div className={css(styles.title)}>{response.title}</div>
-      </div>
-      <div className={css(styles.body)}>{response.text}</div>
-      {/* <div
+      <div className={css(styles.textContainer)}>
+        <div className={css(styles.titleWrapper)}>
+          <div className={css(styles.title)}>{response.title}</div>
+        </div>
+        <div className={css(styles.body)}>{response.text}</div>
+        {/* <div
         className={css(styles.bodyFade)}
         style={{
           backgroundImage: `linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 1))`
         }}
       /> */}
-      <div className={css(styles.chipsWrapper)}>
-        <div className={css(styles.chipsWrapperInner)}>
-          <LabelChips labels={labels} labelIds={mappedLabelIds} />
+        <div className={css(styles.chipsWrapper)}>
+          <div className={css(styles.chipsWrapperInner)}>
+            <LabelChips labels={labels} labelIds={mappedLabelIds} />
+          </div>
         </div>
       </div>
     </ListItem>
