@@ -28,14 +28,14 @@ const SOURCE_ID_TYPES = {
 export const PRESET_FIELDS = [
   {
     inputName: "first_name",
-    aliases: ["firstName"],
+    aliases: ["firstName", "first"],
     apiName: "firstName",
     required: true,
     description: "contact's first name"
   },
   {
     inputName: "last_name",
-    aliases: ["lastName"],
+    aliases: ["lastName", "last"],
     apiName: "lastName",
     required: true,
     description: "contact's last name"
