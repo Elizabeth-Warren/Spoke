@@ -1221,8 +1221,6 @@ const rootMutations = {
         );
       }
 
-      await checkForMessageDuplicate(contact, message, isInitialMessage);
-
       const messageInstance = new Message({
         text,
         contact_number: contactNumber,
@@ -1237,6 +1235,12 @@ const rootMutations = {
         canned_response_id: message.cannedResponseId
       });
       // NOTE: save is deferred to after duplicate message detection
+
+      await checkForMessageDuplicate(
+        contact,
+        messageInstance,
+        isInitialMessage
+      );
 
       // TODO: get rid of service map
       const sendingServiceName =
@@ -1293,7 +1297,7 @@ const rootMutations = {
         await messageInstance.save(); // save message, not transactional
       }
 
-      await putMessageForDedupe(contact, message);
+      await putMessageForDedupe(contact, messageInstance);
 
       log.debug({
         msg: "Sending message",
