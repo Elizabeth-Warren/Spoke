@@ -58,6 +58,7 @@ import { resolvers as questionResponseResolvers } from "./question-response";
 import { getUsers, resolvers as userResolvers } from "./user";
 import { change } from "../local-auth-helpers";
 import { getSendBeforeTimeUtc } from "../../lib/timezones";
+import normalizeMessage from "src/lib/normalize-message";
 
 import { mutations as uploadContactMutations } from "./mutations/upload-contacts";
 
@@ -1178,17 +1179,15 @@ const rootMutations = {
         );
       }
 
-      const { text, isInitialMessage } = message;
+      const { text: rawText, isInitialMessage } = message;
+      const text = normalizeMessage(rawText);
+
       // TODO[matteo]: don't allow the frontend to pass the contact number
       const contactNumber = contact.cell || message.contactNumber;
 
       if (text.length > (process.env.MAX_MESSAGE_LENGTH || 1500)) {
         throw new UserInputError("Message was longer than the limit");
       }
-
-      const replaceCurlyApostrophes = rawText =>
-        rawText.replace(/[\u2018\u2019]/g, "'");
-
       let contactTimezone = {};
       if (contact.timezone_offset) {
         // couldn't look up the timezone by zip record, so we load it
@@ -1225,7 +1224,7 @@ const rootMutations = {
       await checkForMessageDuplicate(contact, message, isInitialMessage);
 
       const messageInstance = new Message({
-        text: replaceCurlyApostrophes(text),
+        text,
         contact_number: contactNumber,
         user_number: "",
         user_id: user.id,

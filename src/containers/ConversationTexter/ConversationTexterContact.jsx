@@ -42,6 +42,7 @@ import "emoji-mart/css/emoji-mart.css";
 import { Picker } from "emoji-mart";
 import { getGraphQLErrors } from "src/client/lib/error-helpers";
 import { OUTSIDE_HOURS } from "../TextingClosedModal";
+import normalizeMessage from "src/lib/normalize-message";
 
 import {
   OptOutDialog,
@@ -516,7 +517,9 @@ export class ConversationTexterContactComponent extends React.Component {
     }
   };
 
-  handleMessageFormSubmit = async ({ messageText }) => {
+  handleMessageFormSubmit = async ({ messageText: rawMessageText }) => {
+    const messageText = normalizeMessage(rawMessageText);
+
     if (!messageText) {
       this.refs.form.setFormError("messageText", "Can't send empty message");
       return;
