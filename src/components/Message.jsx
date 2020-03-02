@@ -19,7 +19,7 @@ const styles = StyleSheet.create({
     padding: "10px",
     borderRadius: "5px",
     whiteSpace: "pre-line",
-
+    wordBreak: "break-word",
     fontWeight: "normal"
   },
   fromContact: {
