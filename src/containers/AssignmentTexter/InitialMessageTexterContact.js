@@ -10,6 +10,7 @@ import { grey100 } from "material-ui/styles/colors";
 import { Toolbar, ToolbarGroup } from "material-ui/Toolbar";
 import CreateIcon from "material-ui/svg-icons/content/create";
 import CircularProgress from "material-ui/CircularProgress";
+import RaisedButton from "material-ui/RaisedButton";
 
 import GSForm from "src/components/forms/GSForm";
 import SendButton from "src/components/SendButton";
@@ -156,6 +157,12 @@ const styles = StyleSheet.create({
     textAlign: "center",
     padding: "2px 10px"
   },
+  releaseButtonContainer: {
+    width: "100%",
+    paddingTop: "50px",
+    color: theme.colors.EWlightLibertyGreen,
+    textAlign: "center"
+  },
 
   confettiCanvas: {
     width: "100%",
@@ -222,7 +229,6 @@ export class InitialMessageTexterContact extends Component {
       disabled: false
     };
     this.onEnter = this.onEnter.bind(this);
-    this.setDisabled = this.setDisabled.bind(this);
   }
 
   componentDidMount() {
@@ -246,10 +252,6 @@ export class InitialMessageTexterContact extends Component {
       this.handleClickSendMessageButton();
     }
   }
-
-  setDisabled = async (disabled = true) => {
-    this.setState({ disabled });
-  };
 
   createMessageInput(text) {
     const { texter, contact, assignment } = this.props;
@@ -290,6 +292,24 @@ export class InitialMessageTexterContact extends Component {
           y: 1.2
         },
         colors: ["#232444", "#b61b28"]
+      });
+    }
+  };
+
+  handleReleaseBatch = async () => {
+    if (this.state.disabled) {
+      return;
+    }
+
+    this.setState({ disabled: true, releaseBatchError: null });
+
+    try {
+      await this.props.releaseBatch();
+    } catch (e) {
+      console.error(e);
+      this.setState({
+        disabled: false,
+        releaseBatchError: "Error releasing batch. Please try again."
       });
     }
   };
@@ -383,6 +403,18 @@ export class InitialMessageTexterContact extends Component {
             <span className={css(styles.countdown)}>
               {this.props.contactsRemaining}
             </span>
+          </div>
+          <div className={css(styles.releaseButtonContainer)}>
+            <p>Can&apos;t send the rest of these texts?</p>
+            <RaisedButton
+              secondary
+              label="Release Batch"
+              disabled={this.state.disabled}
+              onClick={this.handleReleaseBatch}
+            />
+            {this.state.releaseBatchError && (
+              <p>{this.state.releaseBatchError}</p>
+            )}
           </div>
         </Tab>
       </Tabs>

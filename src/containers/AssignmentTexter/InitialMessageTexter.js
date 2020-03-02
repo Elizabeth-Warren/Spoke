@@ -189,6 +189,13 @@ class InitialMessageTexter extends Component {
     }
   };
 
+  releaseBatch = async () => {
+    await this.props.mutations.releaseBatch();
+    this.props.router.push(
+      `/app/${this.props.params.organizationId}/todos/${this.props.params.assignmentId}/overview`
+    );
+  };
+
   renderEmpty = () => {
     return (
       <div>
@@ -239,6 +246,7 @@ class InitialMessageTexter extends Component {
           texter={texter}
           sendMessage={this.sendMessage}
           exitTexter={this.exitTexter}
+          releaseBatch={this.releaseBatch}
         />
       </React.Fragment>
     );
@@ -314,7 +322,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
   }
 });
 
-const mapMutationsToProps = () => ({
+const mapMutationsToProps = ({ ownProps }) => ({
   sendMessage: (message, campaignContactId) => ({
     mutation: gql`
       mutation sendMessage(
@@ -335,6 +343,16 @@ const mapMutationsToProps = () => ({
     variables: {
       message,
       campaignContactId
+    }
+  }),
+  releaseBatch: () => ({
+    mutation: gql`
+      mutation releaseBatch($assignmentId: String!) {
+        releaseUnmessagedContacts(assignmentId: $assignmentId)
+      }
+    `,
+    variables: {
+      assignmentId: ownProps.params.assignmentId
     }
   })
 });

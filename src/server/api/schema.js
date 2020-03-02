@@ -1067,6 +1067,12 @@ const rootMutations = {
       return { found: false };
     },
 
+    releaseUnmessagedContacts: async (_, { assignmentId }, { user }) => {
+      await assignmentRequired(user, assignmentId);
+
+      return db.Assignment.releaseUnmessagedContacts(assignmentId);
+    },
+
     createOptOut: async (
       _,
       { optOut, campaignContactId },

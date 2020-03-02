@@ -43,9 +43,16 @@ async function countsByStatus(assignmentIds, opts) {
   return convertCase(groupedByAssignmentId, opts);
 }
 
+async function releaseUnmessagedContacts(assignmentId, opts) {
+  return queryBuilder(Table.CAMPAIGN_CONTACT, opts)
+    .where({ message_status: "needsMessage", assignment_id: assignmentId })
+    .update({ assignment_id: null });
+}
+
 export default {
   getByUserAndCampaign,
   isAssigned,
   listActiveAssignmentsForUser,
-  countsByStatus
+  countsByStatus,
+  releaseUnmessagedContacts
 };

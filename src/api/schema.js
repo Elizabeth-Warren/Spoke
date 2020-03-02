@@ -320,6 +320,7 @@ const rootSchema = gql`
       assignmentId: String!
       numberContacts: Int
     ): FoundContact
+    releaseUnmessagedContacts(assignmentId: String!): Int
     assignUserToCampaign(token: String!): Assignment
     userAgreeTerms: User
     reassignCampaignContacts(
