@@ -18,7 +18,7 @@ const {
 } = CampaignStatus;
 
 const descriptions = {
-  ACTIVE: "Campaign is running. All texts can be sent.  LFG.",
+  ACTIVE: "Campaign is running. All texts can be sent.",
   CLOSED:
     "Campaign is no longer running. Texters will not be able to send any texts - initial or mid-conversation. Useful for putting a campaign on pause while you edit or closing a campaign that you might want to reactivate.",
   CLOSED_FOR_INITIAL_SENDS:

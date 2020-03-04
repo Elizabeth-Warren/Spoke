@@ -5,7 +5,7 @@ import { fade } from "material-ui/utils/colorManipulator";
 
 const muiTheme = getMuiTheme(
   {
-    fontFamily: "Ringside Regular A",
+    fontFamily: "Poppins",
     palette: {
       primary1Color: theme.colors.EWnavy,
       textColor: theme.text.body.color,

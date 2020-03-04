@@ -4,7 +4,7 @@ set -euxo pipefail
 
 curl -sL https://sentry.io/get-cli/ | bash || true
 
-export SENTRY_ORG=warren-for-president
+export SENTRY_ORG=your-sentry-org
 
 export VERSION=$(echo $GITHUB_REF | grep -oh 'release-.*' | tr -d '[:space:]')
 

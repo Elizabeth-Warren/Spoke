@@ -1,30 +1,6 @@
 import { getFormattedPhoneNumber } from "./phone-format";
 import STATE_CODES from "./state-codes";
 
-const SOURCE_ID_TYPES = {
-  // range is expressed as:
-  // [min, max] -> must be an integer >= min and <= max
-  // [min] -> must be an integer >= min
-  // [] -> no validation
-  myc_van_id: {
-    idRange: [1],
-    stateCodeRequired: true
-  },
-  myv_van_id: {
-    idRange: [1],
-    stateCodeRequired: true
-  },
-  ngp_van_id: {
-    idRange: [1]
-  },
-  bsd_cons_id: {
-    idRange: [1]
-  },
-  custom: {
-    idRange: []
-  }
-};
-
 export const PRESET_FIELDS = [
   {
     inputName: "first_name",
@@ -60,11 +36,7 @@ export const PRESET_FIELDS = [
     inputName: "source_id_type",
     aliases: ["external_id_type"],
     apiName: "external_id_type",
-    required: true,
     description: "external ID type for mapping back to external data sources",
-    validate(value) {
-      return value in SOURCE_ID_TYPES;
-    },
     hideFromEditor: true
   },
   {
@@ -72,32 +44,6 @@ export const PRESET_FIELDS = [
     aliases: ["external_id"],
     apiName: "external_id",
     description: "external ID for mapping back to external data sources",
-    required: true,
-    validate(value, inputRow) {
-      const { source_id_type: sourceIdType } = inputRow;
-      if (!sourceIdType || !(sourceIdType in SOURCE_ID_TYPES)) {
-        // invalid source ID type; let the source_id_type validator handle it
-        return true;
-      }
-
-      const validRange = SOURCE_ID_TYPES[sourceIdType].idRange;
-      if (validRange.length === 0) {
-        // no validation for this type
-        return true;
-      }
-
-      const numValue = Number(value);
-      if (!Number.isInteger(numValue)) {
-        return false;
-      }
-
-      if (validRange.length === 1) {
-        return numValue >= validRange[0];
-      }
-
-      const [minValue, maxValue] = validRange;
-      return numValue >= minValue && numValue <= maxValue;
-    },
     hideFromEditor: true
   },
   {
@@ -105,27 +51,13 @@ export const PRESET_FIELDS = [
     aliases: ["state_code"],
     apiName: "state_code",
     description: "state code for mapping back to external data sources",
-    validate(value, inputRow) {
+    validate(value) {
       if (value) {
         // if a state code is given, make sure it's valid
         return STATE_CODES.has(value.toUpperCase());
       }
 
-      // no state code -- check if one is required for the
-      // source ID type
-      const { source_id_type: sourceIdType } = inputRow;
-      if (!sourceIdType || !(sourceIdType in SOURCE_ID_TYPES)) {
-        // invalid source ID type; let the source_id_type validator handle it
-        return true;
-      }
-
-      if (SOURCE_ID_TYPES[sourceIdType].stateCodeRequired) {
-        // this source ID type requires a state code
-        throw new Error(
-          `The source_id_type "${sourceIdType}" requires a van_statecode`
-        );
-      }
-
+      // leaving out a state code is also valid
       return true;
     }
   },

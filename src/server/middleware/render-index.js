@@ -58,10 +58,6 @@ async function getBundleURL() {
 }
 
 export default async function renderIndex(req) {
-  const css = {
-    content: fs.readFileSync(path.join(__dirname, "../../styles/fonts.css")) // these could also be defined in theme.js using aphrodite
-  };
-
   return `
 <!DOCTYPE html>
 <html lang="en">
@@ -70,16 +66,9 @@ export default async function renderIndex(req) {
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0"/>
     <title>Spoke</title>
     ${externalLinks}
-    <link rel="icon"
-      type="image/png"
-      href="https://ew-spoke-public.elizabethwarren.codes/favicon/bailey-${_.random(
-        0,
-        4
-      )}.png">
     <style>
       /* CSS declarations go here */
       body {
-        font-family: 'Ringside Regular A';
         position: absolute;
         top: 0;
         bottom: 0;
@@ -94,13 +83,12 @@ export default async function renderIndex(req) {
 
       /**/
     </style>
-    <style data-aphrodite>${css.content}</style>
+    <style data-aphrodite></style>
   </head>
   <body>
     <div id="mount"></div>
     <script>
       window.INITIAL_STATE={};
-      window.RENDERED_CLASS_NAMES=${JSON.stringify(css.renderedClassNames)}
       window.AUTH0_CLIENT_ID="${process.env.AUTH0_CLIENT_ID}"
       window.AUTH0_DOMAIN="${process.env.AUTH0_DOMAIN}"
       window.SUPPRESS_SELF_INVITE="${process.env.SUPPRESS_SELF_INVITE || ""}"

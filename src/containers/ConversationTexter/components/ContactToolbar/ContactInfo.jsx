@@ -90,14 +90,6 @@ export default class ContactInfo extends React.Component {
       modal
     >
       <div className={css(styles.container)}>
-        <span>
-          <a
-            href="https://sites.google.com/elizabethwarren.com/warren-for-president-textteam/home"
-            target="_blank"
-          >
-            Text Team Help
-          </a>
-        </span>
         <span className={css(styles.addSpace)}>
           Campaign: {this.props.campaign.id} {this.props.campaign.title}
         </span>

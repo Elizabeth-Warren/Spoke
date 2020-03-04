@@ -131,11 +131,6 @@ class UserMenu extends Component {
               primaryText="Home"
               onClick={this.handleReturn}
             />
-            <MenuItem
-              primaryText="FAQs"
-              href="https://sites.google.com/elizabethwarren.com/warren-for-president-textteam/home"
-              target="_blank"
-            />
             <Divider />
             <MenuItem
               {...dataTest("userMenuLogOut")}

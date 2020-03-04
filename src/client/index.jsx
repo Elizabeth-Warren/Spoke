@@ -4,7 +4,6 @@ import React, { Suspense } from "react";
 import ReactDOM from "react-dom";
 import { Router, browserHistory } from "react-router";
 import { syncHistoryWithStore } from "react-router-redux";
-import { StyleSheet } from "aphrodite";
 import { ApolloProvider } from "react-apollo";
 import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 
@@ -27,8 +26,6 @@ window.AuthService = {
 
 const store = new Store(browserHistory, window.INITIAL_STATE);
 const history = syncHistoryWithStore(browserHistory, store.data);
-
-StyleSheet.rehydrate(window.RENDERED_CLASS_NAMES);
 
 ReactDOM.render(
   <MuiThemeProvider muiTheme={muiTheme}>

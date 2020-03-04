@@ -31,12 +31,6 @@ export default class ErrorBoundary extends Component {
   renderError() {
     return (
       <div style={{ textAlign: "center", marginTop: "50px" }}>
-        <div>
-          <img
-            src="https://ew-spoke-public.elizabethwarren.codes/sad-bailey.png"
-            alt="Sad Bailey"
-          />
-        </div>
         <h1>Something Went Wrong</h1>
         <p style={{ margin: "25px 0" }}>
           Sorry, Spoke hit a roadbump! Please try again in a moment.

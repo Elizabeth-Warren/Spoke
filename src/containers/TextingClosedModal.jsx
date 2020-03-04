@@ -59,10 +59,6 @@ function TextingClosedModal({ errorStatus, onClickDialog, open }) {
         </div>
         See you later!
       </div>
-      <img
-        height="110"
-        src="https://ew-spoke-public.elizabethwarren.codes/ew-thank-you.gif"
-      />
     </div>
   );
 

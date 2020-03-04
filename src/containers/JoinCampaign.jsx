@@ -21,34 +21,25 @@ const styles = StyleSheet.create({
   errorImageLarge: {
     width: "300px",
     height: "200px"
-  },
-  errorHeader: {
-    fontFamily: "Ringside Compressed A",
-    textTransform: "uppercase"
   }
 });
 
 const errors = {
   CAMPAIGN_ARCHIVED: {
-    image: "https://ew-spoke-public.elizabethwarren.codes/sad-bailey.png",
     title: "Oops!",
     message:
       "This campaign is no longer active. Check the Slack for a different invite link."
   },
   CAMPAIGN_FULL: {
-    image: "https://ew-spoke-public.elizabethwarren.codes/crowded.png",
     title: "Whoa, It's Crowded In Here!",
     message:
-      "This campaign is full! Check the Slack for a different invite link.",
-    style: "errorImageLarge"
+      "This campaign is full! Check the Slack for a different invite link."
   },
   NOT_FOUND: {
-    image: "https://ew-spoke-public.elizabethwarren.codes/sad-bailey.png",
     title: "Oops!",
     message: "That's not a valid invite link."
   },
   UNKNOWN: {
-    image: "https://ew-spoke-public.elizabethwarren.codes/sad-bailey.png",
     title: "Oops!",
     message:
       "Something went wrong trying to join this campaign. Please try again in a moment or post in Slack for help."
@@ -110,11 +101,6 @@ class JoinCampaign extends React.Component {
     return this.state.errorCode ? (
       <div>
         <div className={css(styles.errorMessageWrapper)}>
-          <img
-            src={errorConfig.image}
-            className={css(styles[errorConfig.style || "errorImage"])}
-            alt="Error"
-          />
           <h2 className={css(styles.errorHeader)}>{errorConfig.title}</h2>
           <p>{errorConfig.message}</p>
           <RaisedButton

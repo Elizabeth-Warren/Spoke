@@ -4,11 +4,11 @@ import sys
 
 
 def first_name(i):
-    return f"Bailey{i}"
+    return f"Spokey{i}"
 
 
 def last_name(i):
-    return f"Warren{i}"
+    return f"McSpokeFace{i}"
 
 
 def phone_number(i):
@@ -16,7 +16,7 @@ def phone_number(i):
 
 
 def email(i):
-    return f"goodboybailey{i}@blackhole.elizabethwarren.com"
+    return f"spokeymcspokeface{i}@blackhole.example.com"
 
 
 def zip(i):

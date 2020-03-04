@@ -19,7 +19,7 @@ const colors = {
   EWlightRed: "rgb(235,126,135)"
 };
 
-const defaultFont = "Ringside Regular A";
+const defaultFont = "Poppins";
 
 const text = {
   body: {
@@ -65,7 +65,7 @@ const text = {
     color: colors.darkGray,
     fontSize: "1.5em",
     fontWeight: 700,
-    fontFamily: "Ringside Compressed A",
+    fontFamily: "Poppins",
     textTransform: "uppercase"
   },
   secondaryHeader: {

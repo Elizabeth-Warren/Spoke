@@ -117,15 +117,8 @@ class Terms extends React.Component {
               </StepLabel>
               <StepContent>
                 <p>
-                  We maintain a record of all conversations. To join Warren Text
-                  Team, you must agree to our{" "}
-                  <a
-                    href="https://elizabethwarren.com/terms-of-service/"
-                    target="_blank"
-                  >
-                    Terms of Service
-                  </a>
-                  .
+                  We maintain a record of all conversations. To join the Text
+                  Team, you must agree to our Terms of Service.
                 </p>
                 {this.renderStepActions(2)}
               </StepContent>

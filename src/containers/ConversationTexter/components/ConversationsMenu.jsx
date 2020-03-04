@@ -2,7 +2,6 @@ import types from "prop-types";
 import React from "react";
 import { Tabs, Tab } from "material-ui";
 import { StyleSheet, css } from "aphrodite";
-import confetti from "canvas-confetti";
 
 import RequestBatchButton from "src/containers/RequestBatchButton";
 import ConversationList from "./ConversationList";
@@ -33,7 +32,6 @@ const styles = StyleSheet.create({
     }
   },
   rebatchHeader: {
-    fontFamily: "Ringside Compressed A",
     textTransform: "uppercase"
   }
 });
@@ -106,23 +104,6 @@ class ConversationsMenu extends React.Component {
     onSelectContact(convo.id);
   };
 
-  onClickEW = () => {
-    confetti({
-      particleCount: 100,
-      angle: 60,
-      spread: 55,
-      origin: { x: 0 },
-      colors: ["#232444", "#b61b28"]
-    });
-    confetti({
-      particleCount: 100,
-      angle: 120,
-      spread: 55,
-      origin: { x: 1 },
-      colors: ["#232444", "#b61b28"]
-    });
-  };
-
   renderConversations({ conversations, currentContactId }) {
     const displayedConversations =
       this.state.tab === "active"
@@ -156,20 +137,15 @@ class ConversationsMenu extends React.Component {
           className={css(styles.rebatchWrapper)}
           style={visible ? {} : { display: "none" }}
         >
-          <img
-            src="https://ew-spoke-public.elizabethwarren.codes/bailey-circle.png"
-            className={css(styles.rebatchImage)}
-            alt="Bailey Warren"
-          />
           <h2 className={css(styles.rebatchHeader)}>Great Job!</h2>
           <p>
             You've replied to all your messages, but there's more texts to send!
-            Can Elizabeth and Bailey count on you to send another batch?
+            Can we count on you to send another batch?
           </p>
           <RequestBatchButton
             organizationId={organizationId}
             assignmentId={assignmentId}
-            buttonLabel="LFG"
+            buttonLabel="Let's Go"
             unsentCount={unsentInitialCount}
             secondary
           />
@@ -181,12 +157,6 @@ class ConversationsMenu extends React.Component {
           className={css(styles.rebatchWrapper)}
           style={visible ? {} : { display: "none" }}
         >
-          <img
-            src="https://ew-spoke-public.elizabethwarren.codes/ew-circle.png"
-            className={css(styles.rebatchImage, styles.rebatchImageClickable)}
-            alt="Elizabeth Warren"
-            onClick={this.onClickEW}
-          />
           <h2 className={css(styles.rebatchHeader)}>Wow!</h2>
           <p>
             You've replied to all your messages, and there's no more batches to
