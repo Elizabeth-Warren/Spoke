@@ -828,6 +828,9 @@ const rootMutations = {
 
       await Promise.all(
         oldCannedResponses.map(async cr => {
+          if (cr.deleted) {
+            return;
+          }
           const copied = new CannedResponse({
             campaign_id: newCampaignId,
             title: cr.title,
