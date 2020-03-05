@@ -1,9 +1,39 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import { StyleSheet, css } from "aphrodite";
 import { blue900 } from "material-ui/styles/colors";
 import moment from "moment";
 import theme from "../styles/theme";
+import { StyleSheet as Aphrodite } from "aphrodite";
+
+const isEven = value => value % 2 == 0;
+const getHref = string =>
+  string.toLowerCase().startsWith("http") ? string : `//${string}`;
+
+const { StyleSheet, css } = Aphrodite.extend([
+  {
+    selectorHandler: (selector, baseSelector, generateSubtreeStyles) => {
+      if (selector[0] === ">") {
+        const tag = selector.slice(1);
+        const nestedTag = generateSubtreeStyles(`${baseSelector} ${tag}`);
+        return nestedTag;
+      }
+      return null;
+    }
+  }
+]);
+
+function createTextLinks_(text) {
+  return (text || "").replace(
+    /([^\S]|^)(((https?\:\/\/)|(www\.))(\S+))/gi,
+    (match, space, url) => {
+      let hyperlink = url;
+      if (!hyperlink.match("^https?://")) {
+        hyperlink = "http://" + hyperlink;
+      }
+      return space + '<a href="' + hyperlink + '">' + url + "</a>";
+    }
+  );
+}
 
 // https://www.twilio.com/docs/sms/accepted-mime-types
 const supportedFileTypes = [
@@ -30,7 +60,9 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.EWnavy,
     color: theme.colors.EWlightLibertyGreen,
     position: "relative",
-
+    "> a": {
+      color: theme.colors.lightYellow
+    },
     ":before": {
       content: "' '",
       height: 0,
@@ -93,10 +125,22 @@ class Message extends Component {
     }
 
     const { showAttachments } = this.state;
+    const messageSplitByLink = message.text.split(
+      /(?:[^\S]|^)((?:(?:https?\:\/\/)|(?:www\.))(?:\S+))/gi
+    );
 
     return (
       <p key={index} className={css(styles.conversationRow, itemStyle)}>
-        {message.text}
+        {messageSplitByLink.map((string, index) => {
+          const isLink = !isEven(index);
+          return isLink ? (
+            <a target="_blank" href={getHref(string)}>
+              {string}
+            </a>
+          ) : (
+            string
+          );
+        })}
         <br />
         {attachments
           .map((attachment, i) => [
