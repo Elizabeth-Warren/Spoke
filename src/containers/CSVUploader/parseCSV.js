@@ -106,7 +106,7 @@ export default async function parseCSV(
 
   // Handle CSV parse errors
   if (errors.length > 0) {
-    return { error: formatPapaParseErrors(errors) };
+    return { errors: [formatPapaParseErrors(errors)] };
   }
 
   if (data.length > maxRows) {
@@ -120,7 +120,7 @@ export default async function parseCSV(
   let nInvalid = 0;
   let dupeCount = 0;
   const validatedAndTransformedData = [];
-  let firstValidationError = null;
+  let validationErrors = [];
   const dupeKeys = new Set();
 
   const translateAliases = buildAliasTranslator(columnConfig);
@@ -139,7 +139,6 @@ export default async function parseCSV(
 
       dupeKeys.add(dupeKey);
     }
-
     try {
       const { valid, value } = validateAndTransformRow(row);
 
@@ -160,12 +159,8 @@ export default async function parseCSV(
       console.log(e);
       nInvalid += 1;
 
-      if (!firstValidationError) {
-        // add 2 to get the input file name -- 1 indexed and with columns in first row
-        const rowNumber = i + 2;
-
-        firstValidationError = `Invalid data on row ${rowNumber}: ${e.message}`;
-      }
+      const rowNumber = i + 2;
+      validationErrors.push(`Invalid data on row ${rowNumber}: ${e.message}`);
     }
   });
 
@@ -190,6 +185,6 @@ export default async function parseCSV(
       extraColumns
     },
     fileName: file.name,
-    error: firstValidationError
+    errors: validationErrors
   };
 }

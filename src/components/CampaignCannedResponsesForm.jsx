@@ -382,16 +382,18 @@ export default class CampaignCannedResponsesForm extends React.Component {
 
     return (
       <div className={css(styles.list)}>
-        <SortableVirtualizedList
-          items={items}
-          getRef={this.registerListRef}
-          onSortEnd={this.handleSort}
-          distance={5}
-          customFields={this.props.customFields}
-          labels={this.props.labels}
-          handleDelete={this.handleDelete}
-          onClickItem={this.startEditing}
-        />
+        {!!items.length && (
+          <SortableVirtualizedList
+            items={items}
+            getRef={this.registerListRef}
+            onSortEnd={this.handleSort}
+            distance={5}
+            customFields={this.props.customFields}
+            labels={this.props.labels}
+            handleDelete={this.handleDelete}
+            onClickItem={this.startEditing}
+          />
+        )}
       </div>
     );
   }

@@ -84,7 +84,7 @@ export default class CSVUploader extends Component {
 
     this.state = {
       state: "idle", // idle, parsing, parsed, uploading
-      error: this.props.initialError, // Errors from CSV parsing or input -- blocks trying to upload
+      errors: this.props.initialError, // Errors from CSV parsing or input -- blocks trying to upload
       uploadError: null, // Errors from upload -- does not block trying to upload again
       parsedData: null,
       validationStats: null,
@@ -97,19 +97,19 @@ export default class CSVUploader extends Component {
       rejectedFiles.length > 0 ||
       acceptedFiles.length + rejectedFiles.length > 1
     ) {
-      this.setState({ error: "Please upload a single CSV file" });
+      this.setState({ errors: ["Please upload a single CSV file"] });
       return;
     }
 
     this.setState({
-      error: null,
+      errors: null,
       parsedData: null,
       validationStats: null,
       fields: null,
       state: "parsing"
     });
 
-    const { data, fields, validationStats, fileName, error } = await parseCSV(
+    const { data, fields, validationStats, fileName, errors } = await parseCSV(
       acceptedFiles[0],
       {
         maxRows: this.props.maxRows,
@@ -118,10 +118,11 @@ export default class CSVUploader extends Component {
       }
     );
 
-    if (error) {
+    if (!!errors.length) {
       this.setState({
-        state: "idle",
-        error,
+        state: "parsed",
+        validationStats,
+        errors,
         fields
       });
     } else {
@@ -131,14 +132,14 @@ export default class CSVUploader extends Component {
         fields,
         fileName,
         parsedData: data,
-        error: data.length > 0 ? null : "Please upload at least one valid row."
+        errors: data.length > 0 ? [] : ["Please upload at least one valid row."]
       });
     }
   };
 
   onDelete = () => {
     this.setState({
-      error: null,
+      errors: null,
       uploadError: null,
       parsedData: null,
       validationStats: null,
@@ -173,7 +174,7 @@ export default class CSVUploader extends Component {
 
       this.setState({
         state: "idle",
-        error: null,
+        errors: null,
         uploadError: null,
         parsedData: null,
         validationStats: null,
@@ -204,19 +205,35 @@ export default class CSVUploader extends Component {
     );
 
     const canSaveAndContinue =
-      !this.state.error &&
+      !this.state.errors &&
       this.state.state !== "uploading" &&
       _.every(requiredColumns, c => this.columnIsPresent(c.inputName));
 
-    const errorMessage = this.state.uploadError || this.state.error;
+    const validationErrors = this.state.errors && this.state.errors.slice(0, 9);
+
+    const errors = this.state.uploadError
+      ? [this.state.uploadError]
+      : validationErrors;
+
+    const allErrorLength = this.state.errors && this.state.errors.length;
+    const visibleErrors = validationErrors && validationErrors.length;
+    const rest = allErrorLength - visibleErrors;
 
     return (
       <>
         <h2>Upload CSV</h2>
         <p>Upload a CSV. The first row should be column headings.</p>
-        {errorMessage && (
-          <div className={css(styles.errorMessage)}>{errorMessage}</div>
-        )}
+        {errors && !!errors.length
+          ? errors.map(err => (
+              <div className={css(styles.errorMessage)}>{err}</div>
+            ))
+          : null}
+        {rest ? (
+          <div style={{ marginTop: 10, fontWeight: "bold" }}>
+            ...and {rest} more rows with errors
+          </div>
+        ) : null}
+
         <div className={css(styles.uploadColumnsWrapper)}>
           <div className={css(styles.uploadColumn)}>
             <h3>Required Columns</h3>
