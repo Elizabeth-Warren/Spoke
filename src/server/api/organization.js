@@ -74,6 +74,13 @@ export const resolvers = {
         status: Status.AVAILABLE
       });
     },
+    phoneNumbersByStatus: async (organization, _, { user }) => {
+      await accessRequired(user, organization.id, "SUPERVOLUNTEER");
+      if (!campaignPhoneNumbersEnabled(organization)) {
+        return [];
+      }
+      return await db.TwilioPhoneNumber.getAreaCodeStatusCounts();
+    },
     labels: async (organization, _, { user }) => {
       await accessRequired(user, organization.id, "SUPERVOLUNTEER");
       return db.Label.listForOrganization(organization.id);

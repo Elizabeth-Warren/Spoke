@@ -118,6 +118,25 @@ async function countByAreaCode(where, opts) {
   }));
 }
 
+async function getAreaCodeStatusCounts(where, opts) {
+  let builder = queryBuilder(Table.TWILIO_PHONE_NUMBER, opts)
+    .select("area_code as areaCode")
+    .groupBy("areaCode")
+    .select(
+      "area_code as areaCode",
+      knex.raw("count(status = 'ASSIGNED' OR NULL)::int as assigned_count"),
+      knex.raw("count(status = 'RESERVED' OR NULL)::int as reserved_count"),
+      knex.raw("count(status = 'AVAILABLE' OR NULL)::int as available_count")
+    );
+  // convert count results to numbers, see: https://github.com/knex/knex/issues/387
+  return (await builder).map(r => ({
+    areaCode: r.areaCode,
+    availableCount: r.available_count,
+    reservedCount: r.reserved_count,
+    assignedCount: r.assigned_count
+  }));
+}
+
 async function get(sid, opts) {
   return getAny(Table.TWILIO_PHONE_NUMBER, "sid", sid, opts);
 }
@@ -148,6 +167,7 @@ export default {
   create,
   get,
   countByAreaCode,
+  getAreaCodeStatusCounts,
   releaseAllCampaignNumbers,
   reserveForCampaign,
   assignToCampaign,

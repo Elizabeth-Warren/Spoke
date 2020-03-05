@@ -51,6 +51,7 @@ function AdminLabelsList(props) {
       count={labels.length}
       showRowHover={true}
       showFooterToolbar={false}
+      showRowHover={true}
     />
   );
 }

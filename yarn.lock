@@ -2213,6 +2213,13 @@ are-we-there-yet@~1.1.2:
     delegates "^1.0.0"
     readable-stream "^2.0.6"
 
+areacodes@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/areacodes/-/areacodes-0.2.1.tgz#bd282c97252b7d07e4706ec491f391c900728eed"
+  integrity sha512-5r4p9F8n4KACsU8jlRnMv0SZZGevB+AuQU/XcIQcE5mnbBZH90+nEFdE1r6E4ECrgEfX+4vYvny6y0fcSE/6Sw==
+  dependencies:
+    doublescore "0.3.7"
+
 argparse@^1.0.7:
   version "1.0.10"
   resolved "https://registry.yarnpkg.com/argparse/-/argparse-1.0.10.tgz#bcd6791ea5ae09725e17e5ad988134cd40b3d911"
@@ -4448,6 +4455,11 @@ dotenv@^8.0.0, dotenv@^8.2.0:
   version "8.2.0"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-8.2.0.tgz#97e619259ada750eea3e4ea3e26bceea5424b16a"
   integrity sha512-8sJ78ElpbDJBHNeBzUbUVLsqKdccaa/BXF1uPTw3GrvQTBgrQrtObr2mUrE38vzYd8cEv+m/JBfDLioYcfXoaw==
+
+doublescore@0.3.7:
+  version "0.3.7"
+  resolved "https://registry.yarnpkg.com/doublescore/-/doublescore-0.3.7.tgz#8fb498791b46eff46401f1979fb3d5624239e7fd"
+  integrity sha1-j7SYeRtG7/RkAfGXn7PVYkI55/0=
 
 download@^7.1.0:
   version "7.1.0"

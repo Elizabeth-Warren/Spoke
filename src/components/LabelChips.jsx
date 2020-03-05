@@ -3,9 +3,8 @@ import _ from "lodash";
 import { Chip } from "material-ui";
 import theme from "src/styles/theme";
 
-export default function LabelChips({ labels, labelIds, onRequestDelete }) {
-  const labelsById = _.keyBy(labels, "id");
-
+export default function LabelChips({ labels, labelIds, onRequestDelete, keyBy = "id" }) {
+  const labelsById = _.keyBy(labels, keyBy);
   return (
     <div style={{ display: "flex", flexWrap: "wrap" }}>
       {(labelIds || []).map(labelId => {

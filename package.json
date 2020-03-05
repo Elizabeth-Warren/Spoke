@@ -63,6 +63,7 @@
     "@babel/runtime": "^7.8.4",
     "@sentry/node": "5.12.4",
     "apollo-server-express": "^1.2.0",
+    "areacodes": "^0.2.1",
     "array-move": "^2.2.1",
     "auth0-js": "^9.10.0",
     "aws-sdk": "^2.6.3",

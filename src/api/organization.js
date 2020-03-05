@@ -19,6 +19,7 @@ export const schema = gql`
     textingHoursEnd: Int
     campaignPhoneNumbersEnabled: Boolean!
     availablePhoneNumbers: [PhoneNumbersByAreaCode]
+    phoneNumbersByStatus: [PhoneNumberCountsByStatus]
     maxContacts: Int
     labels: [Label]!
   }
