@@ -18,7 +18,25 @@ This README describes  only how to run this fork, see `ORIGINAL_README.md` for t
 This fork was deployed to AWS Lambda and API Gateway using the [serverless framework](https://serverless.com/).
 We used Aurora Postgres Serverless for our database and ElastiCache.
 
-TODO[fuzzy]: description of the frontend deploy
+To deploy the frontend, we used Webpack to build the client-side bundle and deployed that the an S3 bucket with a CloudFront CDN in front of it. The Spoke backend would render the HTML for the page, with a script tag pointing to the webpack bundle on the CDN domain.
+
+In order to minimize the impact of cold starts, we used a gradual rollout orchestrated by CodeDeploy. This was set up and managed by `serverless-plugin-canary-deployment`. Without the gradual rollout, during a deploy we'd experience high latencies due to cold starts and Spoke's slow startup time. This would cause Lambda to spin up many parallel containers to handle the traffic with the longer latency, which would in turn spike the number of database connections. Because our database (an Aurora Serverless Postgres database) had a connection limit of 5,500 connection, this spike could bring us very close to this limit. So we used the gradual CodeDeploy rollout to switch traffic over to the new version over 10 minutes, which minimized the impact of the cold starts and avoided the spike in database connections.
+
+This added some complexity to the frontend rollout: in the middle of a rollout, with half of the traffic going to the old lambda function, and half of the traffic going to the new lambda function, we didn't want a user to get the new javascript bundle but then hit the old lambda function when making graphql requests, because the new frontend code might depend on new graphql endpoints that didn't exist in the old lambda function. So we had `render-index.js` read which frontend bundle to point to from Redis. This meant that we could deploy new code to lambda but have that new code still serve the old frontend, and then when the deploy was done rolling out, we could just write to Redis and have the backend start linking to the new frontend.
+
+We orchestrated this through the "preflight" and "postflight" functions in `src/server/lambda/codedeploy.js`. These are configured as the `preTrafficHook` and `postTrafficHook` for `serverless-plugin-canary-deployments` in `serverless.yml`. The overall process was:
+
+- A new tag in github starting with `release-` would kick off a Github Action run to deploy to production. You can find this workflow in `.github/workflows/prod-deploy.yml`.
+- The workflow would run `./dev-tools/sentry-release-create.sh` to create a new release in Sentry (you can remove this step if you don't use Sentry).
+- The workflow would run `make deploy-build`, which did a number of deploy steps:
+  - Builds the frontend Javascript bundles.
+  - Copies the frontend Javascript bundles to the S3 bucket, where they live alongside the old javascript bundles. The lambda function continue to render HTML that points to the old javascript bundles (the javascript bundles include a hash of the content in the file name, so there's no name conflicts)
+  - Runs the serverless deploy. This creates a new version of the lambda function, and thanks to `serverless-plugin-canary-deployments`, kicks off a CodeDeploy deployment to gradually shift traffic to the new lambda function. We haven't yet updated the bundle name in Redis, so as traffic shifts to the new lambda function, everyone continues to use the old client code.
+  - Before CodeDeploy shifts any traffic, it runs the preflight hook, which executes database migrations.
+  - After CodeDeploy has shifted all traffic, it runs the postflight hook, which writes to Redis to instruct all the lambda functions to start pointing to the new client bundle. At this point, we're fully up and running with the new version (but users who have not yet refreshed will continue to use the old client code indefinitely, so backwards-compatibility with old client code is still important!).
+  - Lastly, the github workflow runs `./dev-tools/sentry-release-finalize.sh` to inform Sentry that the new release is deployed.
+
+If you're operating at a lower scale, or using a deployment of Postgres where you're not concerned about having a large spike in concurrent connections, you might not need this complexity. In that case, you should update `render-index.js` to just always serve the latest bundle, and switch traffic to the new version all at once. You might even want to drop the complexity of a separate asset domain, and use the upstream MoveOn Spoke behavior of just serving the client javascript directly from the application server.
 
 ## Notable changes from upstream spoke
 
@@ -87,9 +105,20 @@ DROP_MESSAGE_RATIO=0.6
 ### Twilio Autoresponder
 
 If you're working with the Twilio code itself, you may want to actually keep Twilio in the loop and
-send real texts. To do this, replace `SKIP_TWILIO_AND_AUTOREPLY=1` with `OVERRIDE_RECIPIENT=+16173974753`.
-This will send all texts, regardless of the contact's phone number, to `+16173974753`. This is a special
-Twilio number that will auto-reply with whatever you sent it (try it out by sending a text to that number!)
+send real texts. To do this, first set up a phone number in Twilio to autoreply to texts. You can just buy a number and point it to this TwiML Bin:
+
+```
+<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Message>
+        {{Body}} (auto-reply)
+    </Message>
+</Response>
+```
+
+For the purpose of this example, we'll assume the phone number you set up was `+16173974753`. In your `.env`,
+replace `SKIP_TWILIO_AND_AUTOREPLY=1` with `OVERRIDE_RECIPIENT=+16173974753`.
+This will send all texts, regardless of the contact's phone number, to `+16173974753`.
 
 We have some special handling in the code to still route texts correctly -- we append the contact's original
 phone number to the outgoing message (so `foo` sent to `+16175555770` would become `[+16175555770] foo`), and
