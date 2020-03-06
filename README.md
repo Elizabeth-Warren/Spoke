@@ -38,7 +38,7 @@ We orchestrated this through the "preflight" and "postflight" functions in `src/
 
 If you're operating at a lower scale, or using a deployment of Postgres where you're not concerned about having a large spike in concurrent connections, you might not need this complexity. In that case, you should update `render-index.js` to just always serve the latest bundle, and switch traffic to the new version all at once. You might even want to drop the complexity of a separate asset domain, and use the upstream MoveOn Spoke behavior of just serving the client javascript directly from the application server.
 
-## Notable changes from upstream spoke
+## Notable changes from upstream Spoke
 
 - Removed support for Nexmo
 - Removed support for Mailgun and custom SMTP servers in favor of SES
@@ -56,11 +56,14 @@ If you're operating at a lower scale, or using a deployment of Postgres where yo
 - Removed bulk send
 - Phone number management (see below)
 - Reworked dynamic assignment experience, removed support for static assignment
-- Moved message review to the campaign
+- Moved message review to the campaign screen
 - Added the concept of 'labels' for data collection through canned responses
 - Added canned response upload from CSV
+- Reworked navigation and canned response UI for the texter view
 - Rewrote contact uploads to go through S3, which was required to upload large files while running on Lambda
-- Started moving database access direct knex queries in the `db` package
+- Started migrating from thinky to knex queries (see the `src/server/db/README`)
+- Improved error handling
+- Made archiving permanent and added new CLOSED and CLOSED_FOR_INITIAL_SENDS campaign statuses
 
 
 ## Running for the first time
