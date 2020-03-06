@@ -32,6 +32,13 @@ preflight()
 
 deploy()
 {
+  # TODO: change this to whatever s3 bucket you want to use for your public assets. The bucket must have CORS
+  # enabled. This s3 bucket should be served from the ASSET_DOMAIN configured in your serverless.yml -- you can
+  # either set ASSET_DOMAIN to the s3 website hosting URL for the bucket, or configure CloudFront or another CDN
+  # to front this bucket and use your CDN domain as your ASSET_DOMAIN.
+  #
+  # Make sure your CDN preserves the CORS headers! Instructions for doing that for CloudFront
+  # are here: https://aws.amazon.com/premiumsupport/knowledge-center/no-access-control-allow-origin-error/
   aws s3 cp ./build/client/assets s3://ew-spoke-public/$STAGE/assets/ --acl public-read --recursive --cache-control max-age=604800
   sls create_domain -s $STAGE
   sls deploy -s $STAGE
