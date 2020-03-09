@@ -11,8 +11,11 @@ const wrapMutations = Component => props => {
         const argCopy = [...args];
         // eslint-disable-next-line react/prop-types
         const resp = await props.mutations[key](...argCopy);
+        console.log("RESP", resp);
         const parsedError = graphQLErrorParser(resp);
+        console.log("PARSED ERROR", parsedError);
         if (parsedError) {
+          console.log("THROWING");
           throw new GraphQLRequestError(parsedError);
         }
         return resp;

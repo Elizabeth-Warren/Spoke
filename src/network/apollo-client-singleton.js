@@ -1,10 +1,5 @@
-import ApolloClient from "apollo-client";
+import ApolloClient from "apollo-client-legacy";
 import * as Sentry from "@sentry/browser";
-
-import {
-  getGraphQLErrors,
-  checkForErrorCode
-} from "src/client/lib/error-helpers";
 
 import ResponseMiddlewareNetworkInterface from "./response-middleware-network-interface";
 
