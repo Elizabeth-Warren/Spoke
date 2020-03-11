@@ -5,7 +5,6 @@ frameworkVersion: ">=1.0.0 <2.0.0"
 custom:
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-1'}
-  infrastructure: ${opt:infrastructure, env:INFRASTRUCTURE, "dev"}
   baseUrl:
     dev: https://${self:custom.customDomain.domainName}
     prod: https://spoke.elizabethwarren.com
@@ -24,21 +23,28 @@ custom:
   # skipTwilioAndAutoReply:
     # dev: 1
   deploy:
-    bucket_name: ${ssm:/${self:custom.infrastructure}/s3/deploy-artifacts/bucket/name~true}
-    bucket_arn: ${ssm:/${self:custom.infrastructure}/s3/deploy-artifacts/bucket/arn~true}
+    # Users can define these parameters in SSM (they will be looked up at deploy time)
+    # or in the deploy environment or inline
+    bucket_name: ${ssm:${BUCKET NAME~true}
+    bucket_arn: ${ssm:${BUCKET ARN~true}
   vpcConfig:
     subnetIds:
-      - "${ssm:/tf/${self:custom.infrastructure}/vpc/subnets/private/id/0~true}"
-      - "${ssm:/tf/${self:custom.infrastructure}/vpc/subnets/private/id/1~true}"
-      - "${ssm:/tf/${self:custom.infrastructure}/vpc/subnets/private/id/2~true}"
+      # Users can define these parameters in SSM (they will be looked up at deploy time)
+      # or in the deploy environment or inline
+      - "${ssm:${SUBNET ID}~true}"
+      ...
     securityGroupIds:
-      - "${ssm:/tf/${self:custom.infrastructure}/vpc/security-group/default/id~true}"
+      # Users can define this parameter in SSM (it will be looked up at deploy time)
+      # or in the deploy environment or inline
+      - "${ssm:${SECURITY GROUP ID}~true}"
   associateWaf:
-    name: ${self:custom.infrastructure}-waf-global
+      # OPTIONAL. A WAF is not strictly required, but it is generally useful to have
+      # one to handle IP-level rate limiting
+    name: WAF NAME
   customDomain:
-    domainName: "${self:custom.stage}-spoke.elizabethwarren.codes"
+    domainName: "A DOMAIN NAME"
     stage: ${self:custom.stage}
-    certificateName: "*.elizabethwarren.codes"
+    certificateName: "*.A DOMAIN NAME"
     createRoute53Record: true
     securityPolicy: tls_1_2
   custom:
@@ -55,7 +61,7 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action: lambda:InvokeFunction
-      Resource: "arn:aws:lambda:${self:custom.region}:445320746747:function:internal-spoke-${self:custom.stage}-worker"
+      Resource: "arn:aws:lambda:${self:custom.region}:#{AWS::AccountId}:function:internal-spoke-${self:custom.stage}-worker"
     - Effect: Allow
       Action:
         - "events:PutEvents"
@@ -72,8 +78,10 @@ provider:
       Action:
         - "s3:*"
       Resource:
-        - "${ssm:/${self:custom.infrastructure}/s3/spoke-private/bucket/arn~true}"
-        - "${ssm:/${self:custom.infrastructure}/s3/spoke-private/bucket/arn~true}/*"
+        # Users can define this parameter in SSM (it will be looked up at deploy time)
+        # or in the deploy environment or inline
+        - "${ssm:${PRIVATE BUCKET ARN}~true}"
+        - "${ssm:${PRIVATE BUCKET ARN}~true}/*"
     - Effect: Allow
       Action:
         - codedeploy:*
@@ -81,56 +89,60 @@ provider:
         - "*"
   environment:
     STAGE: ${self:custom.stage}
-    INFRASTRUCTURE: ${self:custom.infrastructure}
     NODE_ENV: production
     STATIC_BASE_URL: /assets/
     SUPPRESS_SELF_INVITE: 1
     PHONE_NUMBER_COUNTRY: US
-    SESSION_SECRET: ${ssm:/${self:custom.stage}/spoke/SESSION_SECRET~true}
     SUPPRESS_SEED_CALLS: 1
     KNEX_MIGRATION_DIR: ./build/server/migrations
     PASSPORT_STRATEGY: slack
-    AWS_S3_BUCKET_NAME: ${ssm:/${self:custom.infrastructure}/s3/spoke-private/bucket/name~true}
     AWS_ACCESS_AVAILABLE: 1
-    DEBUG_APOLLO: ${self:custom.debugApollo.${self:custom.stage}}
-    AUTH0_CLIENT_ID: ${ssm:/${self:custom.stage}/spoke/auth0/CLIENT_ID~true}
-    AUTH0_CLIENT_SECRET: ${ssm:/${self:custom.stage}/spoke/auth0/CLIENT_SECRET~true}
-    AUTH0_DOMAIN: ${ssm:/${self:custom.stage}/spoke/auth0/DOMAIN}
     DST_REFERENCE_TIMEZONE: America/New_York
     DEFAULT_SERVICE: twilio
-    DB_HOST: ${ssm:/${self:custom.stage}/spoke/postgres/HOST~true}
-    DB_NAME: ${ssm:/${self:custom.stage}/spoke/postgres/DATABASE~true}
     DB_PORT: 5432
     DB_TYPE: pg
-    DB_USER: ${ssm:/${self:custom.stage}/spoke/postgres/USER~true}
-    DB_PASSWORD: ${ssm:/${self:custom.stage}/spoke/postgres/PASSWORD~true}
     EMAIL_ENABLED: true
-    EMAIL_FROM: ${ssm:/${self:custom.stage}/spoke/EMAIL_FROM~true}
-    EMAIL_REPLY_TO: ${ssm:/${self:custom.stage}/spoke/EMAIL_REPLY_TO~true}
     SES_REGION: us-east-1
-    REDIS_URL: redis://${ssm:/${self:custom.stage}/redis_cache/PRIMARY_ENDPOINT~true}:6379/3
     CACHE_PREFIX: spoke-
-    TWILIO_ACCOUNT_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_ACCOUNT_SID~true}
     CONTACTS_PER_PHONE_NUMBER: 200
-    TWILIO_AUTH_TOKEN: ${ssm:/${self:custom.stage}/spoke/TWILIO_AUTH_TOKEN~true}
-    TWILIO_MESSAGE_SERVICE_SID: ${ssm:/${self:custom.stage}/spoke/TWILIO_MESSAGE_SERVICE_SID~true}
-    TWILIO_STATUS_CALLBACK_URL: ${self:custom.baseUrl.${self:custom.stage}}/twilio-message-report
-    TWILIO_VOICE_URL: ${ssm:/${self:custom.stage}/spoke/TWILIO_VOICE_URL~true}
     JOB_EXECUTOR: LAMBDA
-    JOB_LAMBDA_WORKER_FUNCTION_NAME: internal-spoke-${self:custom.stage}-worker
     ASSETS_DIR: ./build/client/assets
     ASSETS_MAP_FILE: assets.json
-    BASE_URL: ${self:custom.baseUrl.${self:custom.stage}}
     OPTOUTS_SHARE_ALL_ORGS: 1
-    SLACK_CLIENT_ID: ${ssm:/${self:custom.stage}/spoke/slack/CLIENT_ID~true}
-    SLACK_CLIENT_SECRET: ${ssm:/${self:custom.stage}/spoke/slack/CLIENT_SECRET~true}
-    SLACK_TEAM_ID: ${ssm:/${self:custom.stage}/spoke/slack/TEAM_ID~true}
-    EMBEDDED_SHIFTER_URL: ${ssm:/${self:custom.stage}/spoke/shifter/URL~true}
-    SENTRY_DSN: ${ssm:/shared/spoke/sentry/DSN~true}
     MAX_CONTACTS: 75000
-    ASSET_DOMAIN: https://ew-spoke-public.elizabethwarren.codes/${self:custom.stage}
     SLOW_REQUEST_LOG_THRESHOLD: 500
     CLOUDWATCH_METRICS_ENABLED: 1
+    DEBUG_APOLLO: ${self:custom.debugApollo.${self:custom.stage}}
+    TWILIO_STATUS_CALLBACK_URL: ${self:custom.baseUrl.${self:custom.stage}}/twilio-message-report
+    JOB_LAMBDA_WORKER_FUNCTION_NAME: internal-spoke-${self:custom.stage}-worker
+    BASE_URL: ${self:custom.baseUrl.${self:custom.stage}}
+    ASSET_DOMAIN: https://ew-spoke-public.elizabethwarren.codes/${self:custom.stage}
+
+    # Users can define these parameters in SSM (they will be looked up at deploy time)
+    # or in the deploy environment or inline. Secrets like this are best maintained
+    # in something like SSM, but careful use of environment variables works here too!
+    SESSION_SECRET: ${ssm:${SESSION SECRET PARAMETER NAME}~true}
+    AWS_S3_BUCKET_NAME: ${ssm:${PRIVATE BUCKET NAME}~true}
+    AUTH0_CLIENT_ID: ${ssm:${AUTH0 CLIENT ID}~true}
+    AUTH0_CLIENT_SECRET: ${ssm:${AUTHO CLIENT_SECRET}~true}
+    AUTH0_DOMAIN: ${ssm:${AUTH0 DOMAIN}/DOMAIN}
+    DB_HOST: ${ssm:${POSTGRES HOST}~true}
+    DB_NAME: ${ssm:${POSTGRES DB NAME}~true}
+    DB_USER: ${ssm:${POSTGRES USER}~true}
+    DB_PASSWORD: ${ssm:${POSTGRES PASSWORD}~true}
+    EMAIL_FROM: ${ssm:${EMAIL FROM}~true}
+    EMAIL_REPLY_TO: ${ssm:${EMAIL REPLY TO}~true}
+    REDIS_URL: redis://${ssm:${REDIS ENDPOINT}~true}:6379/3
+    TWILIO_ACCOUNT_SID: ${ssm:${TWILIO ACCOUNT SID}~true}
+    TWILIO_AUTH_TOKEN: ${ssm:${TWILIO AUTH TOKEN}~true}
+    TWILIO_MESSAGE_SERVICE_SID: ${ssm:${TWILIO MESSAGE SERVICE SID}~true}
+    TWILIO_VOICE_URL: ${ssm:${TWILIO VOICE URL}~true}
+    SLACK_CLIENT_ID: ${ssm:${SLACK CLIENT ID}~true}
+    SLACK_CLIENT_SECRET: ${ssm:${SLACK CLIENT SECRET}~true}
+    SLACK_TEAM_ID: ${ssm:${SLACK TEAM ID}~true}
+    EMBEDDED_SHIFTER_URL: ${ssm:${EMBEDDED SHIFTER URL}~true}
+    SENTRY_DSN: ${ssm:${SENTRY DSN}~true}
+
     # SUPPRESS_PHONE_VALIDATION: 1
     # SKIP_TWILIO_AND_AUTOREPLY: ${self:custom.skipTwilioAndAutoReply.${self:custom.stage}}
     # DROP_MESSAGE_RATIO: ${self:custom.dropMessageRatio.${self:custom.stage}}
@@ -160,7 +172,7 @@ functions:
 #    vpc: ${self:custom.vpcConfig}
 #    events:
 #      - sqs:
-#          arn: ${ssm:/${self:custom.stage}/spoke/sqs/TWILIO_WEBHOOK_QUEUE_ARN~true}
+#          arn: ${ssm:${self:custom.stage}/spoke/sqs/TWILIO_WEBHOOK_QUEUE_ARN~true}
 #          batchSize: 1 # TODO: this is for testing, raise it in production
   # send-reminders:
   #   handler: build/server/server/lambda/send-reminders.handler
