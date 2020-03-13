@@ -92,6 +92,10 @@ function shouldDropMessage(origTo) {
 }
 
 async function messagingServiceForContact(contact) {
+  if (process.env.SKIP_TWILIO_AND_AUTOREPLY) {
+    return "mock-messaging-service";
+  }
+
   // TODO[matteo]: cache this
   const campaign = await Campaign.get(contact.campaign_id);
   return preconditions.check(
@@ -101,7 +105,7 @@ async function messagingServiceForContact(contact) {
 }
 
 async function sendMessage(message, contact, trx) {
-  if (!twilio) {
+  if (!twilio && !process.env.SKIP_TWILIO_AND_AUTOREPLY) {
     log.warn(
       "cannot actually send SMS message -- twilio is not fully configured:",
       message.id

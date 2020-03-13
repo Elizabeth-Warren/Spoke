@@ -205,7 +205,7 @@ export default class CSVUploader extends Component {
     );
 
     const canSaveAndContinue =
-      !this.state.errors &&
+      !(this.state.errors && this.state.errors.length) &&
       this.state.state !== "uploading" &&
       _.every(requiredColumns, c => this.columnIsPresent(c.inputName));
 

@@ -8,7 +8,7 @@ def first_name(i):
 
 
 def last_name(i):
-    return f"McSpokeFace{i}"
+    return f"McSpoke{i}"
 
 
 def phone_number(i):

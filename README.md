@@ -9,9 +9,9 @@ It was built in the last month of the campaign and was used by thousands of volu
 in the run-up to Super Tuesday. It is based off of the [staging_20191102](https://github.com/WorkingFamilies/Spoke/tree/staging_20191102)
 branch of the Working Families Party's fork of MoveOn's Spoke.
 
-We did not try to maintain compatibility with upstream Spoke or test features and 
+We did not try to maintain compatibility with upstream Spoke or test features and
 deployment strategies we did not use.
-This README describes  only how to run this fork, see `ORIGINAL_README.md` for the original documentation.
+This README describes only how to run this fork, see `ORIGINAL_README.md` for the original documentation.
 
 ## How the Warren campaign deployed Spoke
 
@@ -65,18 +65,31 @@ If you're operating at a lower scale, or using a deployment of Postgres where yo
 - Improved error handling
 - Made archiving permanent and added new CLOSED and CLOSED_FOR_INITIAL_SENDS campaign statuses
 
-
 ## Running for the first time
 
-Run `docker-compose up` to start the db.
+1. Copy `.env.example` to `.env` and adjust any settings you want to adjust
+2. Run `docker-compose up` to start the db. Leave this running in another terminal while you run the next couple commands.
+3. Run `yarn run create-test-db && ./dev-tools/reset-db.sh`
+4. Now you're ready to run Spoke! `yarn run dev`
 
-Then, run `yarn run dev-migrate` and `yarn run create-test-db`
+The `./dev-tools/reset-db.sh` you ran reset the database to its default state. This includes a couple of
+organizations, and three test accounts for you to use:
 
-`./dev-tools/manage-messaging-services.js --command create --friendlyName <your test messaging service name> " --baseUrl <your ngrok url>`
+- Owner: `spoke@example.com` / password `spoke`
+- Admin: `spoke-admin@example.com` / password `spoke-admin`
+- Texter: `spoke-texter@example.com` / password `spoke-texter`
 
-`./dev-tools/buy-numbers.js --areaCode <any area code> --messagingServiceSid <your TWILIO_MESSAGE_SERVICE_SID> --limit 1`
+Head to `http://localhost:3000` to log in! You can now create a campaign. You can use the `dev-tools/generate-test-data.py` script to generate a CSV, or just use `dev-tools/
 
-### Running Locally
+The default configuration uses an auto-responder configuration where half of the contacts you text will auto-respond. You can adjust the ratio in `.env`. When you're ready to test sending some real texts, you'll need to connect Spoke to your Twilio account, create a messaging service in Twilio, and purchase a phone number.
+
+You'll also need to be set up so that Twilio can talk to your development machine. The easiest way to do this is with [ngrok](https://ngrok.com/). Run `ngrok http 3000` and you'll get an ngrok URL that lets Twilio talk to your dev server. Now you're ready to set up Twilio:
+
+1. Configure `.env` with your Twilio credentials
+2. Create a messaging service: `./dev-tools/manage-messaging-services.js --command create --friendlyName <your test messaging service name> " --baseUrl <your ngrok url>`
+3. Buy a phone number and attach it to the messaging service: `./dev-tools/buy-numbers.js --areaCode <any area code> --messagingServiceSid <your TWILIO_MESSAGE_SERVICE_SID> --limit 1`
+
+### Running for not the first time
 
 Open two terminal windows:
 
@@ -104,6 +117,10 @@ SKIP_TWILIO_AND_AUTOREPLY=1
 # the initial text, and then if they do respond they will continue to respond to future messages.
 DROP_MESSAGE_RATIO=0.6
 ```
+
+This is the default configuration in `.env.example`.
+
+If you want to test out finishing a conversation, you can send any message that starts with `done`, and the auto-replier won't reply to it.
 
 ### Twilio Autoresponder
 
@@ -153,11 +170,13 @@ SUPPRESS_PHONE_VALIDATION=1
 
 ### Working with a reasonable batch size for dynamic assign
 
-The default size for batch assign is 300, but when testing you can change the batch size to a more reasonable tested number by setting in the .env file.
+The default size for batch assign is 300, but when testing you can change the batch size to a more reasonable testing number by setting in the .env file.
 
 ```
 DYNAMIC_ASSIGN_MAX_BATCH_SIZE=10
 ```
+
+The `.env.example` file includes this setting for you.
 
 ### Phone number provisioning
 
