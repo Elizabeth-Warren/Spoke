@@ -1,4 +1,4 @@
-import { createNetworkInterface } from "apollo-client";
+import { createNetworkInterface } from "apollo-client-legacy";
 
 class ResponseMiddlewareNetworkInterface {
   constructor(endpoint = "/graphql", options = {}) {

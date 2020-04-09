@@ -26,8 +26,8 @@ export const capitalizeWord = word => {
 };
 
 export function campaignPhoneNumbersEnabled(organization) {
-  return (
+  return !!(
     organization.features &&
-    !!JSON.parse(organization.features).campaignPhoneNumbersEnabled
+    JSON.parse(organization.features).campaignPhoneNumbersEnabled
   );
 }

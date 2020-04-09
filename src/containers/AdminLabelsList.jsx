@@ -1,10 +1,11 @@
 import types from "prop-types";
 import React from "react";
-import { withRouter } from "react-router";
 import _ from "lodash";
-import loadData from "./hoc/load-data";
 import gql from "graphql-tag";
 import DataTables from "material-ui-datatables";
+import checkReady from "src/components/CheckReady";
+
+import { useQuery } from "@apollo/react-hooks";
 
 const labelListColumns = [
   {
@@ -36,12 +37,37 @@ const labelListColumns = [
   }
 ];
 
-function AdminLabelsList(props) {
-  if (!props.organizationData.organization) {
-    return null;
+export default function AdminLabelsList(props) {
+  const organizationQuery = useQuery(
+    gql`
+      query getOrganization($organizationId: String!) {
+        organization(id: $organizationId) {
+          id
+          labels {
+            id
+            displayValue
+            slug
+            createdAt
+            group
+          }
+        }
+      }
+    `,
+    {
+      variables: {
+        organizationId: props.params.organizationId
+      },
+      fetchPolicy: "network-only",
+      pollInterval: 60000
+    }
+  );
+
+  const notReady = checkReady(organizationQuery);
+  if (notReady) {
+    return notReady;
   }
 
-  const { labels } = props.organizationData.organization;
+  const { labels } = organizationQuery.data.organization;
 
   return (
     <DataTables
@@ -57,31 +83,5 @@ function AdminLabelsList(props) {
 }
 
 AdminLabelsList.propTypes = {
-  organizationData: types.object
+  params: types.object
 };
-
-const mapQueriesToProps = ({ ownProps }) => ({
-  organizationData: {
-    query: gql`
-      query getOrganization($organizationId: String!) {
-        organization(id: $organizationId) {
-          id
-          labels {
-            id
-            displayValue
-            slug
-            createdAt
-            group
-          }
-        }
-      }
-    `,
-    variables: {
-      organizationId: ownProps.params.organizationId
-    },
-    fetchPolicy: "network-only",
-    pollInterval: 60000
-  }
-});
-
-export default loadData(AdminLabelsList, { mapQueriesToProps });

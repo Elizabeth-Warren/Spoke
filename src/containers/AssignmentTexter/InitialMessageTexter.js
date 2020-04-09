@@ -1,28 +1,27 @@
 import PropTypes from "prop-types";
 import React, { Component } from "react";
-import { withRouter } from "react-router";
-
-import loadData from "src/containers/hoc/load-data";
-import wrapMutations from "src/containers/hoc/wrap-mutations";
+import _ from "lodash";
 import gql from "graphql-tag";
-import InitialMessageTexterContact from "./InitialMessageTexterContact";
-import Empty from "src/components/Empty";
 import Check from "material-ui/svg-icons/action/check-circle";
 import RaisedButton from "material-ui/RaisedButton";
-import _ from "lodash";
+import { useQuery, useMutation } from "@apollo/react-hooks";
+
 import {
   getTopMostParent,
   campaignIsBetweenTextingHours,
   timeUntilTextEnd
 } from "src/lib";
 import { applyScript } from "src/lib/scripts";
-import { checkForErrorCode } from "src/client/lib/error-helpers";
+import { errorCodes } from "src/client/lib/error-helpers";
+import checkReady from "src/components/CheckReady";
+import Empty from "src/components/Empty";
 
 import TextingClosedModal, {
   OUTSIDE_HOURS,
   CAMPAIGN_CLOSED
 } from "../TextingClosedModal";
-import { getGraphQLErrors } from "src/client/lib/error-helpers";
+
+import InitialMessageTexterContact from "./InitialMessageTexterContact";
 
 const contactDataFragment = `
   id
@@ -145,31 +144,22 @@ class InitialMessageTexter extends Component {
     this.isSending = true;
 
     try {
-      const response = await this.props.mutations.sendMessage(
-        messageInput,
-        contactId
-      );
-
-      const graphQLErrors = getGraphQLErrors(response);
-      const codes = graphQLErrors.map(error => error.code);
-      const campaignClosed =
-        codes.includes("CAMPAIGN_CLOSED") ||
-        codes.includes("CAMPAIGN_CLOSED_FOR_INITIAL_SENDS");
-
-      if (campaignClosed) {
-        this.showClosedModal();
-      } else if (codes.includes("TEXTING_HOURS")) {
-        this.showClosedModal(OUTSIDE_HOURS);
-      }
-
-      // This can happen if a user has the initial message texter open in multiple windows
-      const dupMessage = checkForErrorCode(response, "DUPLICATE_MESSAGE");
-      if (dupMessage) {
-        window.location.reload();
-      }
+      await this.props.mutations.sendMessage(messageInput, contactId);
     } catch (e) {
-      console.error("Error sending message", e);
-      this.exitTexter();
+      const codes = errorCodes(e);
+
+      if (
+        codes.has("CAMPAIGN_CLOSED") ||
+        codes.has("CAMPAIGN_CLOSED_FOR_INITIAL_SENDS")
+      ) {
+        this.showClosedModal();
+      } else if (codes.has("TEXTING_HOURS")) {
+        this.showClosedModal(OUTSIDE_HOURS);
+      } else if (codes.has("DUPLICATE_MESSAGE")) {
+        window.location.reload();
+      } else {
+        this.exitTexter();
+      }
     } finally {
       this.isSending = false;
 
@@ -253,9 +243,9 @@ class InitialMessageTexter extends Component {
   };
 }
 
-const mapQueriesToProps = ({ ownProps }) => ({
-  data: {
-    query: gql`
+export default function InitialMessageTexterContainer(ownProps) {
+  const dataQuery = useQuery(
+    gql`
       query getContactsForInitialMessageTexter(
         $assignmentId: String!
         $contactsFilter: ContactsFilter!
@@ -311,20 +301,20 @@ const mapQueriesToProps = ({ ownProps }) => ({
         }
       }
     `,
-    variables: {
-      contactsFilter: {
-        messageStatus: "needsMessage",
-        isOptedOut: false,
-        validTimezone: true
-      },
-      assignmentId: ownProps.params.assignmentId
+    {
+      variables: {
+        contactsFilter: {
+          messageStatus: "needsMessage",
+          isOptedOut: false,
+          validTimezone: true
+        },
+        assignmentId: ownProps.params.assignmentId
+      }
     }
-  }
-});
+  );
 
-const mapMutationsToProps = ({ ownProps }) => ({
-  sendMessage: (message, campaignContactId) => ({
-    mutation: gql`
+  const [sendMessageMutation] = useMutation(
+    gql`
       mutation sendMessage(
         $message: MessageInput!
         $campaignContactId: String!
@@ -339,25 +329,37 @@ const mapMutationsToProps = ({ ownProps }) => ({
           }
         }
       }
-    `,
-    variables: {
-      message,
-      campaignContactId
-    }
-  }),
-  releaseBatch: () => ({
-    mutation: gql`
+    `
+  );
+  const sendMessage = (message, campaignContactId) =>
+    sendMessageMutation({
+      variables: { message, campaignContactId }
+    });
+
+  const [releaseBatchMutation] = useMutation(
+    gql`
       mutation releaseBatch($assignmentId: String!) {
         releaseUnmessagedContacts(assignmentId: $assignmentId)
       }
-    `,
-    variables: {
-      assignmentId: ownProps.params.assignmentId
-    }
-  })
-});
+    `
+  );
+  const releaseBatch = () =>
+    releaseBatchMutation({
+      variables: {
+        assignmentId: ownProps.params.assignmentId
+      }
+    });
 
-export default loadData(wrapMutations(withRouter(InitialMessageTexter)), {
-  mapQueriesToProps,
-  mapMutationsToProps
-});
+  const notReady = checkReady(dataQuery);
+  if (notReady) {
+    return notReady;
+  }
+
+  return (
+    <InitialMessageTexter
+      {...ownProps}
+      data={dataQuery.data}
+      mutations={{ sendMessage, releaseBatch }}
+    />
+  );
+}

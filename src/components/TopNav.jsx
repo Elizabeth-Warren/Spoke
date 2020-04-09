@@ -1,13 +1,16 @@
 import PropTypes from "prop-types";
 import React from "react";
+import { Link } from "react-router";
+import { StyleSheet, css } from "aphrodite";
+import gql from "graphql-tag";
+import { useQuery } from "@apollo/react-hooks";
+
 import IconButton from "material-ui/IconButton";
 import ArrowBackIcon from "material-ui/svg-icons/navigation/arrow-back";
-import { Link } from "react-router";
+
 import UserMenu from "../containers/UserMenu";
 import theme from "../styles/theme";
-import { StyleSheet, css } from "aphrodite";
 import loadData from "../containers/hoc/load-data";
-import gql from "graphql-tag";
 
 const styles = StyleSheet.create({
   container: {
@@ -47,12 +50,28 @@ const styles = StyleSheet.create({
   }
 });
 
-class TopNav extends React.Component {
-  state = {
-    userMenuOpen: false
-  };
+export default function TopNav({ backToURL, orgId, title }) {
+  const { loading, error, data: organizationData } = useQuery(
+    gql`
+      query getCurrentOrganization($organizationId: String!) {
+        organization(id: $organizationId) {
+          id
+          name
+        }
+      }
+    `,
+    {
+      variables: {
+        organizationId: orgId
+      },
+      fetchPolicy: "network-only"
+    }
+  );
 
-  renderBack(backToURL) {
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error :(</p>;
+
+  const renderBack = () => {
     if (backToURL) {
       return (
         <Link to={backToURL}>
@@ -66,51 +85,28 @@ class TopNav extends React.Component {
       );
     }
     return <div />;
-  }
+  };
 
-  render() {
-    const { backToURL, orgId, title, data } = this.props;
-    return (
-      <div className={css(styles.container)}>
-        <div className={css(styles.flexColumn)}>
-          <div className={css(styles.inline)}>{this.renderBack(backToURL)}</div>
-          <div className={css(styles.inline, styles.header)}>{title}</div>
-        </div>
-        <div className={css(styles.rightFlexColumn)}>
-          <div className={css(styles.inline, styles.header)}>
-            {data.organization.name}
-          </div>
-        </div>
-        <div className={css(styles.userMenu)}>
-          <UserMenu orgId={orgId} />
+  return (
+    <div className={css(styles.container)}>
+      <div className={css(styles.flexColumn)}>
+        <div className={css(styles.inline)}>{renderBack(backToURL)}</div>
+        <div className={css(styles.inline, styles.header)}>{title}</div>
+      </div>
+      <div className={css(styles.rightFlexColumn)}>
+        <div className={css(styles.inline, styles.header)}>
+          {organizationData.name}
         </div>
       </div>
-    );
-  }
+      <div className={css(styles.userMenu)}>
+        <UserMenu orgId={orgId} />
+      </div>
+    </div>
+  );
 }
 
 TopNav.propTypes = {
   backToURL: PropTypes.string,
   title: PropTypes.string.isRequired,
-  orgId: PropTypes.string,
-  data: PropTypes.object
+  orgId: PropTypes.string
 };
-
-const mapQueriesToProps = ({ ownProps }) => ({
-  data: {
-    query: gql`
-      query getCurrentOrganization($organizationId: String!) {
-        organization(id: $organizationId) {
-          id
-          name
-        }
-      }
-    `,
-    variables: {
-      organizationId: ownProps.orgId
-    },
-    fetchPolicy: "network-only"
-  }
-});
-
-export default loadData(TopNav, { mapQueriesToProps });

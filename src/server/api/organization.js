@@ -5,6 +5,8 @@ import { accessRequired } from "./errors";
 import { getCampaigns } from "./campaign";
 import { buildSortedUserOrganizationQuery } from "./user";
 
+import { ApolloError } from "src/server/api/errors";
+
 const Status = db.TwilioPhoneNumber.Status;
 
 export const resolvers = {

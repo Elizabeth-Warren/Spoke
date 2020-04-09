@@ -156,46 +156,53 @@ addMockFunctionsToSchema({
 app.use(
   "/graphql",
   responseTimeMiddleware,
-  graphqlExpress(request => ({
-    schema: executableSchema,
-    debug: !!process.env.DEBUG_APOLLO,
-    context: {
-      // TODO[matteo]: add request logger
-      loaders: createLoaders(),
-      user: request.user,
-      awsContext: request.awsContext || null,
-      awsEvent: request.awsEvent || null,
-      remainingMilliseconds: () =>
-        request.awsContext && request.awsContext.getRemainingTimeInMillis
-          ? request.awsContext.getRemainingTimeInMillis()
-          : 5 * 60 * 1000 // default saying 5 min, no matter what
-    },
-    formatError: error => {
-      let code = "UNKNOWN";
-      if (error.originalError) {
-        code = error.originalError.code || "INTERNAL_SERVER_ERROR";
-      }
-      error.code = code;
-      log.error({
-        userId: request.user && request.user.id,
-        error,
-        msg: "GraphQL error"
-      });
-
-      if (TELEMETRY_IGNORED_ERROR_CODES.indexOf(error.code) === -1) {
-        telemetry.reportError(error.originalError || error, {
+  graphqlExpress(request => {
+    // if (Math.random() > 0.3) {
+    //   throw new Error("test error");
+    // } else {
+    //   console.log("NO ERROR");
+    // }
+    return {
+      schema: executableSchema,
+      debug: !!process.env.DEBUG_APOLLO,
+      context: {
+        // TODO[matteo]: add request logger
+        loaders: createLoaders(),
+        user: request.user,
+        awsContext: request.awsContext || null,
+        awsEvent: request.awsEvent || null,
+        remainingMilliseconds: () =>
+          request.awsContext && request.awsContext.getRemainingTimeInMillis
+            ? request.awsContext.getRemainingTimeInMillis()
+            : 5 * 60 * 1000 // default saying 5 min, no matter what
+      },
+      formatError: error => {
+        let code = "UNKNOWN";
+        if (error.originalError) {
+          code = error.originalError.code || "INTERNAL_SERVER_ERROR";
+        }
+        error.code = code;
+        log.error({
           userId: request.user && request.user.id,
-          code,
-          awsRequestId: request.awsContext
-            ? request.awsContext.awsRequestId
-            : undefined,
-          awsEvent: request.awsEvent,
-          path: JSON.stringify(error.path)
+          error,
+          msg: "GraphQL error"
         });
+
+        if (TELEMETRY_IGNORED_ERROR_CODES.indexOf(error.code) === -1) {
+          telemetry.reportError(error.originalError || error, {
+            userId: request.user && request.user.id,
+            code,
+            awsRequestId: request.awsContext
+              ? request.awsContext.awsRequestId
+              : undefined,
+            awsEvent: request.awsEvent,
+            path: JSON.stringify(error.path)
+          });
+        }
+        return error;
       }
-      return error;
-    }
-  }))
+    };
+  })
 );
 
 app.get(
