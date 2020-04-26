@@ -12,6 +12,7 @@
     "test-ci": "npm run create-test-db-ci && jest --runInBand --forceExit",
     "test-e2e": "jest --runInBand --config jest.config.e2e.js",
     "test-coverage": "jest --coverage",
+    "db:migrate": "npx knex migrate:latest",
     "clean": "rm -rf $OUTPUT_DIR",
     "knex": "nf run knex",
     "lint": "eslint  --ext js --ext jsx src",
