@@ -31,9 +31,10 @@ const errors = {
       "This campaign is no longer active. Check the Slack for a different invite link."
   },
   CAMPAIGN_FULL: {
-    title: "Whoa, It's Crowded In Here!",
+    title:
+      "It looks like enough volunteers are already working on this campaign.",
     message:
-      "This campaign is full! Check the Slack for a different invite link."
+      "Please check the slack or email Madeline Parra to see if there is a different campaign link for you."
   },
   NOT_FOUND: {
     title: "Oops!",
