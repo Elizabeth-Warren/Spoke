@@ -73,8 +73,8 @@ class Home extends React.Component {
         <div>
           <div className={css(styles.header)}>Welcome to Spoke!</div>
           <div>
-            When you join a text campaign, it will show up here. Check Slack to
-            get a link!
+            When you join a text campaign, it will show up here. You'll be
+            assigned your first text campaign in the training call.
             <br />
             <br />
             <a
