@@ -84,7 +84,7 @@ class TexterTodoList extends React.Component {
     const renderedAssignments = this.renderAssignmentList();
     const empty = (
       <Empty
-        title="Welcome to Spoke! When you join a text campaign, it will show up here. Check Slack to get a link!"
+        title="Welcome to Spoke! When you join a text campaign, it will show up here. You'll be assigned your first text campaign in the training call."
         icon={<Check />}
       />
     );
