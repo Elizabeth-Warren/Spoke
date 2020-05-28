@@ -32,9 +32,9 @@ const errors = {
   },
   CAMPAIGN_FULL: {
     title:
-      "It looks like enough volunteers are already working on this campaign.",
+      "It looks like this voter list has already been assigned to another volunteer.",
     message:
-      "Please check the slack or email Madeline Parra to see if there is a different campaign link for you."
+      "Please head to MCDP Slack Channel and request a new batch in the #request_new_batch channel or email mcdptext@gmail.com"
   },
   NOT_FOUND: {
     title: "Oops!",
