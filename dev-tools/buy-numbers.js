@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 const parseArgs = require("minimist");
 const twilio = require("twilio");
-require("dotenv").config();
+// require("dotenv").config();
 
 // maximum when listing available numbers
 const MAX_PAGE_SIZE = 30;
@@ -32,14 +32,12 @@ let successCount = 0;
 
 async function buy(max) {
   console.log("Attempting to buy: ", max);
-  const nums = await client
-    .availablePhoneNumbers("US")
-    .local.list({
-      areaCode,
-      limit: max,
-      pageSize: MAX_PAGE_SIZE,
-      capabilities: ["SMS"]
-    });
+  const nums = await client.availablePhoneNumbers("US").local.list({
+    areaCode,
+    limit: max,
+    pageSize: MAX_PAGE_SIZE,
+    capabilities: ["SMS"]
+  });
 
   for (const num of nums) {
     console.log(`Buying Number: ${num.phoneNumber}`);
