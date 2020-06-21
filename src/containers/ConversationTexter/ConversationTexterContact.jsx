@@ -1008,6 +1008,7 @@ export class ConversationTexterContactComponent extends React.Component {
   renderCorrectSendButton() {
     const { campaign } = this.props;
     const { contact } = this.props.data;
+    console.log("RENDER: ", contact);
     if (
       contact.messageStatus === "messaged" ||
       contact.messageStatus === "convo" ||
@@ -1186,6 +1187,7 @@ const mapQueriesToProps = ({ ownProps }) => ({
             }
           }
           messageStatus
+          issues
           updatedAt
           messages {
             id

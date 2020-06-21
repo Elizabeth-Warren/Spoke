@@ -1,4 +1,4 @@
-import { CampaignContact, r } from "src/server/models";
+import { CampaignContact, CannedResponse, r } from "src/server/models";
 import { mapFieldsToModel } from "src/server/api/lib/utils";
 import { zipToTimeZone } from "src/lib";
 import db from "src/server/db";
@@ -36,6 +36,7 @@ export const resolvers = {
     ),
     messageStatus: async (campaignContact, _, { loaders }) => {
       if (campaignContact.message_status) {
+        console.log("Getting that message status!!");
         return campaignContact.message_status;
       }
       // TODO: look it up via cacheing
@@ -202,6 +203,33 @@ export const resolvers = {
         return isOptedOut ? { id: "optout" } : null;
       }
     },
-    tags: campaignContact => campaignContact.tags
+    tags: campaignContact => {
+      console.log("Getting those tags");
+      campaignContact.tags;
+    },
+    issues: async campaignContact => {
+      // console.log("Getting ABCD");
+      const messages = await r
+        .table("message")
+        .getAll(campaignContact.assignment_id, { index: "assignment_id" })
+        .filter({
+          contact_number: campaignContact.cell
+        })
+        .orderBy("created_at");
+      const cannedResponseIds = messages
+        .map(message => message.canned_response_id)
+        .filter(x => x);
+      const uniqueCannedResponseIds = [...new Set(cannedResponseIds)];
+      const uniqueCannedResponeLabels = await Promise.all(
+        uniqueCannedResponseIds.map(id => db.CannedResponse.listLabels(id))
+      );
+      const cannedResponeLabelStrings = uniqueCannedResponeLabels
+        .flat(1)
+        .map(label => label.displayValue);
+      const uniqueCannedResponeLabelStrings = [
+        ...new Set(cannedResponeLabelStrings)
+      ];
+      return uniqueCannedResponeLabelStrings;
+    }
   }
 };

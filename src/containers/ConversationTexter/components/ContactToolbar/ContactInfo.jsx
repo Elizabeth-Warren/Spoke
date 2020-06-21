@@ -98,6 +98,14 @@ export default class ContactInfo extends React.Component {
           Contact: {this.props.campaignContact.id}{" "}
           {this.props.campaignContact.firstName}
         </span>
+        <span>
+          Issues:
+          <ul>
+            {this.props.campaignContact.issues.map(issue => (
+              <li key={issue}>{issue}</li>
+            ))}
+          </ul>
+        </span>
         <div className={css(styles.addSpace)}>
           <ConversationLink
             campaignId={this.props.campaign.id}

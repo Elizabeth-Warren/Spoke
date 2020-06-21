@@ -54,5 +54,7 @@ export const schema = gql`
     tags: [Tag]
     hasUnresolvedTags: Boolean
     updatedAt: Date
+    issues: [String]
+    cannedResponseId: [Int]
   }
 `;
