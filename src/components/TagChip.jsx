@@ -13,7 +13,7 @@ const inlineStyles = {
     justifyContent: "center",
     flexWrap: "nowrap",
     alignItems: "center",
-    backgroundColor: theme.colors.EWlightLibertyGreen
+    backgroundColor: theme.colors.EWdarkLibertyGreen
   },
   text: {
     fontSize: "10px",

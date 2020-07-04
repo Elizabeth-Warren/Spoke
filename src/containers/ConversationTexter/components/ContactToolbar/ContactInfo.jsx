@@ -14,6 +14,11 @@ import ClearIcon from "material-ui/svg-icons/content/clear";
 import ConversationLink from "src/components/ConversationLink";
 
 const styles = StyleSheet.create({
+  iconcontainer: {
+    display: "flex",
+    flexDirection: "row",
+    flexWrap: "nowrap"
+  },
   container: {
     display: "flex",
     flexDirection: "column"
@@ -123,7 +128,7 @@ export default class ContactInfo extends React.Component {
   );
 
   render = () => (
-    <div>
+    <div className={css(styles.iconcontainer)}>
       {this.props.onClickOptOut ? this.renderOptOutButton() : null}
       {this.renderButton()}
       {this.state.open && this.renderDialog()}

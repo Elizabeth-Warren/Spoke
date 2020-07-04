@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import React from "react";
 
 import { Toolbar, ToolbarGroup, ToolbarTitle } from "material-ui/Toolbar";
-
+import Chip from "material-ui/Chip";
 import theme from "src/styles/theme";
 
 import ContactInfo from "./ContactInfo";
@@ -24,6 +24,22 @@ const inlineStyles = {
   timeToolbarTitle: {
     color: theme.colors.white,
     fontSize: "1em"
+  },
+  chip: {
+    display: "inline-flex",
+    height: "20px",
+    marginLeft: "2px",
+    marginRight: "2px",
+    marginTop: "2px",
+    marginBottom: "2px",
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.colors.EWlibertyGreen
+  },
+  chipDiv: {
+    display: "inline-flex",
+    justifyContent: "left",
+    flexWrap: "wrap"
   }
 };
 
@@ -45,6 +61,14 @@ function ContactToolbar({
             text={contactName}
             style={inlineStyles.cellToolbarTitle}
           />
+
+          <div style={inlineStyles.chipDiv}>
+            {campaignContact.issues.map(issue => (
+              <Chip style={inlineStyles.chip} key={issue}>
+                {issue}
+              </Chip>
+            ))}
+          </div>
         </ToolbarGroup>
         <ToolbarGroup>
           {campaignContact && (
