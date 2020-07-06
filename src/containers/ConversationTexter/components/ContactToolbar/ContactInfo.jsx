@@ -104,11 +104,20 @@ export default class ContactInfo extends React.Component {
           {this.props.campaignContact.firstName}
         </span>
         <span>
-          Issues:
+          Documents:
           <ul>
-            {this.props.campaignContact.issues.map(issue => (
-              <li key={issue}>{issue}</li>
-            ))}
+            <li>
+              Script Library:{" "}
+              <a href="https://bit.ly/MCDPTextMonth1Script" target="new">
+                https://bit.ly/MCDPTextMonth1Script
+              </a>
+            </li>
+            <li>
+              Opt-Out Guide:{" "}
+              <a href="https://bit.ly/MCDPTextOptOutGuide" target="new">
+                https://bit.ly/MCDPTextOptOutGuide
+              </a>
+            </li>
           </ul>
         </span>
         <div className={css(styles.addSpace)}>

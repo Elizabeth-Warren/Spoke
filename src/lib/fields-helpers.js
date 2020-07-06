@@ -109,6 +109,15 @@ export function getFieldValue(contact, texter, fieldName) {
       return presetField.virtual(contact, texter);
     }
 
+    // We dont want to say "Hello Betty it is your friendly texter" if Betty already told us she had a wrong number
+    // So we say "Hello it is your friendly texter"
+    if (contact.issues) {
+      if (contact.issues.includes("Wrong Number")) {
+        console.log("This voter has been identified as wrong number");
+        return "";
+      }
+    }
+
     return contact[presetField.apiName];
   }
 

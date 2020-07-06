@@ -349,6 +349,7 @@ export class ConversationTexterContactComponent extends React.Component {
     const { campaign, texter } = this.props;
     const { contact } = this.props.data;
 
+    console.log("getMessageTextFromScript: ", contact);
     return script
       ? applyScript({
           contact,

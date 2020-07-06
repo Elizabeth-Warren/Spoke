@@ -3,6 +3,39 @@ import { mapFieldsToModel } from "src/server/api/lib/utils";
 import { zipToTimeZone } from "src/lib";
 import db from "src/server/db";
 import log from "src/server/log";
+import _ from "lodash";
+
+const LABELS_FOR_DISPLAY = [
+  "issueabt",
+  "issuehc",
+  "issuejobs",
+  "issueed",
+  "issueclm",
+  "issueecn",
+  "issuewi",
+  "issuefp",
+  "issuegc",
+  "issueim",
+  "issuecrp",
+  "issueagr",
+  "issueo",
+  "issuesgop",
+  "volyes",
+  "volml",
+  "volno",
+  "donyes",
+  "donno",
+  "donml",
+  "wrong"
+];
+const LABELS_PARTY_SUPPORT = [
+  "psd",
+  "psr",
+  "pssd",
+  "pssr",
+  "pud",
+  "swingissue"
+];
 
 export const resolvers = {
   Location: {
@@ -36,7 +69,6 @@ export const resolvers = {
     ),
     messageStatus: async (campaignContact, _, { loaders }) => {
       if (campaignContact.message_status) {
-        console.log("Getting that message status!!");
         return campaignContact.message_status;
       }
       // TODO: look it up via cacheing
@@ -208,28 +240,66 @@ export const resolvers = {
       campaignContact.tags;
     },
     issues: async campaignContact => {
-      // console.log("Getting ABCD");
       const messages = await r
         .table("message")
         .getAll(campaignContact.assignment_id, { index: "assignment_id" })
         .filter({
           contact_number: campaignContact.cell
         })
-        .orderBy("created_at");
-      const cannedResponseIds = messages
-        .map(message => message.canned_response_id)
-        .filter(x => x);
-      const uniqueCannedResponseIds = [...new Set(cannedResponseIds)];
-      const uniqueCannedResponeLabels = await Promise.all(
-        uniqueCannedResponseIds.map(id => db.CannedResponse.listLabels(id))
+        .orderBy(r.desc("created_at"));
+
+      const messagesWithCannedResponses = messages.filter(
+        message => message.canned_response_id
       );
-      const cannedResponeLabelStrings = uniqueCannedResponeLabels
-        .flat(1)
-        .map(label => label.displayValue);
-      const uniqueCannedResponeLabelStrings = [
-        ...new Set(cannedResponeLabelStrings)
-      ];
-      return uniqueCannedResponeLabelStrings;
+
+      const messagesWithCannedResponsesAndLabels = await Promise.all(
+        messagesWithCannedResponses.map(async message => ({
+          ...message,
+          labels: await db.CannedResponse.listLabels(message.canned_response_id)
+        }))
+      );
+
+      console.log(
+        "messagesWithCannedResponsesAndLabels: ",
+        messagesWithCannedResponsesAndLabels
+      );
+
+      const uniqueCannedResponeLabelStrings = new Set();
+
+      // First get the latest party support label
+      // In case party support changed during a conversion
+      for (let i = 0; i < messagesWithCannedResponsesAndLabels.length; i++) {
+        const message = messagesWithCannedResponsesAndLabels[i];
+        const slugs = message.labels.map(label => label.slug);
+        const displayValues = message.labels.map(label => label.displayValue);
+        const latestPartySupport = _.intersection(slugs, LABELS_PARTY_SUPPORT);
+
+        if (latestPartySupport.length > 0) {
+          // We only want the first one as the messages are sorted by latest first
+          displayValues.forEach(displayValue =>
+            uniqueCannedResponeLabelStrings.add(displayValue)
+          );
+          break;
+        }
+      }
+
+      // Now get any of the other relevant labels
+      messagesWithCannedResponsesAndLabels.forEach(message => {
+        const slugs = message.labels.map(label => label.slug);
+        const displayValues = message.labels.map(label => label.displayValue);
+        const labelsForDisplay = _.intersection(slugs, LABELS_FOR_DISPLAY);
+
+        if (labelsForDisplay.length > 0) {
+          displayValues.forEach(displayValue =>
+            uniqueCannedResponeLabelStrings.add(displayValue)
+          );
+        }
+      });
+
+      if (uniqueCannedResponeLabelStrings) {
+        return Array.from(uniqueCannedResponeLabelStrings);
+      }
+      return [];
     }
   }
 };

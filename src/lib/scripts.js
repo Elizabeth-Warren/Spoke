@@ -13,6 +13,9 @@ export function delimit(text) {
 
 export function applyScript({ script, contact, customFields, texter }) {
   const scriptFields = allFields(customFields);
+  console.log("scriptFields: ");
+  console.log(scriptFields);
+  console.log(contact);
   let appliedScript = script;
 
   scriptFields.forEach(field => {
@@ -21,6 +24,7 @@ export function applyScript({ script, contact, customFields, texter }) {
       re,
       getFieldValue(contact, texter, field)
     );
+    appliedScript = appliedScript.replace(/  +/g, " ");
   });
 
   return appliedScript;
